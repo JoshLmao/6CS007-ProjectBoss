@@ -7,7 +7,7 @@
 #include "Action_Follow.generated.h"
 
 /**
- * 
+ * GOAP action to move towards player
  */
 UCLASS()
 class PROJECTBOSS_API UAction_Follow : public UGOAPAction
@@ -15,8 +15,13 @@ class PROJECTBOSS_API UAction_Follow : public UGOAPAction
 	GENERATED_BODY()
 
 public:
+	// Amount of units to be within of the player to have reached the player
+	float FollowRadius = 50.0f;
+
+public:
 	UAction_Follow();
 
-//protected:
-//	void doAction(APawn* pawn) override;
+	bool doAction(APawn* pawn) override;
+
+	bool checkProceduralPrecondition(APawn* p) override;
 };

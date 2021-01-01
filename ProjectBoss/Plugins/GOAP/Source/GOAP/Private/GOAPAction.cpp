@@ -9,11 +9,12 @@
 	Published on 2020.
  */
 #include "GOAPAction.h"
+#include "..\Public\GOAPAction.h"
 
 
 UGOAPAction::UGOAPAction() {}
 
-void UGOAPAction::create_P_E() 
+void UGOAPAction::create_P_E()
 {
 	for (FAtom itP : preconditions) 
 	{
@@ -33,6 +34,16 @@ TArray<AActor*> UGOAPAction::getTargetsList(APawn* p)
 	if (p)
 		UGameplayStatics::GetAllActorsOfClass(p->GetWorld(), targetsType, actorsFound);
 	return actorsFound;
+}
+
+bool UGOAPAction::checkProceduralPrecondition(APawn* p)
+{
+	return true;
+}
+
+bool UGOAPAction::doAction(APawn* p)
+{
+	return true;
 }
 
 bool UGOAPAction::operator==(UGOAPAction& a) 

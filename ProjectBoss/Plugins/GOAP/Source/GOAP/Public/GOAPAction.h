@@ -83,12 +83,12 @@ public:
 	TArray<AActor*> getTargetsList(APawn* p);
 
 	// Optional function to check if it's possible to perform the action.
-	UFUNCTION(BlueprintImplementableEvent, Category = GOAPAction)
-	bool checkProceduralPrecondition(APawn* p);
+	UFUNCTION(Category = GOAPAction)
+	virtual bool checkProceduralPrecondition(APawn* p);
 
 	// Performs the action.
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = GOAPAction)
-	bool doAction(APawn* p);
+	UFUNCTION(BlueprintCallable, Category = GOAPAction)
+	virtual bool doAction(APawn* p);
 
 	// Generate action's preconditions and effects.
 	void create_P_E();
