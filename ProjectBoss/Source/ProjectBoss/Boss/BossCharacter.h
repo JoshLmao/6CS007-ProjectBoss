@@ -15,6 +15,27 @@ public:
 	// Sets default values for this character's properties
 	ABossCharacter();
 
+	/**  Variables  **/
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	TArray<UAnimMontage*> AttackAnimMontages;
+
+private:
+	bool m_isAttacking;
+	bool m_saveAttack;
+	int m_attackCount;
+
+	/**  Events  **/
+public:
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void ComboAttackSave();
+	
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void ResetCombo();
+
+	/**  Methods  **/
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -26,4 +47,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	/// <summary>
+	/// Executes a melee attack
+	/// </summary>
+	void PerformMeleeAttack();
 };

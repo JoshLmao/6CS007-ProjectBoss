@@ -12,15 +12,18 @@ UAction_Follow::UAction_Follow()
 {
 	// Initialize action with name, cost and target class
 	name = "follow";
-	cost = 50.0f;
+	cost = 0.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
+
+	FAtom preRange;
+	preRange.name = "in-range";
+	preRange.value = false;
+	preconditions.Add(preRange);
 
 	// Create effects to world state once action is complete
 	FAtom followEffect;
-	followEffect.name = "follow-player";
+	followEffect.name = "in-range";
 	followEffect.value = true;
-
-	// Add effects
 	effects.Add(followEffect);
 }
 

@@ -9,13 +9,15 @@ ABossCharacter::ABossCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	m_attackCount = 0;
+	m_isAttacking = false;
+	m_saveAttack = false;
 }
 
 // Called when the game starts or when spawned
 void ABossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -33,3 +35,44 @@ void ABossCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 }
 
+void ABossCharacter::PerformMeleeAttack()
+{
+	if (m_isAttacking)
+	{
+		m_saveAttack = true;
+	}
+	else
+	{
+		m_isAttacking = true;
+
+		this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
+		m_attackCount++;
+		if (m_attackCount >= AttackAnimMontages.Num())
+		{
+			m_attackCount = 0;
+		}
+	}
+}
+
+void ABossCharacter::ComboAttackSave()
+{
+	if (m_saveAttack)
+	{
+		m_saveAttack = false;
+	}
+
+	this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
+
+	m_attackCount++;
+	if (m_attackCount >= AttackAnimMontages.Num())
+	{
+		m_attackCount = 0;
+	}
+}
+
+void ABossCharacter::ResetCombo()
+{
+	m_attackCount = 0;
+	m_saveAttack = false;
+	m_isAttacking = false;
+}

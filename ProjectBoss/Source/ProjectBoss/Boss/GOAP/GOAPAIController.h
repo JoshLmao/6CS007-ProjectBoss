@@ -21,4 +21,9 @@ public:
 
 protected:
 	virtual void Tick(float deltaTime) override;
+
+private:
+	FAtom CreateAtom(FString name, bool val);
+
+	void PrintCurrentPlan(TArray<UGOAPAction*> plan);
 };
