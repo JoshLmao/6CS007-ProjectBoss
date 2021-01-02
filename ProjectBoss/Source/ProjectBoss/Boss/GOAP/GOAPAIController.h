@@ -7,7 +7,7 @@
 #include "GOAPAIController.generated.h"
 
 /**
- * 
+ * Overall GOAP AI controller that sets goals to get a plan for the boss to execute
  */
 UCLASS()
 class PROJECTBOSS_API AGOAPAIController : public AGOAPController
@@ -25,5 +25,5 @@ protected:
 private:
 	FAtom CreateAtom(FString name, bool val);
 
-	void PrintCurrentPlan(TArray<UGOAPAction*> plan);
+	void PrintCurrentGOAPPlan();
 };

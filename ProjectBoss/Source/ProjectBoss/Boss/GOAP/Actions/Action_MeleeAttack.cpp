@@ -12,7 +12,7 @@ UAction_MeleeAttack::UAction_MeleeAttack()
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	FAtom range;
-	range.name = "in-range";
+	range.name = "in-melee-range";
 	range.value = true;
 	preconditions.Add(range);
 	FAtom preDmg;
@@ -24,16 +24,17 @@ UAction_MeleeAttack::UAction_MeleeAttack()
 	dmgPlayer.name = "damage-player";
 	dmgPlayer.value = true;
 	effects.Add(dmgPlayer);
+	FAtom inRange;
+	inRange.name = "in-melee-range";
+	inRange.value = false;
+	effects.Add(inRange);
 }
 
-bool UAction_MeleeAttack::checkProceduralPrecondition(APawn* p)
+bool UAction_MeleeAttack::checkProceduralPrecondition(APawn* pawn)
 {
-	Super::checkProceduralPrecondition(p);
+	Super::checkProceduralPrecondition(pawn);
 
-	if (getTarget())
-		return true;
-
-	TArray<AActor*> targets = getTargetsList(p);
+	TArray<AActor*> targets = getTargetsList(pawn);
 	if (targets.Num() <= 0)
 	{
 		return false;
@@ -46,12 +47,11 @@ bool UAction_MeleeAttack::checkProceduralPrecondition(APawn* p)
 		if (bossChar)
 		{
 			setTarget(targets[i]);
-			UE_LOG(LogTemp, Log, TEXT("Set Target of MeleeAttack!"));
-			return true;
+			//UE_LOG(LogTemp, Log, TEXT("Set Target of MeleeAttack!"));
 		}
 	}
 
-	return false;
+	return true;
 }
 
 bool UAction_MeleeAttack::doAction(APawn* pawn)
@@ -67,15 +67,8 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 	ABossCharacter* bossChar = Cast<ABossCharacter>(pawn);
 	if (bossChar)
 	{
-		/*float dist = FVector::Dist(bossChar->GetActorLocation(), targetActor->GetActorLocation());
-		if (dist > 50.0f)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Out of range to melee attack player!"));
-			return false;
-		}*/
-
 		bossChar->PerformMeleeAttack();
-		return true;
+		return true; // completed action
 	}
 
 	return false;

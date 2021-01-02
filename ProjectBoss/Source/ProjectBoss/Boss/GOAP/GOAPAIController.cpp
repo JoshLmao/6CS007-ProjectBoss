@@ -2,18 +2,27 @@
 
 
 #include "GOAPAIController.h"
+#pragma region AllActionsInclude
+#include "Actions/Action_Wait.h"
 #include "Actions/Action_Follow.h"
 #include "Actions/Action_MeleeAttack.h"
+#include "Actions/Action_KnifeFury.h"
+#pragma endregion
 
 AGOAPAIController::AGOAPAIController()
 {
 	// Create current world state
-	currentWorld.Add(CreateAtom("in-range", false));
+	currentWorld.Add(CreateAtom("in-melee-range", false));
+	currentWorld.Add(CreateAtom("in-medium-range", false));
 	currentWorld.Add(CreateAtom("damage-player", false));
+	currentWorld.Add(CreateAtom("is-player-alive", true));
+	currentWorld.Add(CreateAtom("knife-fury-available", true));
 
 	// Add array of actions available to AI
+	actions.Add(UAction_Wait::StaticClass());
 	actions.Add(UAction_Follow::StaticClass());
 	actions.Add(UAction_MeleeAttack::StaticClass());
+	actions.Add(UAction_KnifeFury::StaticClass());
 }
 
 void AGOAPAIController::BeginPlay()
@@ -21,9 +30,8 @@ void AGOAPAIController::BeginPlay()
 	Super::BeginPlay();
 
 	// Create desired world state
-	FAtom goal = CreateAtom("damage-player", true);
 	TArray<FAtom> goals;
-	goals.Add(goal);
+	goals.Add(CreateAtom("damage-player", true));
 
 	setGoal(goals);
 }
@@ -32,15 +40,12 @@ void AGOAPAIController::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-	// Every tick, execute GOAP
+	// Every tick, execute GOAP to create a plan
 	bool success = executeGOAP();
-	TArray<UGOAPAction*> currentPlan = getPlan();
+	
 	if (success)
 	{
-		if (currentPlan.Num() > 0)
-		{
-			PrintCurrentPlan(currentPlan);
-		}
+		PrintCurrentGOAPPlan();
 	}
 	else
 	{
@@ -58,13 +63,18 @@ FAtom AGOAPAIController::CreateAtom(FString name, bool val)
 	return atm;
 }
 
-void AGOAPAIController::PrintCurrentPlan(TArray<UGOAPAction*> goapPlan)
+void AGOAPAIController::PrintCurrentGOAPPlan()
 {
+	TArray<UGOAPAction*> goapPlan = getPlan();
+
+	if (goapPlan.Num() <= 0)
+		return;
+
 	FString planString = "Plan: ";
-	for (int i = 0; i < goapPlan.Num(); i++)
+	for (int i = goapPlan.Num() - 1; i >= 0; i--)
 	{
 		planString += goapPlan[i]->name;
-		if (i < goapPlan.Num() - 1)
+		if (i >= 1)
 			planString += "->";
 	}
 

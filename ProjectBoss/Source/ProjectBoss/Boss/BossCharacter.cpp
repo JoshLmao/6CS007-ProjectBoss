@@ -56,17 +56,18 @@ void ABossCharacter::PerformMeleeAttack()
 
 void ABossCharacter::ComboAttackSave()
 {
+	// Only combo if saveAttack has been set to true (called PerformMeleeAttack again)
 	if (m_saveAttack)
 	{
 		m_saveAttack = false;
-	}
 
-	this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
+		this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
 
-	m_attackCount++;
-	if (m_attackCount >= AttackAnimMontages.Num())
-	{
-		m_attackCount = 0;
+		m_attackCount++;
+		if (m_attackCount >= AttackAnimMontages.Num())
+		{
+			m_attackCount = 0;
+		}
 	}
 }
 
