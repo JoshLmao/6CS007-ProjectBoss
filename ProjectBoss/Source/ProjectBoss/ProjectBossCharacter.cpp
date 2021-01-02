@@ -57,8 +57,11 @@ void AProjectBossCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
+	// Setup move forward & backward functions
 	PlayerInputComponent->BindAxis("MoveForward", this, &AProjectBossCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AProjectBossCharacter::MoveRight);
+
+	PlayerInputComponent->BindAction("BasicAttack", IE_Released, this, &AProjectBossCharacter::PerformMeleeAttack);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -84,12 +87,12 @@ void AProjectBossCharacter::OnResetVR()
 
 void AProjectBossCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		Jump();
+	Jump();
 }
 
 void AProjectBossCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		StopJumping();
+	StopJumping();
 }
 
 void AProjectBossCharacter::TurnAtRate(float Rate)
@@ -131,4 +134,50 @@ void AProjectBossCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void AProjectBossCharacter::PerformMeleeAttack()
+{
+	if (AttackAnimMontages.Num() <= 0)
+		return;
+
+	if (m_isAttacking)
+	{
+		m_saveAttack = true;
+	}
+	else
+	{
+		m_isAttacking = true;
+
+		this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
+		m_attackCount++;
+		if (m_attackCount >= AttackAnimMontages.Num())
+		{
+			m_attackCount = 0;
+		}
+	}
+}
+
+void AProjectBossCharacter::ComboAttackSave()
+{
+	if (AttackAnimMontages.Num() <= 0)
+		return;
+
+	if (m_saveAttack)
+	{
+		m_saveAttack = false;
+
+		this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
+
+		m_attackCount++;
+		if (m_attackCount >= AttackAnimMontages.Num())
+			m_attackCount = 0;
+	}
+}
+
+void AProjectBossCharacter::ResetCombo()
+{
+	m_isAttacking = false;
+	m_saveAttack = false;
+	m_attackCount = 0;
 }
