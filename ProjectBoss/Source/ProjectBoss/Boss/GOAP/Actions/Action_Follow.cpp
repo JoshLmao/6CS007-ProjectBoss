@@ -65,11 +65,15 @@ bool UAction_Follow::doAction(APawn* aiCharPawn)
 	AAIController* controller = Cast<AAIController>(aiCharPawn->GetController());
 	if (controller)
 	{
-		// Look AI towards player
+		// Rotate AI base model towards player
 		FRotator lookAtRotation = UKismetMathLibrary::FindLookAtRotation(aiCharPawn->GetActorLocation(), targetActor->GetActorLocation());
 		FRotator finalRot = aiCharPawn->GetActorRotation();
 		finalRot.Yaw = lookAtRotation.Yaw + -90.0f;
 		aiCharPawn->SetActorRotation(finalRot);
+		
+		// Set AIController Control Rotation (head look rotation) to be at player
+		finalRot.Yaw = 180 + finalRot.Yaw;
+		aiCharPawn->GetController()->SetControlRotation(finalRot);
 		
 		// Move AI to player
 		EPathFollowingRequestResult::Type type = controller->MoveToActor(targetActor, FollowRadius);
