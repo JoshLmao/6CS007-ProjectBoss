@@ -26,6 +26,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	class UCapsuleComponent* PoleColliderComponent;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseTurnRate;
@@ -34,20 +37,47 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float MeleeAttackDamageAmount;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AbilityOneTotalCooldown;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AbilityOneRadius;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AbilityOneDamageAmount;
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	float AbilOneCurrentCd;
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	TArray<class UAnimMontage*> AttackAnimMontages;
 
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	TArray<class UAnimMontage*> AbilityOneMontages;
+
 private:
 	bool m_isAttacking;
+	bool m_hasAttackedThisSwing;
 	bool m_saveAttack;
 	int m_attackCount;
+
+	/// <summary>
+	/// Disables any walking movement of the character
+	/// </summary>
+	bool m_disableLocomotionMovement;
 
 	/*
 	 * Methods 
 	 */
 public:
 	void PerformMeleeAttack();
+	void PerformAbilityOne();
+	
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void AbilityOneForceGround();
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void AbilityOneLandDamage();
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void ComboAttackSave();
@@ -55,9 +85,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void ResetCombo();
 
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void FinishAbilityOne();
+
 protected:
-	/** Resets HMD orientation in VR. */
-	void OnResetVR();
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
@@ -77,17 +110,18 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-	/** Handler for when a touch input begins. */
-	void TouchStarted(ETouchIndex::Type FingerIndex, FVector Location);
-
-	/** Handler for when a touch input stops. */
-	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
-
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	// Called every frame
+	virtual void Tick(float deltaTime) override;
 	// End of APawn interface
 
+private:
+	UFUNCTION()
+	void OnPoleBeginOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnPoleEndOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

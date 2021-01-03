@@ -170,7 +170,6 @@ void AProjectBossCharacter::PerformMeleeAttack()
 	if (m_isAttacking)
 	{
 		m_saveAttack = true;
-		m_hasAttackedThisSwing = false;
 	}
 	else
 	{

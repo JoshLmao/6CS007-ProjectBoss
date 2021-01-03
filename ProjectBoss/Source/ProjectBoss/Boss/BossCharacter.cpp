@@ -12,6 +12,9 @@ ABossCharacter::ABossCharacter()
 	m_attackCount = 0;
 	m_isAttacking = false;
 	m_saveAttack = false;
+
+	TotalHealth = 2500.0f;
+	CurrentHealth = TotalHealth;
 }
 
 // Called when the game starts or when spawned
@@ -21,18 +24,33 @@ void ABossCharacter::BeginPlay()
 }
 
 // Called every frame
-void ABossCharacter::Tick(float DeltaTime)
+void ABossCharacter::Tick(float deltaTime)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(deltaTime);
 
 	
 }
 
 // Called to bind functionality to input
-void ABossCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ABossCharacter::SetupPlayerInputComponent(UInputComponent* playerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	Super::SetupPlayerInputComponent(playerInputComponent);
 
+}
+
+float ABossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& damageEvent, class AController* eventInstigator, AActor* damageCauser)
+{
+	float damage = Super::TakeDamage(damageAmount, damageEvent, eventInstigator, damageCauser);
+
+	CurrentHealth -= damage;
+
+	UE_LOG(LogTemp, Log, TEXT("Boss Health: %f"), CurrentHealth);
+	if (CurrentHealth <= 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Boss has died!"));
+	}
+
+	return damage;
 }
 
 void ABossCharacter::PerformMeleeAttack()
@@ -76,4 +94,14 @@ void ABossCharacter::ResetCombo()
 	m_attackCount = 0;
 	m_saveAttack = false;
 	m_isAttacking = false;
+}
+
+float ABossCharacter::GetCurrentHealth()
+{
+	return CurrentHealth;
+}
+
+float ABossCharacter::GetTotalHealth()
+{
+	return TotalHealth;
 }

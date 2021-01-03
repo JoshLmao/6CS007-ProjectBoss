@@ -21,6 +21,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	TArray<UAnimMontage*> AttackAnimMontages;
 
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	float TotalHealth;
+	UPROPERTY(BlueprintReadOnly, Category = "Project Boss")
+	float CurrentHealth;
+
 private:
 	bool m_isAttacking;
 	bool m_saveAttack;
@@ -42,13 +47,20 @@ protected:
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float deltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	// Called when this enemy takes damage
+	virtual float TakeDamage(float damageAmount, struct FDamageEvent const& damageEvent, class AController* eventInstigator, AActor* damageCauser) override;
 
 	/// <summary>
 	/// Executes a melee attack
 	/// </summary>
 	void PerformMeleeAttack();
+
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	float GetCurrentHealth();
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	float GetTotalHealth();
 };
