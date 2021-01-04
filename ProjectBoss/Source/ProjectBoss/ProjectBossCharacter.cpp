@@ -12,12 +12,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "Boss\BossCharacter.h"
 #include "Components/SphereComponent.h"
+#include "Player\CapsuleAOEDamage.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProjectBossCharacter
 
 AProjectBossCharacter::AProjectBossCharacter()
 {
+	AdvAttackDamageAmount = 250.0f;
+	AdvAttackCurrentCd = 0.0f;
+	AdvAttackTotalCooldown = 0.0f;
 	AbilityOneTotalCooldown = 10.0f;
 	AbilityOneRadius = 500.0f;
 	AbilOneCurrentCd = 0.0f;
@@ -94,6 +98,7 @@ void AProjectBossCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 	// Listen to button release for the basic melee attack
 	PlayerInputComponent->BindAction("BasicAttack", IE_Released, this, &AProjectBossCharacter::PerformMeleeAttack);
+	PlayerInputComponent->BindAction("AdvancedAttack", IE_Released, this, &AProjectBossCharacter::PerformAdvancedAttack);
 	// Listen for Ability OnReleased button press
 	PlayerInputComponent->BindAction("AbilityOne", IE_Released, this, &AProjectBossCharacter::PerformAbilityOne);
 }
@@ -113,6 +118,9 @@ void AProjectBossCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
+	// Update Cooldown variables
+	if (AdvAttackCurrentCd >= 0)
+		AdvAttackCurrentCd -= deltaTime;
 	if (AbilOneCurrentCd >= 0)
 		AbilOneCurrentCd -= deltaTime;
 }
@@ -214,27 +222,71 @@ void AProjectBossCharacter::ResetCombo()
 	m_hasAttackedThisSwing = false;
 }
 
+// RMB Advanced Attack
+void AProjectBossCharacter::PerformAdvancedAttack()
+{
+	if (!AdvancedAttackMontage)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No Montage set for AdvancedAttack"));
+		return;
+	}
+
+	if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
+	{
+		UE_LOG(LogTemp, Log, TEXT("Using Advanced Ability"));
+		
+		AdvAttackCurrentCd = AdvAttackTotalCooldown;
+		float playDuration = this->PlayAnimMontage(AdvancedAttackMontage);
+		if (playDuration <= 0.0f)
+			UE_LOG(LogTemp, Error, TEXT("Unable to play AdvancedAttackMontage"));
+	}
+}
+
+void AProjectBossCharacter::AdvancedAttackLandDamage()
+{
+	// Spawn AOE damage collider and configure
+	ACapsuleAOEDamage* dmgCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), FActorSpawnParameters());
+	float aoeHalfHeight = 250.0f;
+	dmgCollider->ConfigureDamage(AdvAttackDamageAmount, GetController(), this);
+	dmgCollider->ConfigureCapsule(50.0f, aoeHalfHeight);
+	dmgCollider->SetLifeSpan(0.25f);
+
+	FVector capsuleSpawnLoc = GetActorLocation() + (GetActorForwardVector() * aoeHalfHeight);
+	FRotator capsuleSpawnRot = FRotator(90.0f, GetActorRotation().Yaw, 0);
+	dmgCollider->SetActorLocation(capsuleSpawnLoc);
+	dmgCollider->SetActorRotation(capsuleSpawnRot);
+
+	// Draw additional debug capsule for debug
+	DrawDebugCapsule(GetWorld(), capsuleSpawnLoc, aoeHalfHeight, 50.0f, capsuleSpawnRot.Quaternion(), FColor::Green, false, 1.0f, 0, 2.0f);
+}
+
 void AProjectBossCharacter::PerformAbilityOne()
 {
 	// Start of AbilityOne to slam the ground
 	if (AbilityOneMontages.Num() <= 0)
 	{
-		UE_LOG(LogTemp, Log, TEXT("No AbilityOneMontage has been set!"));
+		UE_LOG(LogTemp, Error, TEXT("No AbilityOneMontage has been set!"));
 		return;
 	}
 
 	// If not on cooldown & is in air
 	if (AbilOneCurrentCd <= 0 && GetMovementComponent()->IsFalling())
 	{
-		UE_LOG(LogTemp, Log, TEXT("Using AbilityOne."));
+		UE_LOG(LogTemp, Log, TEXT("Using AbilityOne"));
 
+		// Set ability on cooldown
 		AbilOneCurrentCd = AbilityOneTotalCooldown;
-
 		m_disableLocomotionMovement = true;
 
+		// Play montage and check it's playing
 		float playDuration = this->PlayAnimMontage(AbilityOneMontages[0]);
 		if (playDuration <= 0.0f)
 			UE_LOG(LogTemp, Error, TEXT("Unable to play AbilityOneMontage"));
+
+		// Apply additional double jump
+		UCharacterMovementComponent* movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
+		if (movement)
+			LaunchCharacter(FVector(0, 0, movement->JumpZVelocity), false, true);
 	}
 }
 
@@ -249,30 +301,18 @@ void AProjectBossCharacter::AbilityOneForceGround()
 void AProjectBossCharacter::AbilityOneLandDamage()
 {
 	// Once slam has landed on ground
-	DrawDebugSphere(GetWorld(), this->GetActorLocation() + FVector(0, 0, -50.0f), AbilityOneRadius, 20.0f, FColor::Green, false, 5.0f, 0, 1.0f);
-
-	TArray<AActor*> actorsFound;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABossCharacter::StaticClass(), actorsFound);
-	if (actorsFound.Num() > 0)
-	{
-		AActor* enemyBoss = actorsFound[0];
-		float dist = FVector::Dist(this->GetActorLocation(), enemyBoss->GetActorLocation());
-		if (dist <= AbilityOneRadius)
-		{
-			// In Range
-			UE_LOG(LogTemp, Log, TEXT("EnemyBoss in range of AbilityOne. Dealing damage!"));
-			
-			FDamageEvent dmgEvent;
-			enemyBoss->TakeDamage(AbilityOneDamageAmount, dmgEvent, GetController(), this);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("EnemyBoss is '%f' units from player"), dist);
-		}
-	}
-
 	this->PlayAnimMontage(AbilityOneMontages[2]);
 
+	FVector colliderLocation = this->GetActorLocation() + FVector(0, 0, -50.0f);
+
+	ACapsuleAOEDamage* aoeCapsuleCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), FActorSpawnParameters());
+	aoeCapsuleCollider->ConfigureDamage(AbilityOneDamageAmount, GetController(), this);
+	aoeCapsuleCollider->ConfigureCapsule(AbilityOneRadius, AbilityOneRadius);
+	aoeCapsuleCollider->SetActorLocation(colliderLocation);
+	aoeCapsuleCollider->SetLifeSpan(0.25f);
+
+	// Draw additional debug capsule for debug
+	DrawDebugSphere(GetWorld(), colliderLocation, AbilityOneRadius, 20.0f, FColor::Green, false, 1.0f, 0, 2.0f);
 }
 
 void AProjectBossCharacter::FinishAbilityOne()
@@ -287,6 +327,7 @@ void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedCo
 	if (OtherActor->IsA(ABossCharacter::StaticClass()))
 	{
 		//UE_LOG(LogTemp, Log, TEXT("Pole collided with '%s'"), *OtherActor->GetName());
+		// Apply damage if pole collision happens during attacking
 		if (m_isAttacking && !m_hasAttackedThisSwing)
 		{
 			m_hasAttackedThisSwing = true;
@@ -304,4 +345,5 @@ void AProjectBossCharacter::OnPoleEndOverlap(UPrimitiveComponent* OverlappedComp
 		//UE_LOG(LogTemp, Log, TEXT("Pole finished colliding with '%s'"), *OtherActor->GetName());
 	}
 }
+
 

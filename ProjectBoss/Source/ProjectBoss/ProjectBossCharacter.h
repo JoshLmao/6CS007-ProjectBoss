@@ -37,9 +37,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
+	// LMB Basic Attack
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float MeleeAttackDamageAmount;
 
+	// RMB Advanced Attack
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AdvAttackTotalCooldown;
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	float AdvAttackCurrentCd;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AdvAttackDamageAmount;
+
+	// Q Ability One
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AbilityOneTotalCooldown;
 	UPROPERTY(EditAnywhere, Category = "Combat")
@@ -52,6 +62,9 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	TArray<class UAnimMontage*> AttackAnimMontages;
+
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	class UAnimMontage* AdvancedAttackMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	TArray<class UAnimMontage*> AbilityOneMontages;
@@ -71,9 +84,16 @@ private:
 	 * Methods 
 	 */
 public:
+	// LMB basic attack
 	void PerformMeleeAttack();
+	// RMB advanced attack
+	void PerformAdvancedAttack();
+	// Q ability
 	void PerformAbilityOne();
 	
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void AdvancedAttackLandDamage();
+
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AbilityOneForceGround();
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
