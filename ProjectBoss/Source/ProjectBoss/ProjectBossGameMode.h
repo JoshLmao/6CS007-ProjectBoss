@@ -13,6 +13,11 @@ class AProjectBossGameMode : public AGameModeBase
 
 public:
 	AProjectBossGameMode();
+
+	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AHUD> BP_HUD;
 };
 
 

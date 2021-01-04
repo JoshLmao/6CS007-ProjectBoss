@@ -6,6 +6,13 @@
 #include "GameFramework/Character.h"
 #include "ProjectBossCharacter.generated.h"
 
+UENUM()
+enum EStance
+{
+	Offensive UMETA(DisplayName = "Offensive"),
+	Evasive UMETA(DisplayName = "Evasive"),
+};
+
 UCLASS(config=Game)
 class AProjectBossCharacter : public ACharacter
 {
@@ -42,12 +49,12 @@ public:
 	float MeleeAttackDamageAmount;
 
 	// RMB Advanced Attack
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float AdvAttackTotalCooldown;
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	float AdvAttackCurrentCd;
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float AdvAttackDamageAmount;
+	float AdvAttackOffensiveDamageAmount;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AdvAttackOffensiveTotalCooldown;
 
 	// Q Ability One
 	UPROPERTY(EditAnywhere, Category = "Combat")
@@ -67,7 +74,16 @@ protected:
 	class UAnimMontage* AdvancedAttackMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	class UAnimMontage* AdvancedEvadeMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	TArray<class UAnimMontage*> AbilityOneMontages;
+
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	class UAnimMontage* AbilityOneEvasiveMontage;
+
+	UPROPERTY(VisibleAnywhere, Category = "Project Boss")
+	TEnumAsByte<EStance> CurrentStance;
 
 private:
 	bool m_isAttacking;
@@ -79,17 +95,23 @@ private:
 	/// Disables any walking movement of the character
 	/// </summary>
 	bool m_disableLocomotionMovement;
+	
+	FTimerHandle m_cloudwalkDelayTimer;
 
 	/*
 	 * Methods 
 	 */
 public:
+	EStance GetStance();
+
 	// LMB basic attack
 	void PerformMeleeAttack();
 	// RMB advanced attack
 	void PerformAdvancedAttack();
 	// Q ability
 	void PerformAbilityOne();
+	// E ability
+	void PerformAbilityTwo();
 	
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AdvancedAttackLandDamage();
@@ -98,6 +120,9 @@ public:
 	void AbilityOneForceGround();
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AbilityOneLandDamage();
+
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void AbilityOneEvasiveCloudwalk();
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void ComboAttackSave();
@@ -142,6 +167,9 @@ private:
 	void OnPoleBeginOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void OnPoleEndOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void CloudwalkDisable();
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

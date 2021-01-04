@@ -11,7 +11,8 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"GOAP",
-				"CoreUObject"
+				"CoreUObject",
+				"UMG"
 			]
 		}
 	]

@@ -19,15 +19,17 @@
 
 AProjectBossCharacter::AProjectBossCharacter()
 {
-	AdvAttackDamageAmount = 250.0f;
 	AdvAttackCurrentCd = 0.0f;
-	AdvAttackTotalCooldown = 0.0f;
+	AdvAttackOffensiveTotalCooldown = 10.0f;
+	AdvAttackOffensiveDamageAmount = 250.0f;
 	AbilityOneTotalCooldown = 10.0f;
 	AbilityOneRadius = 500.0f;
 	AbilOneCurrentCd = 0.0f;
 	AbilityOneDamageAmount = 100.0f;
 
 	m_hasAttackedThisSwing = false;
+
+	CurrentStance = EStance::Offensive;
 
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -101,6 +103,7 @@ void AProjectBossCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("AdvancedAttack", IE_Released, this, &AProjectBossCharacter::PerformAdvancedAttack);
 	// Listen for Ability OnReleased button press
 	PlayerInputComponent->BindAction("AbilityOne", IE_Released, this, &AProjectBossCharacter::PerformAbilityOne);
+	PlayerInputComponent->BindAction("AbilityTwo", IE_Released, this, &AProjectBossCharacter::PerformAbilityTwo);
 }
 
 void AProjectBossCharacter::BeginPlay()
@@ -170,6 +173,11 @@ void AProjectBossCharacter::MoveRight(float Value)
 	}
 }
 
+EStance AProjectBossCharacter::GetStance()
+{
+	return CurrentStance;
+}
+
 void AProjectBossCharacter::PerformMeleeAttack()
 {
 	if (AttackAnimMontages.Num() <= 0)
@@ -225,20 +233,43 @@ void AProjectBossCharacter::ResetCombo()
 // RMB Advanced Attack
 void AProjectBossCharacter::PerformAdvancedAttack()
 {
-	if (!AdvancedAttackMontage)
+	if (CurrentStance == EStance::Offensive)
 	{
-		UE_LOG(LogTemp, Error, TEXT("No Montage set for AdvancedAttack"));
-		return;
-	}
+		// Push staff at enemy.
+		if (!AdvancedAttackMontage)
+		{
+			UE_LOG(LogTemp, Error, TEXT("No Montage set for AdvancedAttack"));
+			return;
+		}
 
-	if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
+		if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
+		{
+			UE_LOG(LogTemp, Log, TEXT("Using Offensive advanced ability"));
+
+			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
+			float playDuration = this->PlayAnimMontage(AdvancedAttackMontage);
+			if (playDuration <= 0.0f)
+				UE_LOG(LogTemp, Error, TEXT("Unable to play AdvancedAttackMontage"));
+		}
+	}
+	else if (CurrentStance == EStance::Evasive)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Using Advanced Ability"));
-		
-		AdvAttackCurrentCd = AdvAttackTotalCooldown;
-		float playDuration = this->PlayAnimMontage(AdvancedAttackMontage);
-		if (playDuration <= 0.0f)
-			UE_LOG(LogTemp, Error, TEXT("Unable to play AdvancedAttackMontage"));
+		// Push staff into ground and leap
+		if (!AdvancedEvadeMontage)
+		{
+			UE_LOG(LogTemp, Error, TEXT("No montage set for AdvancedEvadeMonatge"));
+			return;
+		}
+
+		if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
+		{
+			UE_LOG(LogTemp, Log, TEXT("Using Evasive advanced ability"));
+
+			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
+			this->PlayAnimMontage(AdvancedEvadeMontage);
+
+			LaunchCharacter(FVector(0, 0, 900.0f), false, true);
+		}
 	}
 }
 
@@ -247,7 +278,7 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 	// Spawn AOE damage collider and configure
 	ACapsuleAOEDamage* dmgCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), FActorSpawnParameters());
 	float aoeHalfHeight = 250.0f;
-	dmgCollider->ConfigureDamage(AdvAttackDamageAmount, GetController(), this);
+	dmgCollider->ConfigureDamage(AdvAttackOffensiveDamageAmount, GetController(), this);
 	dmgCollider->ConfigureCapsule(50.0f, aoeHalfHeight);
 	dmgCollider->SetLifeSpan(0.25f);
 
@@ -262,31 +293,59 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 
 void AProjectBossCharacter::PerformAbilityOne()
 {
-	// Start of AbilityOne to slam the ground
-	if (AbilityOneMontages.Num() <= 0)
+	// Start of AbilityOne
+	if (CurrentStance == EStance::Offensive)
 	{
-		UE_LOG(LogTemp, Error, TEXT("No AbilityOneMontage has been set!"));
-		return;
+		// Thrust pole forward for damage and stun
+		if (AbilityOneMontages.Num() <= 0)
+		{
+			UE_LOG(LogTemp, Error, TEXT("No AbilityOneMontage has been set!"));
+			return;
+		}
+
+		// If not on cooldown & is in air
+		if (AbilOneCurrentCd <= 0 && GetMovementComponent()->IsFalling())
+		{
+			UE_LOG(LogTemp, Log, TEXT("Using AbilityOne Offensive"));
+
+			// Set ability on cooldown
+			AbilOneCurrentCd = AbilityOneTotalCooldown;
+			m_disableLocomotionMovement = true;
+
+			// Play montage and check it's playing
+			float playDuration = this->PlayAnimMontage(AbilityOneMontages[0]);
+			if (playDuration <= 0.0f)
+				UE_LOG(LogTemp, Error, TEXT("Unable to play AbilityOneMontage"));
+
+			// Apply additional double jump
+			UCharacterMovementComponent* movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
+			if (movement)
+				LaunchCharacter(FVector(0, 0, movement->JumpZVelocity), false, true);
+		}
 	}
-
-	// If not on cooldown & is in air
-	if (AbilOneCurrentCd <= 0 && GetMovementComponent()->IsFalling())
+	else if (CurrentStance == EStance::Evasive)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Using AbilityOne"));
+		// Evasive cloudwalk ability
+		if (!AbilityOneEvasiveMontage)
+		{
+			UE_LOG(LogTemp, Error, TEXT("AbilityOneEvasiveMontage not set!"));
+			return;
+		}
 
-		// Set ability on cooldown
-		AbilOneCurrentCd = AbilityOneTotalCooldown;
-		m_disableLocomotionMovement = true;
+		if (AbilOneCurrentCd <= 0 && GetMovementComponent()->IsFalling())
+		{
+			UE_LOG(LogTemp, Log, TEXT("Using AbilityOne Evasive Cloudwalk"));
 
-		// Play montage and check it's playing
-		float playDuration = this->PlayAnimMontage(AbilityOneMontages[0]);
-		if (playDuration <= 0.0f)
-			UE_LOG(LogTemp, Error, TEXT("Unable to play AbilityOneMontage"));
+			AbilOneCurrentCd = AbilityOneTotalCooldown;
 
-		// Apply additional double jump
-		UCharacterMovementComponent* movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
-		if (movement)
-			LaunchCharacter(FVector(0, 0, movement->JumpZVelocity), false, true);
+			// Apply additional double jump
+			UCharacterMovementComponent* movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
+			if (movement)
+				LaunchCharacter(FVector(0, 0, movement->JumpZVelocity), false, true);
+
+			// Play double jump montage
+			this->PlayAnimMontage(AbilityOneEvasiveMontage);
+		}
 	}
 }
 
@@ -322,6 +381,42 @@ void AProjectBossCharacter::FinishAbilityOne()
 	m_disableLocomotionMovement = false;
 }
 
+void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
+{
+	// Walk in the air for 1 second
+	GetCharacterMovement()->GravityScale = 0.0f;
+	GetCharacterMovement()->AirControl = 1.0f;
+
+	float cloudDurationSecs = 1.0f;
+	GetWorldTimerManager().SetTimer(m_cloudwalkDelayTimer, this, &AProjectBossCharacter::CloudwalkDisable, cloudDurationSecs, false);
+}
+
+void AProjectBossCharacter::CloudwalkDisable()
+{
+	UE_LOG(LogTemp, Log, TEXT("Disabling Evasive Cloudwalk"));
+	GetCharacterMovement()->GravityScale = 1.0f;
+	GetCharacterMovement()->AirControl = 0.2f;
+}
+
+void AProjectBossCharacter::PerformAbilityTwo()
+{
+	switch (CurrentStance)
+	{
+		case EStance::Offensive:
+			CurrentStance = EStance::Evasive;
+			UE_LOG(LogTemp, Log, TEXT("Current stance is Evasive"));
+			break;
+		case EStance::Evasive:
+			CurrentStance = EStance::Offensive;
+			UE_LOG(LogTemp, Log, TEXT("Current stance is Offensive"));
+			break;
+		default:
+			UE_LOG(LogTemp, Error, TEXT("Unable to switch stance, current unknown stance"));
+			break;
+	}
+	
+}
+
 void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->IsA(ABossCharacter::StaticClass()))
@@ -345,5 +440,3 @@ void AProjectBossCharacter::OnPoleEndOverlap(UPrimitiveComponent* OverlappedComp
 		//UE_LOG(LogTemp, Log, TEXT("Pole finished colliding with '%s'"), *OtherActor->GetName());
 	}
 }
-
-

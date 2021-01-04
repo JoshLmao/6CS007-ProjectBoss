@@ -3,6 +3,7 @@
 #include "ProjectBossGameMode.h"
 #include "ProjectBossCharacter.h"
 #include "UObject/ConstructorHelpers.h"
+#include "UI/BossFightHUD.h"
 
 AProjectBossGameMode::AProjectBossGameMode()
 {
@@ -12,4 +13,13 @@ AProjectBossGameMode::AProjectBossGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+
+	HUDClass = BP_HUD;
+}
+
+void AProjectBossGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Listen to death events from player and boss
 }
