@@ -13,6 +13,7 @@
 #include "Boss\BossCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Player\CapsuleAOEDamage.h"
+#include "Player/CloudwalkCloud.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProjectBossCharacter
@@ -321,6 +322,8 @@ void AProjectBossCharacter::PerformAbilityOne()
 			UCharacterMovementComponent* movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
 			if (movement)
 				LaunchCharacter(FVector(0, 0, movement->JumpZVelocity), false, true);
+
+			m_isPerformingAbility = true;
 		}
 	}
 	else if (CurrentStance == EStance::Evasive)
@@ -345,6 +348,8 @@ void AProjectBossCharacter::PerformAbilityOne()
 
 			// Play double jump montage
 			this->PlayAnimMontage(AbilityOneEvasiveMontage);
+
+			m_isPerformingAbility = true;
 		}
 	}
 }
@@ -355,6 +360,7 @@ void AProjectBossCharacter::AbilityOneForceGround()
 	GetCharacterMovement()->Velocity += FVector(0, 0, -2500.0f);
 
 	this->PlayAnimMontage(AbilityOneMontages[1]);
+	m_isPerformingAbility = true;
 }
 
 void AProjectBossCharacter::AbilityOneLandDamage()
@@ -372,6 +378,8 @@ void AProjectBossCharacter::AbilityOneLandDamage()
 
 	// Draw additional debug capsule for debug
 	DrawDebugSphere(GetWorld(), colliderLocation, AbilityOneRadius, 20.0f, FColor::Green, false, 1.0f, 0, 2.0f);
+	
+	m_isPerformingAbility = false;
 }
 
 void AProjectBossCharacter::FinishAbilityOne()
@@ -384,22 +392,40 @@ void AProjectBossCharacter::FinishAbilityOne()
 void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
 {
 	// Walk in the air for 1 second
-	GetCharacterMovement()->GravityScale = 0.0f;
-	GetCharacterMovement()->AirControl = 1.0f;
+
+	// Create walkable cloud below player's feet to enable "cloudwalking"
+	AActor* cloud = GetWorld()->SpawnActor<ACloudwalkCloud>(ACloudwalkCloud::StaticClass(), FActorSpawnParameters());
+	cloud->SetActorLocation(GetActorLocation() + FVector(0, 0, -GetCapsuleComponent()->GetScaledCapsuleHalfHeight()));
+	Cast<ACloudwalkCloud>(cloud)->SetTrackingArray(&m_spawnedClouds);
+	m_spawnedClouds.Add(cloud);
 
 	float cloudDurationSecs = 1.0f;
 	GetWorldTimerManager().SetTimer(m_cloudwalkDelayTimer, this, &AProjectBossCharacter::CloudwalkDisable, cloudDurationSecs, false);
+
+	m_isPerformingAbility = true;
 }
 
 void AProjectBossCharacter::CloudwalkDisable()
 {
 	UE_LOG(LogTemp, Log, TEXT("Disabling Evasive Cloudwalk"));
-	GetCharacterMovement()->GravityScale = 1.0f;
-	GetCharacterMovement()->AirControl = 0.2f;
+
+	if (m_spawnedClouds.Num() > 0)
+	{
+		for (int i = 0; i < m_spawnedClouds.Num(); i++)
+		{
+			GetWorld()->DestroyActor(m_spawnedClouds[i]);
+		}
+	}
+
+	m_isPerformingAbility = false;
 }
 
 void AProjectBossCharacter::PerformAbilityTwo()
 {
+	// Cant change stance when performing abilities
+	if (m_isPerformingAbility)
+		return;
+
 	switch (CurrentStance)
 	{
 		case EStance::Offensive:

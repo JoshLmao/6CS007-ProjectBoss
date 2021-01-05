@@ -89,6 +89,7 @@ private:
 	bool m_isAttacking;
 	bool m_hasAttackedThisSwing;
 	bool m_saveAttack;
+	bool m_isPerformingAbility;
 	int m_attackCount;
 
 	/// <summary>
@@ -97,6 +98,7 @@ private:
 	bool m_disableLocomotionMovement;
 	
 	FTimerHandle m_cloudwalkDelayTimer;
+	TArray<AActor*> m_spawnedClouds;
 
 	/*
 	 * Methods 
