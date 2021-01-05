@@ -15,7 +15,7 @@ void UPlayerWidget::NativeConstruct()
 
 float UPlayerWidget::BeautifyNumber(float num)
 {
-	float val = FMath::RoundHalfFromZero(num);
+	float val = FMath::RoundHalfToZero(10.0 * num) / 10;
 	if (val < 0)
 		val = 0;
 	return val;
@@ -23,6 +23,10 @@ float UPlayerWidget::BeautifyNumber(float num)
 
 float UPlayerWidget::GetBasicAttackCooldown()
 {
+	if (m_player)
+	{
+		return BeautifyNumber(m_player->MeleeAtkCurrentCd);
+	}
 	return 0.0f;
 }
 
@@ -51,4 +55,30 @@ EStance UPlayerWidget::GetStance()
 		return m_player->GetStance();
 	}
 	return EStance::Offensive;
+}
+
+float UPlayerWidget::GetCurrentHealth()
+{
+	if (m_player)
+		return m_player->GetCurrentHealth();
+	return 0.0f;
+}
+
+float UPlayerWidget::GetTotalHealth()
+{
+	if (m_player)
+		return m_player->GetTotalHealth();
+	return 0.0f;
+}
+
+float UPlayerWidget::GetCurrentHealthAsPercent()
+{
+	if (m_player)
+	{
+		float current = m_player->GetCurrentHealth();
+		float total = m_player->GetTotalHealth();
+		float result = current / total;
+		return result;
+	}
+	return 0.0f;
 }

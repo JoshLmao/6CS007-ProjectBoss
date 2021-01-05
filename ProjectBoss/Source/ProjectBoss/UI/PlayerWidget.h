@@ -28,6 +28,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Player")
 	enum EStance GetStance();
 
+	UFUNCTION(BlueprintCallable, Category = "Player")
+	float GetCurrentHealth();
+	UFUNCTION(BlueprintCallable, Category = "Player")
+	float GetTotalHealth();
+
+	UFUNCTION(BlueprintCallable, Category = "Player")
+	float GetCurrentHealthAsPercent();
+
+
 protected:
 	virtual void NativeConstruct() override;
 

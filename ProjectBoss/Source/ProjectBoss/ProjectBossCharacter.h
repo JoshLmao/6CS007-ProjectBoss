@@ -47,6 +47,10 @@ public:
 	// LMB Basic Attack
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float MeleeAttackDamageAmount;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float MeleeAtkCurrentCd;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float MeleeAttackCooldown;
 
 	// RMB Advanced Attack
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
@@ -85,6 +89,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Project Boss")
 	TEnumAsByte<EStance> CurrentStance;
 
+	float CurrentHealth;
+	float TotalHealth;
+
 private:
 	bool m_isAttacking;
 	bool m_hasAttackedThisSwing;
@@ -114,6 +121,9 @@ public:
 	void PerformAbilityOne();
 	// E ability
 	void PerformAbilityTwo();
+
+	float GetCurrentHealth();
+	float GetTotalHealth();
 	
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AdvancedAttackLandDamage();
@@ -157,7 +167,6 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// Called every frame

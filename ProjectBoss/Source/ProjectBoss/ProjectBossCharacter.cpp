@@ -20,9 +20,15 @@
 
 AProjectBossCharacter::AProjectBossCharacter()
 {
+	TotalHealth = 2000.0f;
+	CurrentHealth = TotalHealth;
+
+	MeleeAttackCooldown = 1.0f;
+
 	AdvAttackCurrentCd = 0.0f;
 	AdvAttackOffensiveTotalCooldown = 10.0f;
 	AdvAttackOffensiveDamageAmount = 250.0f;
+
 	AbilityOneTotalCooldown = 10.0f;
 	AbilityOneRadius = 500.0f;
 	AbilOneCurrentCd = 0.0f;
@@ -123,6 +129,8 @@ void AProjectBossCharacter::Tick(float deltaTime)
 	Super::Tick(deltaTime);
 
 	// Update Cooldown variables
+	if (MeleeAtkCurrentCd >= 0)
+		MeleeAtkCurrentCd -= deltaTime;
 	if (AdvAttackCurrentCd >= 0)
 		AdvAttackCurrentCd -= deltaTime;
 	if (AbilOneCurrentCd >= 0)
@@ -192,9 +200,10 @@ void AProjectBossCharacter::PerformMeleeAttack()
 	else
 	{
 		m_isAttacking = true;
+		MeleeAtkCurrentCd = MeleeAttackCooldown;
 		UE_LOG(LogTemp, Log, TEXT("Player performs Melee Attack"));
 
-		this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
+		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 0.75f);
 
 		m_attackCount++;
 		if (m_attackCount >= AttackAnimMontages.Num())
@@ -212,9 +221,10 @@ void AProjectBossCharacter::ComboAttackSave()
 	if (m_saveAttack)
 	{
 		// Check montage is playing before confirming
-		float playDuration = this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
+		float playDuration = this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 0.75f);
 		if (playDuration > 0.0f)
 		{
+			MeleeAtkCurrentCd = MeleeAttackCooldown;
 			m_saveAttack = false;
 			m_attackCount++;
 			if (m_attackCount >= AttackAnimMontages.Num())
@@ -441,6 +451,16 @@ void AProjectBossCharacter::PerformAbilityTwo()
 			break;
 	}
 	
+}
+
+float AProjectBossCharacter::GetCurrentHealth()
+{
+	return CurrentHealth;
+}
+
+float AProjectBossCharacter::GetTotalHealth()
+{
+	return TotalHealth;
 }
 
 void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
