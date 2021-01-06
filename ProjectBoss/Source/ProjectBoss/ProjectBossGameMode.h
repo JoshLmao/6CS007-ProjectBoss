@@ -14,10 +14,17 @@ class AProjectBossGameMode : public AGameModeBase
 public:
 	AProjectBossGameMode();
 
-	virtual void BeginPlay() override;
-
+public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AHUD> BP_HUD;
+
+	AActor* Player;
+	AActor* Boss;
+
+protected:
+	virtual void BeginPlay() override;
+
+
 };
 
 

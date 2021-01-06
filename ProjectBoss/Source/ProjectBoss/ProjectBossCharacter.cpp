@@ -192,6 +192,9 @@ void AProjectBossCharacter::PerformMeleeAttack()
 	if (AttackAnimMontages.Num() <= 0)
 		return;
 
+	if (m_isPerformingAbility)
+		return;
+
 	if (m_isAttacking)
 	{
 		m_saveAttack = true;
@@ -244,6 +247,9 @@ void AProjectBossCharacter::ResetCombo()
 // RMB Advanced Attack
 void AProjectBossCharacter::PerformAdvancedAttack()
 {
+	if (m_isPerformingAbility)
+		return;
+
 	if (CurrentStance == EStance::Offensive)
 	{
 		// Push staff at enemy.
@@ -304,6 +310,9 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 
 void AProjectBossCharacter::PerformAbilityOne()
 {
+	if (m_isPerformingAbility)
+		return;
+
 	// Start of AbilityOne
 	if (CurrentStance == EStance::Offensive)
 	{
@@ -388,8 +397,6 @@ void AProjectBossCharacter::AbilityOneLandDamage()
 
 	// Draw additional debug capsule for debug
 	DrawDebugSphere(GetWorld(), colliderLocation, AbilityOneRadius, 20.0f, FColor::Green, false, 1.0f, 0, 2.0f);
-	
-	m_isPerformingAbility = false;
 }
 
 void AProjectBossCharacter::FinishAbilityOne()
@@ -397,6 +404,7 @@ void AProjectBossCharacter::FinishAbilityOne()
 	// Once ability has finished animation
 	UE_LOG(LogTemp, Log, TEXT("Finished AbilityOne"));
 	m_disableLocomotionMovement = false;
+	m_isPerformingAbility = false;
 }
 
 void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
@@ -484,5 +492,34 @@ void AProjectBossCharacter::OnPoleEndOverlap(UPrimitiveComponent* OverlappedComp
 	if (OtherActor->IsA(ABossCharacter::StaticClass()))
 	{
 		//UE_LOG(LogTemp, Log, TEXT("Pole finished colliding with '%s'"), *OtherActor->GetName());
+	}
+}
+
+void AProjectBossCharacter::OnDeath()
+{
+	UE_LOG(LogTemp, Log, TEXT("Player has died!"));
+
+	if (OnCharacterDied.IsBound())
+		OnCharacterDied.Broadcast();
+
+
+	DetachFromControllerPendingDestroy();
+
+	GetMovementComponent()->StopMovementImmediately();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	SetActorEnableCollision(true);
+	GetMesh()->SetCollisionProfileName("Ragdoll");
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->WakeAllRigidBodies();
+	GetMesh()->bBlendPhysics = true;
+
+	UCharacterMovementComponent* CharacterComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+	if (CharacterComp)
+	{
+		CharacterComp->StopMovementImmediately();
+		CharacterComp->DisableMovement();
+		CharacterComp->SetComponentTickEnabled(false);
 	}
 }

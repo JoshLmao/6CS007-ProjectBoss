@@ -2,6 +2,9 @@
 
 
 #include "BossCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
+
 
 // Sets default values
 ABossCharacter::ABossCharacter()
@@ -14,13 +17,15 @@ ABossCharacter::ABossCharacter()
 	m_saveAttack = false;
 
 	TotalHealth = 2500.0f;
-	CurrentHealth = TotalHealth;
 }
 
 // Called when the game starts or when spawned
 void ABossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetActorLabel("Kalari");
+	CurrentHealth = TotalHealth;
 }
 
 // Called every frame
@@ -48,6 +53,9 @@ float ABossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& 
 	if (CurrentHealth <= 0)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Boss has died!"));
+		CurrentHealth = 0;
+
+		OnDeath();
 	}
 
 	return damage;
@@ -104,4 +112,32 @@ float ABossCharacter::GetCurrentHealth()
 float ABossCharacter::GetTotalHealth()
 {
 	return TotalHealth;
+}
+
+void ABossCharacter::OnDeath()
+{
+	UE_LOG(LogTemp, Log, TEXT("BossCharacter has died!"));
+
+	if (OnCharacterDied.IsBound())
+		OnCharacterDied.Broadcast();
+
+	DetachFromControllerPendingDestroy();
+
+	GetMovementComponent()->StopMovementImmediately();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	SetActorEnableCollision(true);
+	GetMesh()->SetCollisionProfileName("Ragdoll");
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->WakeAllRigidBodies();
+	GetMesh()->bBlendPhysics = true;
+
+	UCharacterMovementComponent* CharacterComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+	if (CharacterComp)
+	{
+		CharacterComp->StopMovementImmediately();
+		CharacterComp->DisableMovement();
+		CharacterComp->SetComponentTickEnabled(false);
+	}
 }

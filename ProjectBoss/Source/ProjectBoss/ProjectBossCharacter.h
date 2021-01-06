@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "ProjectBossCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerDeathSignature);
+
 UENUM()
 enum EStance
 {
@@ -22,7 +24,7 @@ public:
 	AProjectBossCharacter();
 
 	/*
-	 * Variables
+	 *	VARIABLES
 	 */
 public:
 	/** Camera boom positioning the camera behind the character */
@@ -108,7 +110,15 @@ private:
 	TArray<AActor*> m_spawnedClouds;
 
 	/*
-	 * Methods 
+	*	EVENTS
+	*/
+public:
+	UPROPERTY(BlueprintAssignable)
+	FPlayerDeathSignature OnCharacterDied;
+
+
+	/*
+	 * METHODS 
 	 */
 public:
 	EStance GetStance();
@@ -180,6 +190,7 @@ private:
 	void OnPoleEndOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	void CloudwalkDisable();
+	void OnDeath();
 
 public:
 	/** Returns CameraBoom subobject **/

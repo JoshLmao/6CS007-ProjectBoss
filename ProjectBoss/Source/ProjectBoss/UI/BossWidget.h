@@ -27,6 +27,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Boss")
 	float GetCurrentHealthAsPercent();
 
+	UFUNCTION(BlueprintCallable, Category = "Boss")
+	ABossCharacter* GetBossCharacter();
+
 protected:
 	virtual void NativeConstruct() override;
 };

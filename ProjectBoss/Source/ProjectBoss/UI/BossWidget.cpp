@@ -38,3 +38,8 @@ float UBossWidget::GetCurrentHealthAsPercent()
 	}
 	return 0.0f;
 }
+
+ABossCharacter* UBossWidget::GetBossCharacter()
+{
+	return m_bossCharacter;
+}

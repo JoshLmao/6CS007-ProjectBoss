@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "BossCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBossDeathSignature);
+
 UCLASS()
 class PROJECTBOSS_API ABossCharacter : public ACharacter
 {
@@ -39,12 +41,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void ResetCombo();
 
+	UPROPERTY(BlueprintAssignable)
+	FBossDeathSignature OnCharacterDied;
+
 	/**  Methods  **/
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 public:	
 	// Called every frame
 	virtual void Tick(float deltaTime) override;
@@ -63,4 +63,11 @@ public:
 	float GetCurrentHealth();
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetTotalHealth();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+private:
+	void OnDeath();
 };
