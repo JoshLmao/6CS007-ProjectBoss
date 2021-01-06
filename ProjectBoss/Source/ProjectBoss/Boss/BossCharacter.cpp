@@ -4,6 +4,7 @@
 #include "BossCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "../ProjectBossCharacter.h"
 
 
 // Sets default values
@@ -14,9 +15,27 @@ ABossCharacter::ABossCharacter()
 
 	m_attackCount = 0;
 	m_isAttacking = false;
-	m_saveAttack = false;
+	m_saveAttack = false; 
+	m_dmgThisAttack = false;
 
 	TotalHealth = 2500.0f;
+	MeleeDamage = 50.0f;
+
+	LeftBladeCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("LeftBladeCollider"));
+	LeftBladeCollider->SetupAttachment(GetMesh());
+	LeftBladeCollider->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	LeftBladeCollider->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+	LeftBladeCollider->SetGenerateOverlapEvents(true);
+	LeftBladeCollider->OnComponentBeginOverlap.AddDynamic(this, &ABossCharacter::OnBladeBeginOverlap);
+	LeftBladeCollider->SetHiddenInGame(false);
+
+	RightBladeCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("RightBladeCollider"));
+	RightBladeCollider->SetupAttachment(GetMesh());
+	RightBladeCollider->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	RightBladeCollider->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+	RightBladeCollider->SetGenerateOverlapEvents(true);
+	RightBladeCollider->OnComponentBeginOverlap.AddDynamic(this, &ABossCharacter::OnBladeBeginOverlap);
+	RightBladeCollider->SetHiddenInGame(false);
 }
 
 // Called when the game starts or when spawned
@@ -26,6 +45,23 @@ void ABossCharacter::BeginPlay()
 
 	SetActorLabel("Kalari");
 	CurrentHealth = TotalHealth;
+
+	if (LeftBladeCollider)
+	{
+		LeftBladeCollider->AttachTo(GetMesh(), "sword_handle_l", EAttachLocation::SnapToTarget, false);
+		LeftBladeCollider->SetCapsuleHalfHeight(40.0f);
+		LeftBladeCollider->SetCapsuleRadius(10.0f);
+		LeftBladeCollider->AddLocalRotation(FRotator(90.0f, 0, 0));
+		LeftBladeCollider->AddLocalOffset(FVector(0, 0, -30.0f));
+	}
+	if (RightBladeCollider)
+	{
+		RightBladeCollider->AttachTo(GetMesh(), "sword_handle_r", EAttachLocation::SnapToTarget, false);
+		RightBladeCollider->SetCapsuleHalfHeight(40.0f);
+		RightBladeCollider->SetCapsuleRadius(10.0f);
+		RightBladeCollider->AddLocalRotation(FRotator(90.0f, 0, 0));
+		RightBladeCollider->AddLocalOffset(FVector(0, 0, 30.0f));
+	}
 }
 
 // Called every frame
@@ -86,6 +122,7 @@ void ABossCharacter::ComboAttackSave()
 	if (m_saveAttack)
 	{
 		m_saveAttack = false;
+		m_dmgThisAttack = false;
 
 		this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
 
@@ -102,6 +139,7 @@ void ABossCharacter::ResetCombo()
 	m_attackCount = 0;
 	m_saveAttack = false;
 	m_isAttacking = false;
+	m_dmgThisAttack = false;
 }
 
 float ABossCharacter::GetCurrentHealth()
@@ -139,5 +177,15 @@ void ABossCharacter::OnDeath()
 		CharacterComp->StopMovementImmediately();
 		CharacterComp->DisableMovement();
 		CharacterComp->SetComponentTickEnabled(false);
+	}
+}
+
+void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->IsA(AProjectBossCharacter::StaticClass()) && m_isAttacking && !m_dmgThisAttack)
+	{
+		FDamageEvent dmgEvent;
+		OtherActor->TakeDamage(MeleeDamage, dmgEvent, GetController(), this);
+		m_dmgThisAttack = true;
 	}
 }

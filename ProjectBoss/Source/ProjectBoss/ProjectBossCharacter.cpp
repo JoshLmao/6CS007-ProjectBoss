@@ -502,7 +502,7 @@ void AProjectBossCharacter::OnDeath()
 	if (OnCharacterDied.IsBound())
 		OnCharacterDied.Broadcast();
 
-
+	// Ragdoll character on it's death
 	DetachFromControllerPendingDestroy();
 
 	GetMovementComponent()->StopMovementImmediately();
@@ -522,4 +522,22 @@ void AProjectBossCharacter::OnDeath()
 		CharacterComp->DisableMovement();
 		CharacterComp->SetComponentTickEnabled(false);
 	}
+}
+
+float AProjectBossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& damageEvent, class AController* eventInstigator, AActor* damageCauser)
+{
+	float damage = Super::TakeDamage(damageAmount, damageEvent, eventInstigator, damageCauser);
+
+	CurrentHealth -= damage;
+
+	UE_LOG(LogTemp, Log, TEXT("Player Health: %f"), CurrentHealth);
+	if (CurrentHealth <= 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Player has died!"));
+		CurrentHealth = 0;
+
+		OnDeath();
+	}
+
+	return damage;
 }

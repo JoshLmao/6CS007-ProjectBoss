@@ -24,14 +24,23 @@ protected:
 	TArray<UAnimMontage*> AttackAnimMontages;
 
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	class UCapsuleComponent* LeftBladeCollider;
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	class UCapsuleComponent* RightBladeCollider;
+
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	float TotalHealth;
 	UPROPERTY(BlueprintReadOnly, Category = "Project Boss")
 	float CurrentHealth;
+
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	float MeleeDamage;
 
 private:
 	bool m_isAttacking;
 	bool m_saveAttack;
 	int m_attackCount;
+	bool m_dmgThisAttack;
 
 	/**  Events  **/
 public:
@@ -69,5 +78,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UFUNCTION()
+	void OnBladeBeginOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 	void OnDeath();
 };

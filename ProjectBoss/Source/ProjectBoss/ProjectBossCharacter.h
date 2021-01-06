@@ -158,6 +158,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	// Called when this character takes damage
+	virtual float TakeDamage(float damageAmount, struct FDamageEvent const& damageEvent, class AController* eventInstigator, AActor* damageCauser) override;
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
