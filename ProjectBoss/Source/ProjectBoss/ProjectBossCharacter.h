@@ -100,6 +100,7 @@ private:
 	bool m_saveAttack;
 	bool m_isPerformingAbility;
 	int m_attackCount;
+	bool m_offAbilOneIsFalling;
 
 	/// <summary>
 	/// Disables any walking movement of the character

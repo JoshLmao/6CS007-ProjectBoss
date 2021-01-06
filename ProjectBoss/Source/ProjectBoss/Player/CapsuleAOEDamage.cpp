@@ -4,6 +4,7 @@
 #include "CapsuleAOEDamage.h"
 #include "Components/CapsuleComponent.h"
 #include "../Boss/BossCharacter.h"
+#include "../ProjectBossCharacter.h"
 
 // Sets default values
 ACapsuleAOEDamage::ACapsuleAOEDamage()
@@ -56,7 +57,7 @@ void ACapsuleAOEDamage::ConfigureDamage(float dmgAmount, AController* causerCont
 
 void ACapsuleAOEDamage::OnAOEBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor->IsA(ACharacter::StaticClass()))
+	if (OtherActor->IsA(ACharacter::StaticClass()) && !OtherActor->IsA(AProjectBossCharacter::StaticClass()))
 	{
 		FDamageEvent dmgEvent;
 		OtherActor->TakeDamage(DamageAmount, dmgEvent, CauserController, CauserActor);

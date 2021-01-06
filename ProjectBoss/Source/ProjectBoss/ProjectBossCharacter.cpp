@@ -135,6 +135,19 @@ void AProjectBossCharacter::Tick(float deltaTime)
 		AdvAttackCurrentCd -= deltaTime;
 	if (AbilOneCurrentCd >= 0)
 		AbilOneCurrentCd -= deltaTime;
+
+	if (m_offAbilOneIsFalling)
+	{
+		if (!GetMovementComponent()->IsFalling())
+		{
+			AbilityOneLandDamage();
+		}
+		else
+		{
+			// Play falling anim
+			this->PlayAnimMontage(AbilityOneMontages[1]);
+		}
+	}
 }
 
 void AProjectBossCharacter::TurnAtRate(float Rate)
@@ -379,11 +392,13 @@ void AProjectBossCharacter::AbilityOneForceGround()
 	GetCharacterMovement()->Velocity += FVector(0, 0, -2500.0f);
 
 	this->PlayAnimMontage(AbilityOneMontages[1]);
-	m_isPerformingAbility = true;
+	m_offAbilOneIsFalling = true;
 }
 
 void AProjectBossCharacter::AbilityOneLandDamage()
 {
+	m_offAbilOneIsFalling = false;
+
 	// Once slam has landed on ground
 	this->PlayAnimMontage(AbilityOneMontages[2]);
 
@@ -473,7 +488,7 @@ float AProjectBossCharacter::GetTotalHealth()
 
 void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor->IsA(ABossCharacter::StaticClass()))
+	if (OtherActor->IsA(ABossCharacter::StaticClass()) && !m_hasAttackedThisSwing)
 	{
 		//UE_LOG(LogTemp, Log, TEXT("Pole collided with '%s'"), *OtherActor->GetName());
 		// Apply damage if pole collision happens during attacking
