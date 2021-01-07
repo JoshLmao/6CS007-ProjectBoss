@@ -8,6 +8,7 @@
 #include "Actions/Action_MeleeAttack.h"
 #include "Actions/Action_KnifeFury.h"
 #include "Actions/Action_Ultimate.h"
+#include "Actions/Action_AdvancedAttack.h"
 #pragma endregion
 
 AGOAPAIController::AGOAPAIController()
@@ -24,7 +25,8 @@ AGOAPAIController::AGOAPAIController()
 	//actions.Add(UAction_Follow::StaticClass());
 	//actions.Add(UAction_MeleeAttack::StaticClass());
 	//actions.Add(UAction_KnifeFury::StaticClass());
-	actions.Add(UAction_Ultimate::StaticClass());
+	//actions.Add(UAction_Ultimate::StaticClass());
+	actions.Add(UAction_AdvancedAttack::StaticClass());
 }
 
 void AGOAPAIController::BeginPlay()

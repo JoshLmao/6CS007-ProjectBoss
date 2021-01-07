@@ -6,7 +6,10 @@
 #include "Components/CapsuleComponent.h"
 #include "../ProjectBossCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
-
+#include "Math/UnrealMathUtility.h"
+#include "ThrowableDagger.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "AIController.h"
 
 // Sets default values
 ABossCharacter::ABossCharacter()
@@ -77,13 +80,17 @@ void ABossCharacter::Tick(float deltaTime)
 	if (m_ultiCurrentCooldown > 0)
 		m_ultiCurrentCooldown -= deltaTime;
 
+	// Look at player when aiming to throw RMB attack
+	if (m_rmbTarget)
+	{
+		Cast<AAIController>(GetController())->MoveToActor(m_rmbTarget, 1500.0f);
+		LookAtActor(m_rmbTarget);
+	}
+
+	// Face actor towards target jump actor
 	if (m_ultiIsChanneling && m_ultiTargetActor)
 	{
-		// Face actor towards target jump actor
-		FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), m_ultiTargetActor->GetActorLocation());
-		FRotator actorRotation = this->GetActorRotation();
-		actorRotation.Yaw = lookAt.Yaw + -90.0f;
-		this->SetActorRotation(actorRotation);
+		LookAtActor(m_ultiTargetActor);
 	}
 }
 
@@ -128,6 +135,63 @@ void ABossCharacter::PerformMeleeAttack()
 		{
 			m_attackCount = 0;
 		}
+	}
+}
+
+void ABossCharacter::PerformAdvancedAttack(AActor* target)
+{
+	if (!target)
+		return;
+
+	UE_LOG(LogTemp, Log, TEXT("Boss performing Advanced Attack"));
+
+	m_rmbTarget = target;
+
+	this->PlayAnimMontage(AdvancedAttackMontages[0]);
+}
+
+void ABossCharacter::AdvAttackFinishedPrepare()
+{
+	// Finish prepare anim, start rand delay to throw dagger
+
+	float randDuration = FMath::RandRange(0.75f, 3.25f);
+	GetWorldTimerManager().SetTimer(m_rmbDelayHandle, this, &ABossCharacter::AdvAttackOnThrowDagger, randDuration, false);
+	UE_LOG(LogTemp, Log, TEXT("Delaying RMB Throw by '%f' seconds"), randDuration);
+
+	// Aiming anim length max is 9.1 seconds
+	this->PlayAnimMontage(AdvancedAttackMontages[1]);
+}
+
+void ABossCharacter::AdvAttackOnThrowDagger()
+{
+	// Waited random time, play throw anim
+	this->PlayAnimMontage(AdvancedAttackMontages[2]);
+}
+
+void ABossCharacter::AdvAttackOnReleaseDagger()
+{
+	if (!ThrowableDagger)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Unable to create dagger since no dagger has been set in Editor"));
+		return;
+	}
+
+	// Spawnloc: at actors location + (small amount of units in front) + at arm's height
+	FVector spawnLoc = this->GetActorLocation() + (this->GetActorRightVector() * 100.0f) + FVector(0, 0, 50.0f);
+	// On throw anim release dagger. Spawn dagger with velocity
+	AThrowableDagger* daggerActor = GetWorld()->SpawnActor<AThrowableDagger>(ThrowableDagger.Get(), spawnLoc, FRotator());
+	if (daggerActor)
+	{
+		AThrowableDagger* dagger = Cast<AThrowableDagger>(daggerActor);
+		dagger->SetDamage(50.0f);
+		
+		dagger->SetActorLocation(spawnLoc);
+
+		FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(dagger->GetActorLocation(), m_rmbTarget->GetActorLocation());
+		FRotator daggerRot = dagger->GetActorRotation();
+		dagger->SetActorRotation(lookAt + FRotator(-90, 0, 0));
+
+		dagger->SetMovementDirection(dagger->GetActorUpVector(), 3000.0f);
 	}
 }
 
@@ -255,4 +319,12 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 float ABossCharacter::GetUltimateCooldown()
 {
 	return m_ultiCurrentCooldown;
+}
+
+void ABossCharacter::LookAtActor(AActor* target)
+{
+	FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), target->GetActorLocation());
+	FRotator actorRotation = this->GetActorRotation();
+	actorRotation.Yaw = lookAt.Yaw + -90.0f;
+	this->SetActorRotation(actorRotation);
 }

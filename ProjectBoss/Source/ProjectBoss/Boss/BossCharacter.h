@@ -17,11 +17,16 @@ public:
 	// Sets default values for this character's properties
 	ABossCharacter();
 
-	/**  Variables  **/
+	/*
+	*	VARIABLES
+	*/
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	TArray<class UAnimMontage*> AttackAnimMontages;
+
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	TArray<class UAnimMontage*> AdvancedAttackMontages;
 
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	TArray<class UAnimMontage*> AbilityUltimateMontages;
@@ -30,6 +35,9 @@ protected:
 	class UCapsuleComponent* LeftBladeCollider;
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	class UCapsuleComponent* RightBladeCollider;
+
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	TSubclassOf<class AThrowableDagger> ThrowableDagger;
 
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	float TotalHealth;
@@ -49,6 +57,10 @@ private:
 	bool m_saveAttack;
 	int m_attackCount;
 	bool m_dmgThisAttack;
+
+	AActor* m_rmbTarget;
+	FTimerHandle m_rmbDelayHandle;
+	bool m_rmbAimAtPlayer;
 
 	AActor* m_ultiTargetActor;
 	float m_ultiCurrentCooldown;
@@ -79,6 +91,18 @@ public:
 	/// Executes a melee attack
 	/// </summary>
 	void PerformMeleeAttack();
+	/// <summary>
+	/// Performs the RMB advanced attack
+	/// </summary>
+	/// <param name="target"></param>
+	void PerformAdvancedAttack(AActor* target);
+
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void AdvAttackFinishedPrepare();
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void AdvAttackOnThrowDagger();
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void AdvAttackOnReleaseDagger();
 
 	void PerformUltimate(AActor* target);
 
@@ -102,4 +126,6 @@ private:
 	void OnBladeBeginOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	void OnDeath();
+
+	void LookAtActor(AActor* target);
 };
