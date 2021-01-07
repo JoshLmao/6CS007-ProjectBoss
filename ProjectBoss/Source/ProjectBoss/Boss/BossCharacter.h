@@ -21,7 +21,10 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
-	TArray<UAnimMontage*> AttackAnimMontages;
+	TArray<class UAnimMontage*> AttackAnimMontages;
+
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	TArray<class UAnimMontage*> AbilityUltimateMontages;
 
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	class UCapsuleComponent* LeftBladeCollider;
@@ -36,11 +39,20 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	float MeleeDamage;
 
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	float UltimateDamage;
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	float UltimateCooldown;
+
 private:
 	bool m_isAttacking;
 	bool m_saveAttack;
 	int m_attackCount;
 	bool m_dmgThisAttack;
+
+	AActor* m_ultiTargetActor;
+	float m_ultiCurrentCooldown;
+	bool m_ultiIsChanneling;
 
 	/**  Events  **/
 public:
@@ -68,10 +80,18 @@ public:
 	/// </summary>
 	void PerformMeleeAttack();
 
+	void PerformUltimate(AActor* target);
+
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void UltimateTeleportTo();
+
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetCurrentHealth();
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetTotalHealth();
+
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	float GetUltimateCooldown();
 
 protected:
 	// Called when the game starts or when spawned

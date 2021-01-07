@@ -37,6 +37,7 @@ AProjectBossCharacter::AProjectBossCharacter()
 	m_hasAttackedThisSwing = false;
 
 	CurrentStance = EStance::Offensive;
+	m_attackRate = 0.95f;
 
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -76,7 +77,7 @@ AProjectBossCharacter::AProjectBossCharacter()
 	PoleColliderComponent->OnComponentBeginOverlap.AddDynamic(this, &AProjectBossCharacter::OnPoleBeginOverlap);
 	PoleColliderComponent->OnComponentEndOverlap.AddDynamic(this, &AProjectBossCharacter::OnPoleEndOverlap);
 
-	PoleColliderComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	PoleColliderComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	PoleColliderComponent->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 	PoleColliderComponent->SetGenerateOverlapEvents(true);
 	PoleColliderComponent->SetCapsuleRadius(10.0f);
@@ -219,7 +220,7 @@ void AProjectBossCharacter::PerformMeleeAttack()
 		MeleeAtkCurrentCd = MeleeAttackCooldown;
 		UE_LOG(LogTemp, Log, TEXT("Player performs Melee Attack"));
 
-		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 0.75f);
+		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
 
 		m_attackCount++;
 		if (m_attackCount >= AttackAnimMontages.Num())
@@ -237,7 +238,7 @@ void AProjectBossCharacter::ComboAttackSave()
 	if (m_saveAttack)
 	{
 		// Check montage is playing before confirming
-		float playDuration = this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 0.75f);
+		float playDuration = this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
 		if (playDuration > 0.0f)
 		{
 			MeleeAtkCurrentCd = MeleeAttackCooldown;
@@ -422,6 +423,11 @@ void AProjectBossCharacter::FinishAbilityOne()
 	m_isPerformingAbility = false;
 }
 
+bool AProjectBossCharacter::IsEvading()
+{
+	return GetMovementComponent()->IsFalling() || m_spawnedClouds.Num() > 0;
+}
+
 void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
 {
 	// Walk in the air for 1 second
@@ -462,18 +468,32 @@ void AProjectBossCharacter::PerformAbilityTwo()
 	switch (CurrentStance)
 	{
 		case EStance::Offensive:
-			CurrentStance = EStance::Evasive;
-			UE_LOG(LogTemp, Log, TEXT("Current stance is Evasive"));
+			SetStance(EStance::Evasive);
 			break;
 		case EStance::Evasive:
-			CurrentStance = EStance::Offensive;
-			UE_LOG(LogTemp, Log, TEXT("Current stance is Offensive"));
+			SetStance(EStance::Offensive);
 			break;
 		default:
 			UE_LOG(LogTemp, Error, TEXT("Unable to switch stance, current unknown stance"));
 			break;
 	}
 	
+}
+
+void AProjectBossCharacter::SetStance(EStance targetStance)
+{
+	CurrentStance = targetStance;
+
+	if (CurrentStance == EStance::Evasive)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Current stance is Evasive"));
+		m_attackRate = STANCE_EVASIVE_ATTACK_RATE;
+	}
+	else if (EStance::Offensive)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Current stance is Offensive"));
+		m_attackRate = STANCE_OFFENSIVE_ATTACK_RATE;
+	}
 }
 
 float AProjectBossCharacter::GetCurrentHealth()

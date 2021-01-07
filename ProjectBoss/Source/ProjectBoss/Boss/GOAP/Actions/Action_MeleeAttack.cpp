@@ -68,7 +68,7 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 	if (bossChar)
 	{
 		bossChar->PerformMeleeAttack();
-		return true; // completed action
+		//return true; // completed action
 	}
 
 	return false;

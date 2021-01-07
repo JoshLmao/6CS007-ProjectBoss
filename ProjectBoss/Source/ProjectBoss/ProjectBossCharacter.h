@@ -95,20 +95,27 @@ protected:
 	float TotalHealth;
 
 private:
+	const float STANCE_EVASIVE_ATTACK_RATE = 0.75f;
+	const float STANCE_OFFENSIVE_ATTACK_RATE = 0.95f;
+
 	bool m_isAttacking;
 	bool m_hasAttackedThisSwing;
 	bool m_saveAttack;
+	float m_attackRate;
+
 	bool m_isPerformingAbility;
 	int m_attackCount;
 	bool m_offAbilOneIsFalling;
+
+	FTimerHandle m_cloudwalkDelayTimer;
+	TArray<AActor*> m_spawnedClouds;
+
+	bool m_isEvading;
 
 	/// <summary>
 	/// Disables any walking movement of the character
 	/// </summary>
 	bool m_disableLocomotionMovement;
-	
-	FTimerHandle m_cloudwalkDelayTimer;
-	TArray<AActor*> m_spawnedClouds;
 
 	/*
 	*	EVENTS
@@ -156,6 +163,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void FinishAbilityOne();
 
+	bool IsEvading();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -194,6 +203,12 @@ private:
 
 	void CloudwalkDisable();
 	void OnDeath();
+
+	/// <summary>
+	/// Sets the current stance of Wukong
+	/// </summary>
+	/// <param name="targetStance"></param>
+	void SetStance(EStance targetStance);
 
 public:
 	/** Returns CameraBoom subobject **/

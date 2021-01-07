@@ -5,6 +5,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "../ProjectBossCharacter.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 // Sets default values
@@ -20,6 +21,10 @@ ABossCharacter::ABossCharacter()
 
 	TotalHealth = 2500.0f;
 	MeleeDamage = 50.0f;
+
+	UltimateDamage = 75.0f;
+	m_ultiCurrentCooldown = 0.0f;
+	UltimateCooldown = 50.0f;
 
 	LeftBladeCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("LeftBladeCollider"));
 	LeftBladeCollider->SetupAttachment(GetMesh());
@@ -69,7 +74,17 @@ void ABossCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-	
+	if (m_ultiCurrentCooldown > 0)
+		m_ultiCurrentCooldown -= deltaTime;
+
+	if (m_ultiIsChanneling && m_ultiTargetActor)
+	{
+		// Face actor towards target jump actor
+		FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), m_ultiTargetActor->GetActorLocation());
+		FRotator actorRotation = this->GetActorRotation();
+		actorRotation.Yaw = lookAt.Yaw + -90.0f;
+		this->SetActorRotation(actorRotation);
+	}
 }
 
 // Called to bind functionality to input
@@ -114,6 +129,53 @@ void ABossCharacter::PerformMeleeAttack()
 			m_attackCount = 0;
 		}
 	}
+}
+
+void ABossCharacter::PerformUltimate(AActor* targetActor)
+{
+	if (!targetActor || m_ultiIsChanneling)
+		return;
+
+	UE_LOG(LogTemp, Log, TEXT("Boss performing Ultimate!"));
+
+	m_ultiTargetActor = targetActor;
+
+	// Play channel montage for ultimate
+	if (AbilityUltimateMontages.Num() > 0)
+	{
+		this->PlayAnimMontage(AbilityUltimateMontages[0]);
+	}
+
+	m_ultiIsChanneling = true;
+}
+
+void ABossCharacter::UltimateTeleportTo()
+{
+	if (!m_ultiTargetActor)
+		return;
+
+	if (AbilityUltimateMontages.Num() > 1)
+	{
+		this->PlayAnimMontage(AbilityUltimateMontages[1]);
+	}
+
+	// Teleport boss to character
+	FVector directionVector = UKismetMathLibrary::GetDirectionUnitVector(this->GetActorLocation(), m_ultiTargetActor->GetActorLocation());
+	UE_LOG(LogTemp, Log, TEXT("DirVector: %s"), *directionVector.ToString());
+	FVector targetLocation = m_ultiTargetActor->GetActorLocation() - (directionVector * 100.0f);
+
+	this->SetActorLocation(targetLocation);
+
+	// Only apply damage if player didn't "avoid" it
+	AProjectBossCharacter* player = Cast<AProjectBossCharacter>(m_ultiTargetActor);
+	if (!player->IsEvading())
+	{
+		m_ultiTargetActor->TakeDamage(UltimateDamage, FDamageEvent(), GetController(), this);
+	}
+
+	m_ultiIsChanneling = false;
+	m_ultiCurrentCooldown = UltimateCooldown;
+	m_ultiTargetActor = false;
 }
 
 void ABossCharacter::ComboAttackSave()
@@ -188,4 +250,9 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 		OtherActor->TakeDamage(MeleeDamage, dmgEvent, GetController(), this);
 		m_dmgThisAttack = true;
 	}
+}
+
+float ABossCharacter::GetUltimateCooldown()
+{
+	return m_ultiCurrentCooldown;
 }

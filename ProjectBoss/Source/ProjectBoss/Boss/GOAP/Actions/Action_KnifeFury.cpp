@@ -31,6 +31,8 @@ UAction_KnifeFury::UAction_KnifeFury()
 
 bool UAction_KnifeFury::checkProceduralPrecondition(APawn* pawn)
 {
+	Super::checkProceduralPrecondition(pawn);
+
 	TArray<AActor*> targets = getTargetsList(pawn);
 	if (targets.Num() <= 0)
 	{

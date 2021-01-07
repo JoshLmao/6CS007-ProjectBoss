@@ -7,22 +7,24 @@
 #include "Actions/Action_Follow.h"
 #include "Actions/Action_MeleeAttack.h"
 #include "Actions/Action_KnifeFury.h"
+#include "Actions/Action_Ultimate.h"
 #pragma endregion
 
 AGOAPAIController::AGOAPAIController()
 {
 	// Create current world state
-	currentWorld.Add(CreateAtom("in-melee-range", false));
-	currentWorld.Add(CreateAtom("in-medium-range", false));
+	//currentWorld.Add(CreateAtom("in-melee-range", false));
+	//currentWorld.Add(CreateAtom("in-medium-range", false));
 	currentWorld.Add(CreateAtom("damage-player", false));
-	currentWorld.Add(CreateAtom("is-player-alive", true));
-	currentWorld.Add(CreateAtom("knife-fury-available", true));
+	//currentWorld.Add(CreateAtom("is-player-alive", true));
+	//currentWorld.Add(CreateAtom("knife-fury-available", true));
 
 	// Add array of actions available to AI
-	actions.Add(UAction_Wait::StaticClass());
-	actions.Add(UAction_Follow::StaticClass());
-	actions.Add(UAction_MeleeAttack::StaticClass());
-	actions.Add(UAction_KnifeFury::StaticClass());
+	//actions.Add(UAction_Wait::StaticClass());
+	//actions.Add(UAction_Follow::StaticClass());
+	//actions.Add(UAction_MeleeAttack::StaticClass());
+	//actions.Add(UAction_KnifeFury::StaticClass());
+	actions.Add(UAction_Ultimate::StaticClass());
 }
 
 void AGOAPAIController::BeginPlay()
