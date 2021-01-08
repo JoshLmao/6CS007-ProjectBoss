@@ -79,20 +79,24 @@ void ABossCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
+
 	if (m_ultiCurrentCooldown > 0)
 		m_ultiCurrentCooldown -= deltaTime;
 
-	// Look at player when aiming to throw RMB attack
-	if (m_rmbTarget)
+	if (CurrentHealth > 0)
 	{
-		m_aiController->MoveToActor(m_rmbTarget, 1500.0f);
-		LookAtActor(m_rmbTarget);
-	}
+		// Look at player when aiming to throw RMB attack
+		if (m_rmbTarget)
+		{
+			m_aiController->MoveToActor(m_rmbTarget, 1500.0f);
+			LookAtActor(m_rmbTarget);
+		}
 
-	// Face actor towards target jump actor
-	if (m_ultiIsChanneling && m_ultiTargetActor)
-	{
-		LookAtActor(m_ultiTargetActor);
+		// Face actor towards target jump actor
+		if (m_ultiIsChanneling && m_ultiTargetActor)
+		{
+			LookAtActor(m_ultiTargetActor);
+		}
 	}
 }
 
