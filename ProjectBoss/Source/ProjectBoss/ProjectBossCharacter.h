@@ -38,6 +38,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	class UCapsuleComponent* PoleColliderComponent;
 
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	class UParticleSystemComponent* PS_PoleStance;
+
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	class UParticleSystem* OffensivePolePS;
+	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	class UParticleSystem* EvasivePolePS;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseTurnRate;
@@ -46,29 +54,40 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
 
-	// LMB Basic Attack
+	// Amount of damage a basic melee attack will deal
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float MeleeAttackDamageAmount;
-	UPROPERTY(EditAnywhere, Category = "Combat")
+	// Current cooldown of melee attack
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	float MeleeAtkCurrentCd;
+	// Cooldown to perform another melee attack
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float MeleeAttackCooldown;
 
-	// RMB Advanced Attack
+	// Current cooldown of the advanced attack
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	float AdvAttackCurrentCd;
+	// Amount of damage the offensive advanced attack will deal
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AdvAttackOffensiveDamageAmount;
+	// Total cooldown in seconds of the advanced attack
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AdvAttackOffensiveTotalCooldown;
 
-	// Q Ability One
+	/// Duration in seconds the cloudwalk ability will last. The duration the player can walk on clouds
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AdvAttackEvasiveCloudDuration;
+
+	// Total cooldown in seconds of ability one
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AbilityOneTotalCooldown;
+	// Amount in units to be the area of effect radius from where the player lands after performing Ability One
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AbilityOneRadius;
+	// Amount of damage Ability One deals to the enemy
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AbilityOneDamageAmount;
+	// Current cooldown of ability one
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	float AbilOneCurrentCd;
 
@@ -96,7 +115,7 @@ protected:
 
 private:
 	const float STANCE_EVASIVE_ATTACK_RATE = 0.75f;
-	const float STANCE_OFFENSIVE_ATTACK_RATE = 0.95f;
+	const float STANCE_OFFENSIVE_ATTACK_RATE = 1.50f;
 
 	bool m_isAttacking;
 	bool m_hasAttackedThisSwing;

@@ -66,6 +66,8 @@ private:
 	float m_ultiCurrentCooldown;
 	bool m_ultiIsChanneling;
 
+	class AAIController* m_aiController;
+
 	/**  Events  **/
 public:
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")

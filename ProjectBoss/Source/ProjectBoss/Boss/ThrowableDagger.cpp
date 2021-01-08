@@ -29,6 +29,8 @@ AThrowableDagger::AThrowableDagger()
 void AThrowableDagger::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetLifeSpan(5.0f);
 }
 
 // Called every frame

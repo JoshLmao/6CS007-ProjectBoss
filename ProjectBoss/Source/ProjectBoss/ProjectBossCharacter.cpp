@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -28,6 +29,8 @@ AProjectBossCharacter::AProjectBossCharacter()
 	AdvAttackCurrentCd = 0.0f;
 	AdvAttackOffensiveTotalCooldown = 10.0f;
 	AdvAttackOffensiveDamageAmount = 250.0f;
+
+	AdvAttackEvasiveCloudDuration = 2.0f;
 
 	AbilityOneTotalCooldown = 10.0f;
 	AbilityOneRadius = 500.0f;
@@ -82,6 +85,9 @@ AProjectBossCharacter::AProjectBossCharacter()
 	PoleColliderComponent->SetGenerateOverlapEvents(true);
 	PoleColliderComponent->SetCapsuleRadius(10.0f);
 	PoleColliderComponent->SetCapsuleHalfHeight(120.0f);
+
+	PS_PoleStance = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("PoleStancePaticleSystem"));
+	PS_PoleStance->SetupAttachment(PoleColliderComponent);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,6 +128,9 @@ void AProjectBossCharacter::BeginPlay()
 	{
 		PoleColliderComponent->AttachTo(GetMesh(), "weapon_r", EAttachLocation::SnapToTarget, true);
 		PoleColliderComponent->AddLocalRotation(FRotator(0, 0, 90.0f));
+
+		PS_PoleStance->AddLocalRotation(FRotator(90.0f, 0, 0));
+		PS_PoleStance->SetTemplate(OffensivePolePS);
 	}
 }
 
@@ -167,6 +176,7 @@ void AProjectBossCharacter::MoveForward(float Value)
 {
 	if (m_disableLocomotionMovement)
 		return;
+
 	if ((Controller != NULL) && (Value != 0.0f))
 	{
 		// find out which way is forward
@@ -183,6 +193,7 @@ void AProjectBossCharacter::MoveRight(float Value)
 {
 	if (m_disableLocomotionMovement)
 		return;
+
 	if ( (Controller != NULL) && (Value != 0.0f) )
 	{
 		// find out which way is right
@@ -438,8 +449,7 @@ void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
 	Cast<ACloudwalkCloud>(cloud)->SetTrackingArray(&m_spawnedClouds);
 	m_spawnedClouds.Add(cloud);
 
-	float cloudDurationSecs = 1.0f;
-	GetWorldTimerManager().SetTimer(m_cloudwalkDelayTimer, this, &AProjectBossCharacter::CloudwalkDisable, cloudDurationSecs, false);
+	GetWorldTimerManager().SetTimer(m_cloudwalkDelayTimer, this, &AProjectBossCharacter::CloudwalkDisable, AdvAttackEvasiveCloudDuration, false);
 
 	m_isPerformingAbility = true;
 }
@@ -484,15 +494,26 @@ void AProjectBossCharacter::SetStance(EStance targetStance)
 {
 	CurrentStance = targetStance;
 
+
 	if (CurrentStance == EStance::Evasive)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Current stance is Evasive"));
 		m_attackRate = STANCE_EVASIVE_ATTACK_RATE;
+
+		// Set pole PS to evasive
+		if (EvasivePolePS) {
+			PS_PoleStance->SetTemplate(EvasivePolePS);
+		}
 	}
-	else if (EStance::Offensive)
+	else if (CurrentStance == EStance::Offensive)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Current stance is Offensive"));
 		m_attackRate = STANCE_OFFENSIVE_ATTACK_RATE;
+
+		// Set Pole Stance particle system to Offensive
+		if (OffensivePolePS) {
+			PS_PoleStance->SetTemplate(OffensivePolePS);
+		}
 	}
 }
 

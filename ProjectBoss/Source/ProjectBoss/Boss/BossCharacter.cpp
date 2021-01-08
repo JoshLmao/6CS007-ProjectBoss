@@ -54,6 +54,8 @@ void ABossCharacter::BeginPlay()
 	SetActorLabel("Kalari");
 	CurrentHealth = TotalHealth;
 
+	m_aiController = Cast<AAIController>(GetController());
+
 	if (LeftBladeCollider)
 	{
 		LeftBladeCollider->AttachTo(GetMesh(), "sword_handle_l", EAttachLocation::SnapToTarget, false);
@@ -83,7 +85,7 @@ void ABossCharacter::Tick(float deltaTime)
 	// Look at player when aiming to throw RMB attack
 	if (m_rmbTarget)
 	{
-		Cast<AAIController>(GetController())->MoveToActor(m_rmbTarget, 1500.0f);
+		m_aiController->MoveToActor(m_rmbTarget, 1500.0f);
 		LookAtActor(m_rmbTarget);
 	}
 
