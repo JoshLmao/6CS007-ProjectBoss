@@ -6,9 +6,9 @@
 #include "Actions/Action_Wait.h"
 #include "Actions/Action_Follow.h"
 #include "Actions/Action_MeleeAttack.h"
-#include "Actions/Action_KnifeFury.h"
 #include "Actions/Action_Ultimate.h"
 #include "Actions/Action_AdvancedAttack.h"
+#include "Actions/Action_AbilityOne.h"
 #pragma endregion
 
 AGOAPAIController::AGOAPAIController()
@@ -24,9 +24,9 @@ AGOAPAIController::AGOAPAIController()
 	//actions.Add(UAction_Wait::StaticClass());
 	//actions.Add(UAction_Follow::StaticClass());
 	//actions.Add(UAction_MeleeAttack::StaticClass());
-	//actions.Add(UAction_KnifeFury::StaticClass());
 	//actions.Add(UAction_Ultimate::StaticClass());
-	actions.Add(UAction_AdvancedAttack::StaticClass());
+	//actions.Add(UAction_AdvancedAttack::StaticClass());
+	actions.Add(UAction_AbilityOne::StaticClass());
 }
 
 void AGOAPAIController::BeginPlay()

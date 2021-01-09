@@ -4,12 +4,14 @@
 #include "BossCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/MeshComponent.h"
 #include "../ProjectBossCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Math/UnrealMathUtility.h"
 #include "ThrowableDagger.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "AIController.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 // Sets default values
 ABossCharacter::ABossCharacter()
@@ -24,6 +26,10 @@ ABossCharacter::ABossCharacter()
 
 	TotalHealth = 2500.0f;
 	MeleeDamage = 50.0f;
+
+	m_rmbCurrentCooldown = 0.0f;
+	AdvAbilityDamage = 50.0f;
+	AdvAbilityCooldown = 20.0f;
 
 	UltimateDamage = 75.0f;
 	m_ultiCurrentCooldown = 0.0f;
@@ -72,6 +78,13 @@ void ABossCharacter::BeginPlay()
 		RightBladeCollider->AddLocalRotation(FRotator(90.0f, 0, 0));
 		RightBladeCollider->AddLocalOffset(FVector(0, 0, 30.0f));
 	}
+
+	//m_originalMeshMaterials = GetMesh()->GetMaterials();
+	for (int i = 0; i < GetMesh()->GetNumMaterials(); i++) {
+		m_originalMeshMaterials.Add(GetMesh()->CreateDynamicMaterialInstance(i));
+	}
+
+	m_invisMatInst = GetMesh()->CreateDynamicMaterialInstance(0, InvisibleMatInst);
 }
 
 // Called every frame
@@ -86,7 +99,7 @@ void ABossCharacter::Tick(float deltaTime)
 	if (CurrentHealth > 0)
 	{
 		// Look at player when aiming to throw RMB attack
-		if (m_rmbTarget)
+		if (IsValid(m_rmbTarget))
 		{
 			m_aiController->MoveToActor(m_rmbTarget, 1500.0f);
 			LookAtActor(m_rmbTarget);
@@ -156,6 +169,32 @@ void ABossCharacter::PerformAdvancedAttack(AActor* target)
 	this->PlayAnimMontage(AdvancedAttackMontages[0]);
 }
 
+void ABossCharacter::SetInvisible(bool isInvis)
+{
+	if (isInvis)
+	{
+		for (int i = 0; i < GetMesh()->GetNumMaterials(); i++) 
+		{
+			GetMesh()->SetMaterial(i, m_invisMatInst);
+		}
+	}
+	else
+	{
+		for (int i = 0; i < GetMesh()->GetNumMaterials(); i++) 
+		{
+			GetMesh()->SetMaterial(i, m_originalMeshMaterials[i]);
+		}
+	}
+}
+
+bool ABossCharacter::ChaseTarget(AActor* target)
+{
+	LookAtActor(target);
+
+	EPathFollowingRequestResult::Type type = m_aiController->MoveToActor(target);
+	return type == EPathFollowingRequestResult::Type::AlreadyAtGoal;
+}
+
 void ABossCharacter::AdvAttackFinishedPrepare()
 {
 	// Finish prepare anim, start rand delay to throw dagger
@@ -165,13 +204,19 @@ void ABossCharacter::AdvAttackFinishedPrepare()
 	UE_LOG(LogTemp, Log, TEXT("Delaying RMB Throw by '%f' seconds"), randDuration);
 
 	// Aiming anim length max is 9.1 seconds
-	this->PlayAnimMontage(AdvancedAttackMontages[1]);
+	if (AdvancedAttackMontages.Num() > 2)
+	{
+		this->PlayAnimMontage(AdvancedAttackMontages[1]);
+	}
 }
 
 void ABossCharacter::AdvAttackOnThrowDagger()
 {
 	// Waited random time, play throw anim
-	this->PlayAnimMontage(AdvancedAttackMontages[2]);
+	if (AdvancedAttackMontages.Num() > 2)
+	{
+		this->PlayAnimMontage(AdvancedAttackMontages[2]);
+	}
 }
 
 void ABossCharacter::AdvAttackOnReleaseDagger()
@@ -189,7 +234,7 @@ void ABossCharacter::AdvAttackOnReleaseDagger()
 	if (daggerActor)
 	{
 		AThrowableDagger* dagger = Cast<AThrowableDagger>(daggerActor);
-		dagger->SetDamage(50.0f);
+		dagger->SetDamage(AdvAbilityDamage);
 		
 		dagger->SetActorLocation(spawnLoc);
 
@@ -329,8 +374,15 @@ float ABossCharacter::GetUltimateCooldown()
 
 void ABossCharacter::LookAtActor(AActor* target)
 {
+	// Set Actor to look at target actor
 	FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), target->GetActorLocation());
 	FRotator actorRotation = this->GetActorRotation();
 	actorRotation.Yaw = lookAt.Yaw + -90.0f;
 	this->SetActorRotation(actorRotation);
+
+	// Also set Controller's look rotation
+	if (GetController()) 
+	{
+		GetController()->SetControlRotation(actorRotation);
+	}
 }

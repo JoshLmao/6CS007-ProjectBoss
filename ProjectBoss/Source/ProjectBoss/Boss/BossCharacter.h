@@ -22,46 +22,77 @@ public:
 	*/
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Basic melee attack montages
+	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	TArray<class UAnimMontage*> AttackAnimMontages;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Montages for performing the advanced attack
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	TArray<class UAnimMontage*> AdvancedAttackMontages;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Montages for performing Ability One
+	UPROPERTY(EditAnywhere, Category = "Ability One")
+	TArray<class UAnimMontage*> AbilityOneMontages;
+	// Invisible material instance to apply to mesh while active
+	UPROPERTY(EditAnywhere, Category = "Ability One")
+	class UMaterialInstance* InvisibleMatInst;
+
+	// Montages for performing the ultimate ability
+	UPROPERTY(EditAnywhere, Category = "Ability Ultimate")
 	TArray<class UAnimMontage*> AbilityUltimateMontages;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Capsule component for the left blade
+	UPROPERTY(EditAnywhere, Category = "General")
 	class UCapsuleComponent* LeftBladeCollider;
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Capsule component for the right blade
+	UPROPERTY(EditAnywhere, Category = "General")
 	class UCapsuleComponent* RightBladeCollider;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Throwable Dagger blueprint for Ability One
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	TSubclassOf<class AThrowableDagger> ThrowableDagger;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Total Health of the boss
+	UPROPERTY(EditAnywhere, Category = "General")
 	float TotalHealth;
-	UPROPERTY(BlueprintReadOnly, Category = "Project Boss")
+	// The current health of the boss
+	UPROPERTY(BlueprintReadOnly, Category = "General")
 	float CurrentHealth;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Amount of damage a melee attack deals
+	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	float MeleeDamage;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
+	float AdvAbilityDamage;
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
+	float AdvAbilityCooldown;
+
+	// Amount of damage the ultimate deals
+	UPROPERTY(EditAnywhere, Category = "Ability Ultimate")
 	float UltimateDamage;
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Total cooldown in seconds of the ultimate
+	UPROPERTY(EditAnywhere, Category = "Ability Ultimate")
 	float UltimateCooldown;
 
 private:
+	// Melee Attack
 	bool m_isAttacking;
 	bool m_saveAttack;
 	int m_attackCount;
 	bool m_dmgThisAttack;
 
+	// Advanced Attack
 	AActor* m_rmbTarget;
 	FTimerHandle m_rmbDelayHandle;
 	bool m_rmbAimAtPlayer;
+	float m_rmbCurrentCooldown;
 
+	// Ability one
+	TArray<class UMaterialInstanceDynamic*> m_originalMeshMaterials;
+	class UMaterialInstanceDynamic* m_invisMatInst;
+
+	// Ability Ultimate
 	AActor* m_ultiTargetActor;
 	float m_ultiCurrentCooldown;
 	bool m_ultiIsChanneling;
@@ -98,6 +129,11 @@ public:
 	/// </summary>
 	/// <param name="target"></param>
 	void PerformAdvancedAttack(AActor* target);
+	
+	// Sets the materials of the boss to be invisible
+	void SetInvisible(bool isInvis);
+	// Chases a target, returns true if reached the target
+	bool ChaseTarget(AActor* target);
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AdvAttackFinishedPrepare();
