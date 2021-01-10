@@ -65,31 +65,45 @@ public:
 	float MeleeAttackCooldown;
 
 	// Current cooldown of the advanced attack
-	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(BlueprintReadOnly, Category = "Advanced Attack")
 	float AdvAttackCurrentCd;
 	// Amount of damage the offensive advanced attack will deal
-	UPROPERTY(EditAnywhere, Category = "Combat")
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAttackOffensiveDamageAmount;
 	// Total cooldown in seconds of the advanced attack
-	UPROPERTY(EditAnywhere, Category = "Combat")
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAttackOffensiveTotalCooldown;
 
 	/// Duration in seconds the cloudwalk ability will last. The duration the player can walk on clouds
-	UPROPERTY(EditAnywhere, Category = "Combat")
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAttackEvasiveCloudDuration;
 
+	// Sound cue to play when 
+	UPROPERTY(EditAnywhere, Category = "Ability One")
+	class USoundCue* AbilityOneSoundCue;
 	// Total cooldown in seconds of ability one
-	UPROPERTY(EditAnywhere, Category = "Combat")
+	UPROPERTY(EditAnywhere, Category = "Ability One")
 	float AbilityOneTotalCooldown;
 	// Amount in units to be the area of effect radius from where the player lands after performing Ability One
-	UPROPERTY(EditAnywhere, Category = "Combat")
+	UPROPERTY(EditAnywhere, Category = "Ability One")
 	float AbilityOneRadius;
 	// Amount of damage Ability One deals to the enemy
-	UPROPERTY(EditAnywhere, Category = "Combat")
+	UPROPERTY(EditAnywhere, Category = "Ability One")
 	float AbilityOneDamageAmount;
 	// Current cooldown of ability one
-	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(BlueprintReadOnly, Category = "Ability One")
 	float AbilOneCurrentCd;
+
+	// Voice sound cue to play when trying to perform an ability on cooldown
+	UPROPERTY(EditAnywhere, Category = "Ability One")
+	class USoundCue* CooldownVoiceCue;
+
+	// Total cooldown of Ability Two
+	UPROPERTY(EditAnywhere, Category = "Ability Two")
+	float AbilityTwoTotalCooldown;
+	// Current cooldown of ability two
+	UPROPERTY(BlueprintReadOnly, Category = "Ability Two")
+	float AbilTwoCurrentCd;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
@@ -116,6 +130,8 @@ protected:
 private:
 	const float STANCE_EVASIVE_ATTACK_RATE = 0.75f;
 	const float STANCE_OFFENSIVE_ATTACK_RATE = 1.50f;
+
+	class UAudioComponent* m_audioComponent;
 
 	bool m_isAttacking;
 	bool m_hasAttackedThisSwing;
@@ -228,6 +244,14 @@ private:
 	/// </summary>
 	/// <param name="targetStance"></param>
 	void SetStance(EStance targetStance);
+
+	/// <summary>
+	/// Plays a sound through the current audio
+	/// </summary>
+	/// <param name="sound"></param>
+	/// <param name="shouldOverrideExistingSound"></param>
+	/// <returns></returns>
+	bool PlayCue(class USoundBase* sound, bool shouldOverrideExistingSound = false);
 
 public:
 	/** Returns CameraBoom subobject **/

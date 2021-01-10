@@ -15,6 +15,8 @@
 #include "Components/SphereComponent.h"
 #include "Player\CapsuleAOEDamage.h"
 #include "Player/CloudwalkCloud.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProjectBossCharacter
@@ -36,6 +38,9 @@ AProjectBossCharacter::AProjectBossCharacter()
 	AbilityOneRadius = 500.0f;
 	AbilOneCurrentCd = 0.0f;
 	AbilityOneDamageAmount = 100.0f;
+
+	AbilityTwoTotalCooldown = 1.0f;
+	AbilTwoCurrentCd = 0.0f;
 
 	m_hasAttackedThisSwing = false;
 
@@ -88,6 +93,11 @@ AProjectBossCharacter::AProjectBossCharacter()
 
 	PS_PoleStance = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("PoleStancePaticleSystem"));
 	PS_PoleStance->SetupAttachment(PoleColliderComponent);
+
+	m_audioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+	m_audioComponent->bAutoActivate = false;
+	m_audioComponent->SetupAttachment(RootComponent);
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,6 +155,8 @@ void AProjectBossCharacter::Tick(float deltaTime)
 		AdvAttackCurrentCd -= deltaTime;
 	if (AbilOneCurrentCd >= 0)
 		AbilOneCurrentCd -= deltaTime;
+	if (AbilTwoCurrentCd >= 0)
+		AbilTwoCurrentCd -= deltaTime;
 
 	if (m_offAbilOneIsFalling)
 	{
@@ -273,7 +285,15 @@ void AProjectBossCharacter::ResetCombo()
 void AProjectBossCharacter::PerformAdvancedAttack()
 {
 	if (m_isPerformingAbility)
+	{
 		return;
+	}
+
+	if (AdvAttackCurrentCd > 0)
+	{
+		PlayCue(CooldownVoiceCue);
+		return;
+	}
 
 	if (CurrentStance == EStance::Offensive)
 	{
@@ -336,7 +356,17 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 void AProjectBossCharacter::PerformAbilityOne()
 {
 	if (m_isPerformingAbility)
+	{
+		// Performing this/another ability
 		return;
+	}
+
+	if (AbilOneCurrentCd > 0)
+	{
+		// Ability on COoldown
+		PlayCue(CooldownVoiceCue, false);
+		return;
+	}
 
 	// Start of AbilityOne
 	if (CurrentStance == EStance::Offensive)
@@ -388,7 +418,9 @@ void AProjectBossCharacter::PerformAbilityOne()
 			// Apply additional double jump
 			UCharacterMovementComponent* movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
 			if (movement)
+			{
 				LaunchCharacter(FVector(0, 0, movement->JumpZVelocity), false, true);
+			}
 
 			// Play double jump montage
 			this->PlayAnimMontage(AbilityOneEvasiveMontage);
@@ -473,7 +505,14 @@ void AProjectBossCharacter::PerformAbilityTwo()
 {
 	// Cant change stance when performing abilities
 	if (m_isPerformingAbility)
+	{
 		return;
+	}
+	if (AbilTwoCurrentCd > 0)
+	{
+		PlayCue(CooldownVoiceCue);
+		return;
+	}
 
 	switch (CurrentStance)
 	{
@@ -487,7 +526,8 @@ void AProjectBossCharacter::PerformAbilityTwo()
 			UE_LOG(LogTemp, Error, TEXT("Unable to switch stance, current unknown stance"));
 			break;
 	}
-	
+
+	AbilTwoCurrentCd = AbilityTwoTotalCooldown;
 }
 
 void AProjectBossCharacter::SetStance(EStance targetStance)
@@ -515,6 +555,35 @@ void AProjectBossCharacter::SetStance(EStance targetStance)
 			PS_PoleStance->SetTemplate(OffensivePolePS);
 		}
 	}
+}
+
+bool AProjectBossCharacter::PlayCue(USoundBase* sound, bool shouldOverrideExistingSound)
+{
+	if (m_audioComponent)
+	{
+		// Check if component is playing a sound already
+		if (m_audioComponent->IsPlaying())
+		{
+			if (shouldOverrideExistingSound)
+			{
+				// Stop the previous sound if shouldOverrideExistingSound
+				m_audioComponent->Stop();
+			}
+			else
+			{
+				// Exit if other sound should be allowed to play
+				return false;
+			}
+		}
+
+		// Set the sound and play it
+		m_audioComponent->SetSound(sound);
+		m_audioComponent->Play();
+		return true;
+	}
+
+	// Unable to play the sound
+	return false;
 }
 
 float AProjectBossCharacter::GetCurrentHealth()

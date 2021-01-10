@@ -12,6 +12,8 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "AIController.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ABossCharacter::ABossCharacter()
@@ -50,6 +52,10 @@ ABossCharacter::ABossCharacter()
 	RightBladeCollider->SetGenerateOverlapEvents(true);
 	RightBladeCollider->OnComponentBeginOverlap.AddDynamic(this, &ABossCharacter::OnBladeBeginOverlap);
 	RightBladeCollider->SetHiddenInGame(false);
+
+	m_bossAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+	m_bossAudioComponent->bAutoActivate = false;
+	m_bossAudioComponent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -92,21 +98,20 @@ void ABossCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-
 	if (m_ultiCurrentCooldown > 0)
 		m_ultiCurrentCooldown -= deltaTime;
 
 	if (CurrentHealth > 0)
 	{
 		// Look at player when aiming to throw RMB attack
-		if (IsValid(m_rmbTarget))
+		if (IsValid(m_rmbTarget) && IsValid(m_aiController))
 		{
 			m_aiController->MoveToActor(m_rmbTarget, 1500.0f);
 			LookAtActor(m_rmbTarget);
 		}
 
 		// Face actor towards target jump actor
-		if (m_ultiIsChanneling && m_ultiTargetActor)
+		if (m_ultiIsChanneling && IsValid(m_ultiTargetActor))
 		{
 			LookAtActor(m_ultiTargetActor);
 		}
@@ -171,18 +176,11 @@ void ABossCharacter::PerformAdvancedAttack(AActor* target)
 
 void ABossCharacter::SetInvisible(bool isInvis)
 {
-	if (isInvis)
+	if (m_originalMeshMaterials.Num() > 0)
 	{
-		for (int i = 0; i < GetMesh()->GetNumMaterials(); i++) 
+		for (int i = 0; i < m_originalMeshMaterials.Num(); i++)
 		{
-			GetMesh()->SetMaterial(i, m_invisMatInst);
-		}
-	}
-	else
-	{
-		for (int i = 0; i < GetMesh()->GetNumMaterials(); i++) 
-		{
-			GetMesh()->SetMaterial(i, m_originalMeshMaterials[i]);
+			GetMesh()->SetMaterial(i, isInvis ? m_invisMatInst : m_originalMeshMaterials[i]);
 		}
 	}
 }
@@ -191,8 +189,12 @@ bool ABossCharacter::ChaseTarget(AActor* target)
 {
 	LookAtActor(target);
 
-	EPathFollowingRequestResult::Type type = m_aiController->MoveToActor(target);
-	return type == EPathFollowingRequestResult::Type::AlreadyAtGoal;
+	if (IsValid(m_aiController))
+	{
+		EPathFollowingRequestResult::Type type = m_aiController->MoveToActor(target);
+		return type == EPathFollowingRequestResult::Type::AlreadyAtGoal;
+	}
+	return false;
 }
 
 void ABossCharacter::AdvAttackFinishedPrepare()
@@ -336,6 +338,12 @@ void ABossCharacter::OnDeath()
 	if (OnCharacterDied.IsBound())
 		OnCharacterDied.Broadcast();
 
+	if (m_bossAudioComponent)
+	{
+		m_bossAudioComponent->SetSound(DeathCue);
+		m_bossAudioComponent->Play();
+	}
+
 	DetachFromControllerPendingDestroy();
 
 	GetMovementComponent()->StopMovementImmediately();
@@ -381,7 +389,7 @@ void ABossCharacter::LookAtActor(AActor* target)
 	this->SetActorRotation(actorRotation);
 
 	// Also set Controller's look rotation
-	if (GetController()) 
+	if (GetController() != nullptr)
 	{
 		GetController()->SetControlRotation(actorRotation);
 	}

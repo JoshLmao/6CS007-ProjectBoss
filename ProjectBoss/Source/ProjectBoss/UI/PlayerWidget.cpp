@@ -48,6 +48,15 @@ float UPlayerWidget::GetAbilityOneCooldown()
 	return 0.0f;
 }
 
+float UPlayerWidget::GetAbilityTwoCooldown()
+{
+	if (m_player)
+	{
+		return BeautifyNumber(m_player->AbilTwoCurrentCd);
+	}
+	return 0.0f;
+}
+
 EStance UPlayerWidget::GetStance()
 {
 	if (m_player)

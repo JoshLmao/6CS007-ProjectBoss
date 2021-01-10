@@ -26,6 +26,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Player")
 	float GetAbilityOneCooldown();
 	UFUNCTION(BlueprintCallable, Category = "Player")
+	float GetAbilityTwoCooldown();
+	UFUNCTION(BlueprintCallable, Category = "Player")
 	enum EStance GetStance();
 
 	UFUNCTION(BlueprintCallable, Category = "Player")

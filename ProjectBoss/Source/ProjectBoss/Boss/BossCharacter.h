@@ -25,10 +25,20 @@ protected:
 	// Basic melee attack montages
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	TArray<class UAnimMontage*> AttackAnimMontages;
+	// Amount of damage a melee attack deals
+	UPROPERTY(EditAnywhere, Category = "Melee Attack")
+	float MeleeDamage;
 
 	// Montages for performing the advanced attack
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	TArray<class UAnimMontage*> AdvancedAttackMontages;
+	// Throwable Dagger blueprint for Ability One
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
+	TSubclassOf<class AThrowableDagger> ThrowableDagger;
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
+	float AdvAbilityDamage;
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
+	float AdvAbilityCooldown;
 
 	// Montages for performing Ability One
 	UPROPERTY(EditAnywhere, Category = "Ability One")
@@ -40,34 +50,6 @@ protected:
 	// Montages for performing the ultimate ability
 	UPROPERTY(EditAnywhere, Category = "Ability Ultimate")
 	TArray<class UAnimMontage*> AbilityUltimateMontages;
-
-	// Capsule component for the left blade
-	UPROPERTY(EditAnywhere, Category = "General")
-	class UCapsuleComponent* LeftBladeCollider;
-	// Capsule component for the right blade
-	UPROPERTY(EditAnywhere, Category = "General")
-	class UCapsuleComponent* RightBladeCollider;
-
-	// Throwable Dagger blueprint for Ability One
-	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
-	TSubclassOf<class AThrowableDagger> ThrowableDagger;
-
-	// Total Health of the boss
-	UPROPERTY(EditAnywhere, Category = "General")
-	float TotalHealth;
-	// The current health of the boss
-	UPROPERTY(BlueprintReadOnly, Category = "General")
-	float CurrentHealth;
-
-	// Amount of damage a melee attack deals
-	UPROPERTY(EditAnywhere, Category = "Melee Attack")
-	float MeleeDamage;
-
-	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
-	float AdvAbilityDamage;
-	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
-	float AdvAbilityCooldown;
-
 	// Amount of damage the ultimate deals
 	UPROPERTY(EditAnywhere, Category = "Ability Ultimate")
 	float UltimateDamage;
@@ -75,7 +57,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ability Ultimate")
 	float UltimateCooldown;
 
+	// Capsule component for the left blade
+	UPROPERTY(EditAnywhere, Category = "General")
+	class UCapsuleComponent* LeftBladeCollider;
+	// Capsule component for the right blade
+	UPROPERTY(EditAnywhere, Category = "General")
+	class UCapsuleComponent* RightBladeCollider;
+	UPROPERTY(EditAnywhere, Category = "General")
+	class USoundCue* DeathCue;
+	// Total Health of the boss
+	UPROPERTY(EditAnywhere, Category = "General")
+	float TotalHealth;
+	// The current health of the boss
+	UPROPERTY(BlueprintReadOnly, Category = "General")
+	float CurrentHealth;
+
 private:
+	class UAudioComponent* m_bossAudioComponent;
 	// Melee Attack
 	bool m_isAttacking;
 	bool m_saveAttack;

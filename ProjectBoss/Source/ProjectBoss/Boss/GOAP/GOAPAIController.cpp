@@ -25,8 +25,8 @@ AGOAPAIController::AGOAPAIController()
 	//actions.Add(UAction_Follow::StaticClass());
 	//actions.Add(UAction_MeleeAttack::StaticClass());
 	//actions.Add(UAction_Ultimate::StaticClass());
-	//actions.Add(UAction_AdvancedAttack::StaticClass());
-	actions.Add(UAction_AbilityOne::StaticClass());
+	actions.Add(UAction_AdvancedAttack::StaticClass());
+	//actions.Add(UAction_AbilityOne::StaticClass());
 }
 
 void AGOAPAIController::BeginPlay()
