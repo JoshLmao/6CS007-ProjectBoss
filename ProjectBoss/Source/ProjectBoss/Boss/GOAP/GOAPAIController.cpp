@@ -55,6 +55,7 @@ void AGOAPAIController::Tick(float deltaTime)
 	{
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(0, 15.0f, FColor::Red, TEXT("Unable to create GOAP Plan!"));
+
 		//UE_LOG(LogTemp, Log, TEXT("Unable to create GOAP execute plan."));
 	}
 }

@@ -9,6 +9,10 @@
 // Sets default values
 ACapsuleAOEDamage::ACapsuleAOEDamage()
 {
+	m_hasAppliedDmg = false;
+	m_damageAmount = 1.0f;
+	m_stunDuration = 0.0f;
+
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -48,19 +52,33 @@ void ACapsuleAOEDamage::ConfigureCapsule(float radius, float halfHeight)
 	}
 }
 
+void ACapsuleAOEDamage::SetStunDuration(float duration)
+{
+	m_stunDuration = duration;
+}
+
 void ACapsuleAOEDamage::ConfigureDamage(float dmgAmount, AController* causerController, AActor* causerActor)
 {
-	DamageAmount = dmgAmount;
+	m_damageAmount = dmgAmount;
 	CauserController = causerController;
 	CauserActor = causerActor;
 }
 
 void ACapsuleAOEDamage::OnAOEBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (m_hasAppliedDmg)
+		return;
+
 	if (OtherActor->IsA(ACharacter::StaticClass()) && !OtherActor->IsA(AProjectBossCharacter::StaticClass()))
 	{
 		FDamageEvent dmgEvent;
-		OtherActor->TakeDamage(DamageAmount, dmgEvent, CauserController, CauserActor);
+		OtherActor->TakeDamage(m_damageAmount, dmgEvent, CauserController, CauserActor);
+		m_hasAppliedDmg = true;
+
+		if (m_stunDuration > 0)
+		{
+			ABossCharacter* boss = Cast<ABossCharacter>(OtherActor);
+			boss->ApplyStun(m_stunDuration);
+		}
 	}
 }
-

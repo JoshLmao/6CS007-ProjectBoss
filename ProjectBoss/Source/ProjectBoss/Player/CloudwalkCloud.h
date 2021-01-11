@@ -33,6 +33,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* CloudFloor;
 
+	UPROPERTY(EditAnywhere)
+	class UParticleSystemComponent* FloorPS;
+
 private:
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* m_westWallCollider;

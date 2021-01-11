@@ -5,3 +5,8 @@
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, ProjectBoss, "ProjectBoss" );
  
+#pragma region Logs
+DEFINE_LOG_CATEGORY(LogBoss);
+DEFINE_LOG_CATEGORY(LogGOAP);
+DEFINE_LOG_CATEGORY(LogPlayer);
+#pragma endregion

@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ProjectBossCharacter.h"
+#include "ProjectBoss.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -36,11 +37,16 @@ AProjectBossCharacter::AProjectBossCharacter()
 
 	AbilityOneTotalCooldown = 10.0f;
 	AbilityOneRadius = 500.0f;
+	AbilOneStunDuration = 1.5f;
 	AbilOneCurrentCd = 0.0f;
 	AbilityOneDamageAmount = 100.0f;
 
 	AbilityTwoTotalCooldown = 1.0f;
 	AbilTwoCurrentCd = 0.0f;
+	Evasive_AttackRate = 0.75f;
+	Evasive_MaxMS = 700.0f;
+	Offensive_AttackRate = 1.25f;
+	Offensive_MaxMS = 600.0f;
 
 	m_hasAttackedThisSwing = false;
 
@@ -133,6 +139,8 @@ void AProjectBossCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 void AProjectBossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	m_charMovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent());
 
 	if (PoleColliderComponent)
 	{
@@ -241,7 +249,7 @@ void AProjectBossCharacter::PerformMeleeAttack()
 	{
 		m_isAttacking = true;
 		MeleeAtkCurrentCd = MeleeAttackCooldown;
-		UE_LOG(LogTemp, Log, TEXT("Player performs Melee Attack"));
+		UE_LOG(LogPlayer, Log, TEXT("Player performs Melee Attack"));
 
 		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
 
@@ -300,18 +308,18 @@ void AProjectBossCharacter::PerformAdvancedAttack()
 		// Push staff at enemy.
 		if (!AdvancedAttackMontage)
 		{
-			UE_LOG(LogTemp, Error, TEXT("No Montage set for AdvancedAttack"));
+			UE_LOG(LogPlayer, Error, TEXT("No Montage set for AdvancedAttack"));
 			return;
 		}
 
 		if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Using Offensive advanced ability"));
+			UE_LOG(LogPlayer, Log, TEXT("Using Offensive advanced ability"));
 
 			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
 			float playDuration = this->PlayAnimMontage(AdvancedAttackMontage);
 			if (playDuration <= 0.0f)
-				UE_LOG(LogTemp, Error, TEXT("Unable to play AdvancedAttackMontage"));
+				UE_LOG(LogPlayer, Error, TEXT("Unable to play AdvancedAttackMontage"));
 		}
 	}
 	else if (CurrentStance == EStance::Evasive)
@@ -319,13 +327,13 @@ void AProjectBossCharacter::PerformAdvancedAttack()
 		// Push staff into ground and leap
 		if (!AdvancedEvadeMontage)
 		{
-			UE_LOG(LogTemp, Error, TEXT("No montage set for AdvancedEvadeMonatge"));
+			UE_LOG(LogPlayer, Error, TEXT("No montage set for AdvancedEvadeMonatge"));
 			return;
 		}
 
 		if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Using Evasive advanced ability"));
+			UE_LOG(LogPlayer, Log, TEXT("Using Evasive advanced ability"));
 
 			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
 			this->PlayAnimMontage(AdvancedEvadeMontage);
@@ -374,14 +382,14 @@ void AProjectBossCharacter::PerformAbilityOne()
 		// Thrust pole forward for damage and stun
 		if (AbilityOneMontages.Num() <= 0)
 		{
-			UE_LOG(LogTemp, Error, TEXT("No AbilityOneMontage has been set!"));
+			UE_LOG(LogPlayer, Error, TEXT("No AbilityOneMontage has been set!"));
 			return;
 		}
 
 		// If not on cooldown & is in air
 		if (AbilOneCurrentCd <= 0 && GetMovementComponent()->IsFalling())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Using AbilityOne Offensive"));
+			UE_LOG(LogPlayer, Log, TEXT("Using AbilityOne Offensive"));
 
 			// Set ability on cooldown
 			AbilOneCurrentCd = AbilityOneTotalCooldown;
@@ -390,12 +398,11 @@ void AProjectBossCharacter::PerformAbilityOne()
 			// Play montage and check it's playing
 			float playDuration = this->PlayAnimMontage(AbilityOneMontages[0]);
 			if (playDuration <= 0.0f)
-				UE_LOG(LogTemp, Error, TEXT("Unable to play AbilityOneMontage"));
+				UE_LOG(LogPlayer, Error, TEXT("Unable to play AbilityOneMontage"));
 
 			// Apply additional double jump
-			UCharacterMovementComponent* movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
-			if (movement)
-				LaunchCharacter(FVector(0, 0, movement->JumpZVelocity), false, true);
+			if (m_charMovementComponent)
+				LaunchCharacter(FVector(0, 0, m_charMovementComponent->JumpZVelocity), false, true);
 
 			m_isPerformingAbility = true;
 		}
@@ -405,21 +412,20 @@ void AProjectBossCharacter::PerformAbilityOne()
 		// Evasive cloudwalk ability
 		if (!AbilityOneEvasiveMontage)
 		{
-			UE_LOG(LogTemp, Error, TEXT("AbilityOneEvasiveMontage not set!"));
+			UE_LOG(LogPlayer, Error, TEXT("AbilityOneEvasiveMontage not set!"));
 			return;
 		}
 
 		if (AbilOneCurrentCd <= 0 && GetMovementComponent()->IsFalling())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Using AbilityOne Evasive Cloudwalk"));
+			UE_LOG(LogPlayer, Log, TEXT("Using AbilityOne Evasive Cloudwalk"));
 
 			AbilOneCurrentCd = AbilityOneTotalCooldown;
 
 			// Apply additional double jump
-			UCharacterMovementComponent* movement = Cast<UCharacterMovementComponent>(GetMovementComponent());
-			if (movement)
+			if (m_charMovementComponent)
 			{
-				LaunchCharacter(FVector(0, 0, movement->JumpZVelocity), false, true);
+				LaunchCharacter(FVector(0, 0, m_charMovementComponent->JumpZVelocity), false, true);
 			}
 
 			// Play double jump montage
@@ -435,7 +441,10 @@ void AProjectBossCharacter::AbilityOneForceGround()
 	// Stop any X/Y movement and slam down with force
 	GetCharacterMovement()->Velocity += FVector(0, 0, -2500.0f);
 
-	this->PlayAnimMontage(AbilityOneMontages[1]);
+	if (AbilityOneMontages.Num() > 1)
+	{
+		this->PlayAnimMontage(AbilityOneMontages[1]);
+	}
 	m_offAbilOneIsFalling = true;
 }
 
@@ -448,10 +457,10 @@ void AProjectBossCharacter::AbilityOneLandDamage()
 
 	FVector colliderLocation = this->GetActorLocation() + FVector(0, 0, -50.0f);
 
-	ACapsuleAOEDamage* aoeCapsuleCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), FActorSpawnParameters());
+	ACapsuleAOEDamage* aoeCapsuleCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), colliderLocation, FRotator(), FActorSpawnParameters());
 	aoeCapsuleCollider->ConfigureDamage(AbilityOneDamageAmount, GetController(), this);
+	aoeCapsuleCollider->SetStunDuration(AbilOneStunDuration);
 	aoeCapsuleCollider->ConfigureCapsule(AbilityOneRadius, AbilityOneRadius);
-	aoeCapsuleCollider->SetActorLocation(colliderLocation);
 	aoeCapsuleCollider->SetLifeSpan(0.25f);
 
 	// Draw additional debug capsule for debug
@@ -461,7 +470,7 @@ void AProjectBossCharacter::AbilityOneLandDamage()
 void AProjectBossCharacter::FinishAbilityOne()
 {
 	// Once ability has finished animation
-	UE_LOG(LogTemp, Log, TEXT("Finished AbilityOne"));
+	UE_LOG(LogPlayer, Log, TEXT("Finished AbilityOne"));
 	m_disableLocomotionMovement = false;
 	m_isPerformingAbility = false;
 }
@@ -488,7 +497,7 @@ void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
 
 void AProjectBossCharacter::CloudwalkDisable()
 {
-	UE_LOG(LogTemp, Log, TEXT("Disabling Evasive Cloudwalk"));
+	UE_LOG(LogPlayer, Log, TEXT("Disabling Evasive Cloudwalk"));
 
 	if (m_spawnedClouds.Num() > 0)
 	{
@@ -523,7 +532,7 @@ void AProjectBossCharacter::PerformAbilityTwo()
 			SetStance(EStance::Offensive);
 			break;
 		default:
-			UE_LOG(LogTemp, Error, TEXT("Unable to switch stance, current unknown stance"));
+			UE_LOG(LogPlayer, Error, TEXT("Unable to switch stance, current unknown stance"));
 			break;
 	}
 
@@ -537,8 +546,9 @@ void AProjectBossCharacter::SetStance(EStance targetStance)
 
 	if (CurrentStance == EStance::Evasive)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Current stance is Evasive"));
-		m_attackRate = STANCE_EVASIVE_ATTACK_RATE;
+		UE_LOG(LogPlayer, Log, TEXT("Current stance is Evasive"));
+		m_attackRate = Evasive_AttackRate;
+		m_charMovementComponent->MaxWalkSpeed = Evasive_MaxMS;
 
 		// Set pole PS to evasive
 		if (EvasivePolePS) {
@@ -547,8 +557,9 @@ void AProjectBossCharacter::SetStance(EStance targetStance)
 	}
 	else if (CurrentStance == EStance::Offensive)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Current stance is Offensive"));
-		m_attackRate = STANCE_OFFENSIVE_ATTACK_RATE;
+		UE_LOG(LogPlayer, Log, TEXT("Current stance is Offensive"));
+		m_attackRate = Offensive_AttackRate;
+		m_charMovementComponent->MaxWalkSpeed = Offensive_MaxMS;
 
 		// Set Pole Stance particle system to Offensive
 		if (OffensivePolePS) {
@@ -600,7 +611,7 @@ void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedCo
 {
 	if (OtherActor->IsA(ABossCharacter::StaticClass()) && !m_hasAttackedThisSwing)
 	{
-		//UE_LOG(LogTemp, Log, TEXT("Pole collided with '%s'"), *OtherActor->GetName());
+		//UE_LOG(LogPlayer, Log, TEXT("Pole collided with '%s'"), *OtherActor->GetName());
 		// Apply damage if pole collision happens during attacking
 		if (m_isAttacking && !m_hasAttackedThisSwing)
 		{
@@ -616,13 +627,13 @@ void AProjectBossCharacter::OnPoleEndOverlap(UPrimitiveComponent* OverlappedComp
 {
 	if (OtherActor->IsA(ABossCharacter::StaticClass()))
 	{
-		//UE_LOG(LogTemp, Log, TEXT("Pole finished colliding with '%s'"), *OtherActor->GetName());
+		//UE_LOG(LogPlayer, Log, TEXT("Pole finished colliding with '%s'"), *OtherActor->GetName());
 	}
 }
 
 void AProjectBossCharacter::OnDeath()
 {
-	UE_LOG(LogTemp, Log, TEXT("Player has died!"));
+	UE_LOG(LogPlayer, Log, TEXT("Player has died!"));
 
 	if (OnCharacterDied.IsBound())
 		OnCharacterDied.Broadcast();
@@ -640,12 +651,11 @@ void AProjectBossCharacter::OnDeath()
 	GetMesh()->WakeAllRigidBodies();
 	GetMesh()->bBlendPhysics = true;
 
-	UCharacterMovementComponent* CharacterComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-	if (CharacterComp)
+	if (m_charMovementComponent)
 	{
-		CharacterComp->StopMovementImmediately();
-		CharacterComp->DisableMovement();
-		CharacterComp->SetComponentTickEnabled(false);
+		m_charMovementComponent->StopMovementImmediately();
+		m_charMovementComponent->DisableMovement();
+		m_charMovementComponent->SetComponentTickEnabled(false);
 	}
 }
 
@@ -655,10 +665,11 @@ float AProjectBossCharacter::TakeDamage(float damageAmount, struct FDamageEvent 
 
 	CurrentHealth -= damage;
 
-	UE_LOG(LogTemp, Log, TEXT("Player Health: %f"), CurrentHealth);
+	UE_LOG(LogPlayer, Log, TEXT("Player takes '%f' damage from '%s' (Total Health: '%f')"), damageAmount, *damageCauser->GetName(), CurrentHealth);
+
 	if (CurrentHealth <= 0)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Player has died!"));
+		UE_LOG(LogPlayer, Log, TEXT("Player has died!"));
 		CurrentHealth = 0;
 
 		OnDeath();

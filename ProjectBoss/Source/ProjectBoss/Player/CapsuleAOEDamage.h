@@ -18,7 +18,10 @@ public:
 	class UCapsuleComponent* CapsuleComponent;
 
 private:
-	float DamageAmount;
+	float m_damageAmount;
+	float m_stunDuration;
+	bool m_hasAppliedDmg;
+
 	class AActor* CauserActor;
 	class AController* CauserController;
 
@@ -30,8 +33,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// Set the capsule radius and half height of the aoe damage
 	void ConfigureCapsule(float radius, float halfHeight);
+	// Set the damage source
 	void ConfigureDamage(float dmgAmount, class AController* causerController, class AActor* causerActor);
+	// Should the AOE damage bubble apply a stun to the target
+	void SetStunDuration(float duration);
 
 private:
 	UFUNCTION()

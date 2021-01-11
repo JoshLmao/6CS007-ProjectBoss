@@ -20,6 +20,9 @@ public:
 	/*
 	*	VARIABLES
 	*/
+public:
+	// Is the character currently stunned
+	bool IsStunned;
 
 protected:
 	// Basic melee attack montages
@@ -37,8 +40,10 @@ protected:
 	TSubclassOf<class AThrowableDagger> ThrowableDagger;
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAbilityDamage;
+	UPROPERTY(BlueprintReadOnly, Category = "Advanced Attack")
+	float AdvAbilityCurrentCd;
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
-	float AdvAbilityCooldown;
+	float AdvAbilityTotalCooldown;
 
 	// Montages for performing Ability One
 	UPROPERTY(EditAnywhere, Category = "Ability One")
@@ -46,6 +51,15 @@ protected:
 	// Invisible material instance to apply to mesh while active
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	class UMaterialInstance* InvisibleMatInst;
+	// Percent crit damage to apply if attack at the end of ability one
+	UPROPERTY(EditAnywhere, Category = "Ability One")
+	float AbilOneCritAmount;
+	// Current cooldown of ability one
+	UPROPERTY(BlueprintReadOnly, Category = "Ability One")
+	float AbilOneCurrentCd;
+	// Total cooldown for using ability one
+	UPROPERTY(EditAnywhere, Category = "Ability One")
+	float AbilOneTotalCooldown;
 
 	// Montages for performing the ultimate ability
 	UPROPERTY(EditAnywhere, Category = "Ability Ultimate")
@@ -55,7 +69,9 @@ protected:
 	float UltimateDamage;
 	// Total cooldown in seconds of the ultimate
 	UPROPERTY(EditAnywhere, Category = "Ability Ultimate")
-	float UltimateCooldown;
+	float UltimateTotalCooldown;
+	UPROPERTY(BlueprintReadOnly, Category = "Ability Ultimate")
+	float UltimateCurrentCd;
 
 	// Capsule component for the left blade
 	UPROPERTY(EditAnywhere, Category = "General")
@@ -72,8 +88,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "General")
 	float CurrentHealth;
 
+	// Montage to play while character is stunned
+	UPROPERTY(EditAnywhere, Category = "Montages")
+	class UAnimMontage* StunnedMontage;
+
 private:
 	class UAudioComponent* m_bossAudioComponent;
+	class AAIController* m_aiController;
+
 	// Melee Attack
 	bool m_isAttacking;
 	bool m_saveAttack;
@@ -84,7 +106,6 @@ private:
 	AActor* m_rmbTarget;
 	FTimerHandle m_rmbDelayHandle;
 	bool m_rmbAimAtPlayer;
-	float m_rmbCurrentCooldown;
 
 	// Ability one
 	TArray<class UMaterialInstanceDynamic*> m_originalMeshMaterials;
@@ -92,10 +113,9 @@ private:
 
 	// Ability Ultimate
 	AActor* m_ultiTargetActor;
-	float m_ultiCurrentCooldown;
 	bool m_ultiIsChanneling;
 
-	class AAIController* m_aiController;
+	FTimerHandle m_stunHandle;
 
 	/**  Events  **/
 public:
@@ -153,6 +173,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetUltimateCooldown();
 
+	// Stuns the target for the duration in seconds
+	void ApplyStun(float duration);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -164,4 +187,6 @@ private:
 	void OnDeath();
 
 	void LookAtActor(AActor* target);
+
+	void EndStun();
 };

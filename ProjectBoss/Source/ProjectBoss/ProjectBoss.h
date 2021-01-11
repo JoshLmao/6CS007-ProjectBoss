@@ -3,3 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogBoss, Log, All)
+DECLARE_LOG_CATEGORY_EXTERN(LogGOAP, Log, All)
+DECLARE_LOG_CATEGORY_EXTERN(LogPlayer, Log, All)

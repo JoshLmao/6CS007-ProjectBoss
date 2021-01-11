@@ -6,6 +6,8 @@
 #include "../ProjectBossCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 ACloudwalkCloud::ACloudwalkCloud()
@@ -22,6 +24,19 @@ ACloudwalkCloud::ACloudwalkCloud()
 	// Configure main cloud for walking on
 	CloudFloor->SetCollisionProfileName("BlockAll", true);
 	CloudFloor->SetBoxExtent(FVector(200.0f, 200.0f, 0.5f), true);
+
+	FloorPS = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("FloorParticleSystem"));
+	FloorPS->SetupAttachment(CloudFloor);
+	FloorPS->SetRelativeLocation(FVector(0, 0, -125.0f));
+	float scale = 1.75;
+	FloorPS->SetRelativeScale3D(FVector(scale, scale, scale));
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> cloudParticles(TEXT("/Game/ParagonSunWukong/FX/Particles/Wukong/Abilities/DoubleJump/FX/p_CloudBurst"));
+	if (cloudParticles.Succeeded())
+	{
+		FloorPS->SetTemplate(cloudParticles.Object);
+	}
+
 
 	if (!m_disableDirections.Contains( EDirections::East))
 	{
@@ -64,12 +79,12 @@ ACloudwalkCloud::ACloudwalkCloud()
 	}
 
 	// Enable to be seen in game for debug
-	CloudFloor->SetHiddenInGame(false);
 	/*
-	m_westWallCollider->SetHiddenInGame(false);
-	m_eastWallCollider->SetHiddenInGame(false);
-	m_northWallCollider->SetHiddenInGame(false);
-	m_southWallCollider->SetHiddenInGame(false);
+	* CloudFloor->SetHiddenInGame(false)
+	* m_westWallCollider->SetHiddenInGame(false);
+	* m_eastWallCollider->SetHiddenInGame(false);
+	* m_northWallCollider->SetHiddenInGame(false);
+	* m_southWallCollider->SetHiddenInGame(false);
 	*/
 }
 

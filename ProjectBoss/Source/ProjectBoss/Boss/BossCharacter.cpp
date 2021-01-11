@@ -2,6 +2,7 @@
 
 
 #include "BossCharacter.h"
+#include "../ProjectBoss.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/MeshComponent.h"
@@ -29,13 +30,17 @@ ABossCharacter::ABossCharacter()
 	TotalHealth = 2500.0f;
 	MeleeDamage = 50.0f;
 
-	m_rmbCurrentCooldown = 0.0f;
 	AdvAbilityDamage = 50.0f;
-	AdvAbilityCooldown = 20.0f;
+	AdvAbilityTotalCooldown = 20.0f;
+	AdvAbilityCurrentCd = 0.0f;
+
+	AbilOneCritAmount = 150.0f;
+	AbilOneTotalCooldown = 10.0f;
+	AdvAbilityCurrentCd = 0.0f;
 
 	UltimateDamage = 75.0f;
-	m_ultiCurrentCooldown = 0.0f;
-	UltimateCooldown = 50.0f;
+	UltimateTotalCooldown = 50.0f;
+	UltimateCurrentCd = 0.0f;
 
 	LeftBladeCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("LeftBladeCollider"));
 	LeftBladeCollider->SetupAttachment(GetMesh());
@@ -98,8 +103,17 @@ void ABossCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-	if (m_ultiCurrentCooldown > 0)
-		m_ultiCurrentCooldown -= deltaTime;
+	// Lower any ability cooldowns
+	if (AdvAbilityCurrentCd > 0)
+		AdvAbilityCurrentCd -= deltaTime;
+	if (AbilOneCurrentCd > 0)
+		AbilOneCurrentCd -= deltaTime;
+	if (UltimateCurrentCd > 0)
+		UltimateCurrentCd -= deltaTime;
+
+	// If stunned, disable any in movement/look at actions
+	if (IsStunned)
+		return;
 
 	if (CurrentHealth > 0)
 	{
@@ -131,10 +145,11 @@ float ABossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& 
 
 	CurrentHealth -= damage;
 
-	UE_LOG(LogTemp, Log, TEXT("Boss Health: %f"), CurrentHealth);
+	UE_LOG(LogBoss, Log, TEXT("Boss takes '%f' damage from '%s' (Total Health: '%f')"), damage, *damageCauser->GetName(), CurrentHealth);
+
 	if (CurrentHealth <= 0)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Boss has died!"));
+		UE_LOG(LogBoss, Log, TEXT("Boss has died!"));
 		CurrentHealth = 0;
 
 		OnDeath();
@@ -167,11 +182,12 @@ void ABossCharacter::PerformAdvancedAttack(AActor* target)
 	if (!target)
 		return;
 
-	UE_LOG(LogTemp, Log, TEXT("Boss performing Advanced Attack"));
+	UE_LOG(LogBoss, Log, TEXT("Boss performing Advanced Attack"));
 
 	m_rmbTarget = target;
 
 	this->PlayAnimMontage(AdvancedAttackMontages[0]);
+	AdvAbilityCurrentCd = AdvAbilityTotalCooldown;
 }
 
 void ABossCharacter::SetInvisible(bool isInvis)
@@ -203,7 +219,7 @@ void ABossCharacter::AdvAttackFinishedPrepare()
 
 	float randDuration = FMath::RandRange(0.75f, 3.25f);
 	GetWorldTimerManager().SetTimer(m_rmbDelayHandle, this, &ABossCharacter::AdvAttackOnThrowDagger, randDuration, false);
-	UE_LOG(LogTemp, Log, TEXT("Delaying RMB Throw by '%f' seconds"), randDuration);
+	UE_LOG(LogBoss, Log, TEXT("Delaying RMB Throw by '%f' seconds"), randDuration);
 
 	// Aiming anim length max is 9.1 seconds
 	if (AdvancedAttackMontages.Num() > 2)
@@ -225,7 +241,7 @@ void ABossCharacter::AdvAttackOnReleaseDagger()
 {
 	if (!ThrowableDagger)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Unable to create dagger since no dagger has been set in Editor"));
+		UE_LOG(LogBoss, Error, TEXT("Unable to create dagger since no dagger has been set in Editor"));
 		return;
 	}
 
@@ -253,7 +269,7 @@ void ABossCharacter::PerformUltimate(AActor* targetActor)
 	if (!targetActor || m_ultiIsChanneling)
 		return;
 
-	UE_LOG(LogTemp, Log, TEXT("Boss performing Ultimate!"));
+	UE_LOG(LogBoss, Log, TEXT("Boss performing Ultimate!"));
 
 	m_ultiTargetActor = targetActor;
 
@@ -278,7 +294,7 @@ void ABossCharacter::UltimateTeleportTo()
 
 	// Teleport boss to character
 	FVector directionVector = UKismetMathLibrary::GetDirectionUnitVector(this->GetActorLocation(), m_ultiTargetActor->GetActorLocation());
-	UE_LOG(LogTemp, Log, TEXT("DirVector: %s"), *directionVector.ToString());
+	UE_LOG(LogBoss, Log, TEXT("DirVector: %s"), *directionVector.ToString());
 	FVector targetLocation = m_ultiTargetActor->GetActorLocation() - (directionVector * 100.0f);
 
 	this->SetActorLocation(targetLocation);
@@ -291,7 +307,7 @@ void ABossCharacter::UltimateTeleportTo()
 	}
 
 	m_ultiIsChanneling = false;
-	m_ultiCurrentCooldown = UltimateCooldown;
+	UltimateCurrentCd = UltimateTotalCooldown;
 	m_ultiTargetActor = false;
 }
 
@@ -333,7 +349,7 @@ float ABossCharacter::GetTotalHealth()
 
 void ABossCharacter::OnDeath()
 {
-	UE_LOG(LogTemp, Log, TEXT("BossCharacter has died!"));
+	UE_LOG(LogBoss, Log, TEXT("BossCharacter has died!"));
 
 	if (OnCharacterDied.IsBound())
 		OnCharacterDied.Broadcast();
@@ -377,7 +393,7 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 
 float ABossCharacter::GetUltimateCooldown()
 {
-	return m_ultiCurrentCooldown;
+	return UltimateCurrentCd;
 }
 
 void ABossCharacter::LookAtActor(AActor* target)
@@ -393,4 +409,27 @@ void ABossCharacter::LookAtActor(AActor* target)
 	{
 		GetController()->SetControlRotation(actorRotation);
 	}
+}
+
+void ABossCharacter::ApplyStun(float duration)
+{
+	// Play the stun montage
+	if (StunnedMontage)
+	{
+		this->PlayAnimMontage(StunnedMontage);
+	}
+	// Set IsStunned
+	IsStunned = true;
+	GetWorldTimerManager().SetTimer(m_stunHandle, this, &ABossCharacter::EndStun, duration, false);
+
+	UE_LOG(LogBoss, Log, TEXT("Boss is stunned for '%f' seconds"), duration);
+}
+
+void ABossCharacter::EndStun()
+{
+	// On stun end, stop playing the stun montage
+	IsStunned = false;
+	this->StopAnimMontage(StunnedMontage);
+
+	UE_LOG(LogBoss, Log, TEXT("No longer stunned"));
 }

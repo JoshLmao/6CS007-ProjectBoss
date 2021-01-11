@@ -41,9 +41,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Project Boss")
 	class UParticleSystemComponent* PS_PoleStance;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Particle system around Wukong's pole when in Offensive
+	UPROPERTY(EditAnywhere, Category = "Ability Two")
 	class UParticleSystem* OffensivePolePS;
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	// Particle system around Wukong's pole when in Evasive
+	UPROPERTY(EditAnywhere, Category = "Ability Two")
 	class UParticleSystem* EvasivePolePS;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
@@ -53,6 +55,17 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
+
+	// Current stance of Wukong
+	UPROPERTY(VisibleAnywhere, Category = "General")
+	TEnumAsByte<EStance> CurrentStance;
+
+	// Current health of the character
+	UPROPERTY(VisibleAnywhere, Category = "General")
+	float CurrentHealth;
+	// Total health of the character
+	UPROPERTY(EditAnywhere, Category = "General")
+	float TotalHealth;
 
 	// Amount of damage a basic melee attack will deal
 	UPROPERTY(EditAnywhere, Category = "Combat")
@@ -78,7 +91,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAttackEvasiveCloudDuration;
 
-	// Sound cue to play when 
+	// Sound cue to play when landing ability one
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	class USoundCue* AbilityOneSoundCue;
 	// Total cooldown in seconds of ability one
@@ -90,6 +103,8 @@ public:
 	// Amount of damage Ability One deals to the enemy
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	float AbilityOneDamageAmount;
+	UPROPERTY(EditAnywhere, Category = "Ability One")
+	float AbilOneStunDuration;
 	// Current cooldown of ability one
 	UPROPERTY(BlueprintReadOnly, Category = "Ability One")
 	float AbilOneCurrentCd;
@@ -105,33 +120,38 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Ability Two")
 	float AbilTwoCurrentCd;
 
+	// Max move speed during offensive stance
+	UPROPERTY(EditAnywhere, Category = "Ability Two")
+	float Offensive_MaxMS;
+	// Attack rate during offensive stance
+	UPROPERTY(EditAnywhere, Category = "Ability Two")
+	float Offensive_AttackRate;
+	// Max move speed when in evasive stance
+	UPROPERTY(EditAnywhere, Category = "Ability Two")
+	float Evasive_MaxMS;
+	// Attack rate during evasive stance
+	UPROPERTY(EditAnywhere, Category = "Ability Two")
+	float Evasive_AttackRate;
+
 protected:
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<class UAnimMontage*> AttackAnimMontages;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	class UAnimMontage* AdvancedAttackMontage;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	class UAnimMontage* AdvancedEvadeMontage;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	UPROPERTY(EditAnywhere, Category = "Ability One")
 	TArray<class UAnimMontage*> AbilityOneMontages;
 
-	UPROPERTY(EditAnywhere, Category = "Project Boss")
+	UPROPERTY(EditAnywhere, Category = "Ability One")
 	class UAnimMontage* AbilityOneEvasiveMontage;
 
-	UPROPERTY(VisibleAnywhere, Category = "Project Boss")
-	TEnumAsByte<EStance> CurrentStance;
-
-	float CurrentHealth;
-	float TotalHealth;
-
 private:
-	const float STANCE_EVASIVE_ATTACK_RATE = 0.75f;
-	const float STANCE_OFFENSIVE_ATTACK_RATE = 1.50f;
-
 	class UAudioComponent* m_audioComponent;
+	class UCharacterMovementComponent* m_charMovementComponent;
 
 	bool m_isAttacking;
 	bool m_hasAttackedThisSwing;
@@ -158,7 +178,6 @@ private:
 public:
 	UPROPERTY(BlueprintAssignable)
 	FPlayerDeathSignature OnCharacterDied;
-
 
 	/*
 	 * METHODS 
