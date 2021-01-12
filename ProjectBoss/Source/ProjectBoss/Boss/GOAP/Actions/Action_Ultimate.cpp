@@ -22,26 +22,16 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 {
 	Super::checkProceduralPrecondition(pawn);
 
-	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
+	bool setTarget = TrySetTarget(pawn);
 
-	TArray<AActor*> targets = getTargetsList(pawn);
-	if (targets.Num() <= 0)
+	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
+	if (boss->GetUltimateCooldown() > 0)
 	{
 		return false;
 	}
 
-	for (int i = 0; i < targets.Num(); i++)
-	{
-		// Set target to Player
-		AProjectBossCharacter* bossChar = Cast<AProjectBossCharacter>(targets[i]);
-		if (bossChar)
-		{
-			setTarget(targets[i]);
-		}
-	}
-
 	// Check we have target and ultimate isn't on cooldown
-	return getTarget() && boss->GetUltimateCooldown() <= 0;
+	return setTarget;
 }
 
 bool UAction_Ultimate::doAction(APawn* pawn)

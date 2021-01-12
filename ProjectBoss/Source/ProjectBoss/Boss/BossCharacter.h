@@ -171,10 +171,15 @@ public:
 	float GetTotalHealth();
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	float GetAdvancedAbilityCooldown();
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	float GetAbilityOneCooldown();
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetUltimateCooldown();
 
 	// Stuns the target for the duration in seconds
 	void ApplyStun(float duration);
+
 
 protected:
 	// Called when the game starts or when spawned

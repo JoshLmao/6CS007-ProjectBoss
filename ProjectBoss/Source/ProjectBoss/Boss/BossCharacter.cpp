@@ -347,6 +347,16 @@ float ABossCharacter::GetTotalHealth()
 	return TotalHealth;
 }
 
+float ABossCharacter::GetAdvancedAbilityCooldown()
+{
+	return AdvAbilityCurrentCd;
+}
+
+float ABossCharacter::GetAbilityOneCooldown()
+{
+	return AbilOneCurrentCd;
+}
+
 void ABossCharacter::OnDeath()
 {
 	UE_LOG(LogBoss, Log, TEXT("BossCharacter has died!"));

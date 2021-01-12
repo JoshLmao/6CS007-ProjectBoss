@@ -18,7 +18,16 @@ bool UAction_AbilityOne::checkProceduralPrecondition(APawn* p)
 {
 	Super::checkProceduralPrecondition(p);
 
-	return TrySetTarget(p);
+	bool setTarget = TrySetTarget(p);
+
+	// Check ability isnt on cooldown
+	ABossCharacter* boss = Cast<ABossCharacter>(p);
+	if (boss->GetAbilityOneCooldown() > 0)
+	{
+		return false;
+	}
+
+	return setTarget;
 }
 
 bool UAction_AbilityOne::doAction(APawn* pawn)
