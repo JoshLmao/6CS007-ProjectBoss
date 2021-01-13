@@ -27,8 +27,6 @@ AProjectBossCharacter::AProjectBossCharacter()
 	TotalHealth = 2000.0f;
 	CurrentHealth = TotalHealth;
 
-	MeleeAttackCooldown = 1.0f;
-
 	AdvAttackCurrentCd = 0.0f;
 	AdvAttackOffensiveTotalCooldown = 10.0f;
 	AdvAttackOffensiveDamageAmount = 250.0f;
@@ -52,6 +50,7 @@ AProjectBossCharacter::AProjectBossCharacter()
 
 	CurrentStance = EStance::Offensive;
 	m_attackRate = 0.95f;
+	MeleeAttackCooldown = m_attackRate;
 
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -150,6 +149,8 @@ void AProjectBossCharacter::BeginPlay()
 		PS_PoleStance->AddLocalRotation(FRotator(90.0f, 0, 0));
 		PS_PoleStance->SetTemplate(OffensivePolePS);
 	}
+
+	SetStance(EStance::Offensive);
 }
 
 void AProjectBossCharacter::Tick(float deltaTime)
@@ -248,7 +249,7 @@ void AProjectBossCharacter::PerformMeleeAttack()
 	else
 	{
 		m_isAttacking = true;
-		MeleeAtkCurrentCd = MeleeAttackCooldown;
+		MeleeAtkCurrentCd = SAVE_ATTACK_TIME * m_attackRate;
 		UE_LOG(LogPlayer, Log, TEXT("Player performs Melee Attack"));
 
 		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
@@ -269,10 +270,11 @@ void AProjectBossCharacter::ComboAttackSave()
 	if (m_saveAttack)
 	{
 		// Check montage is playing before confirming
-		float playDuration = this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
+		// Attack Rate affects attack montage play speed. Higher attack rate, faster attack speed
+		float playDuration = this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 1 / m_attackRate );
 		if (playDuration > 0.0f)
 		{
-			MeleeAtkCurrentCd = MeleeAttackCooldown;
+			MeleeAtkCurrentCd = SAVE_ATTACK_TIME * m_attackRate;
 			m_saveAttack = false;
 			m_attackCount++;
 			if (m_attackCount >= AttackAnimMontages.Num())
@@ -566,6 +568,10 @@ void AProjectBossCharacter::SetStance(EStance targetStance)
 			PS_PoleStance->SetTemplate(OffensivePolePS);
 		}
 	}
+
+	UE_LOG(LogPlayer, Log, TEXT("Attack Rate: '%f', Max Walk Speed: '%f'"), m_attackRate, m_charMovementComponent->MaxWalkSpeed);
+	// Update attack rate cooldown
+	MeleeAttackCooldown = m_attackRate;
 }
 
 bool AProjectBossCharacter::PlayCue(USoundBase* sound, bool shouldOverrideExistingSound)

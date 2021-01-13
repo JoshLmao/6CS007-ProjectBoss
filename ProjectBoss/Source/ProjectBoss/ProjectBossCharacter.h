@@ -150,6 +150,9 @@ protected:
 	class UAnimMontage* AbilityOneEvasiveMontage;
 
 private:
+	// Time in seconds to save the attack when performing melee montage
+	const float SAVE_ATTACK_TIME = 0.59f;
+	
 	class UAudioComponent* m_audioComponent;
 	class UCharacterMovementComponent* m_charMovementComponent;
 
