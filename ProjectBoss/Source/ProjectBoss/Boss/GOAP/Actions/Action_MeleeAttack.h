@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GOAPAction.h"
+#include "../PBGOAPAction.h"
 #include "Action_MeleeAttack.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECTBOSS_API UAction_MeleeAttack : public UGOAPAction
+class PROJECTBOSS_API UAction_MeleeAttack : public UPBGOAPAction
 {
 	GENERATED_BODY()
 

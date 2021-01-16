@@ -8,14 +8,11 @@
 
 UAction_AdvancedAttack::UAction_AdvancedAttack()
 {
-	name = "rmb attack";
-	cost = 0.0f;
+	name = "ability advanced";
+	cost = 20.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
-	FAtom dmgEffect;
-	dmgEffect.name = "damage-player";
-	dmgEffect.value = true;
-	effects.Add(dmgEffect);
+	effects.Add(CreateAtom("damage-player", true));
 }
 
 bool UAction_AdvancedAttack::checkProceduralPrecondition(APawn* pawn)
@@ -30,6 +27,12 @@ bool UAction_AdvancedAttack::checkProceduralPrecondition(APawn* pawn)
 	{
 		return false;
 	}
+
+	// Unable to perform action if another ability is being performed
+	if (boss->IsPerformingAbility(0) || boss->IsPerformingAbility(2) || boss->IsPerformingAbility(3))
+	{
+		return false;
+	}
 	
 	// Check we have target and ultimate isn't on cooldown
 	return setTarget;
@@ -40,11 +43,18 @@ bool UAction_AdvancedAttack::doAction(APawn* pawn)
 	Super::doAction(pawn);
 
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
+	
 	if (boss)
 	{
 		AActor* targetActor = getTarget();
 		boss->PerformAdvancedAttack(targetActor);
-		return true;
+
+		bool isPerforming = boss->IsPerformingAbility(1);
+		if (!isPerforming)
+		{
+			// Only return true (action finished) once ability ended
+			return true;
+		}
 	}
 
 	return false;

@@ -8,7 +8,7 @@
 
 UAction_Ultimate::UAction_Ultimate()
 {
-	name = "ultimate";
+	name = "ability ultimate";
 	cost = 0.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 

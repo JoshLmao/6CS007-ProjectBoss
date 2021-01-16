@@ -23,6 +23,8 @@ protected:
 	virtual void Tick(float deltaTime) override;
 
 private:
+	bool m_isPlanning;
+	
 	FAtom CreateAtom(FString name, bool val);
 
 	void PrintCurrentGOAPPlan();

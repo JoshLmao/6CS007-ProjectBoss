@@ -96,6 +96,8 @@ private:
 	class UAudioComponent* m_bossAudioComponent;
 	class AAIController* m_aiController;
 
+	bool m_isPerformingAnyAbility;
+
 	// Melee Attack
 	bool m_isAttacking;
 	bool m_saveAttack;
@@ -110,6 +112,7 @@ private:
 	// Ability one
 	TArray<class UMaterialInstanceDynamic*> m_originalMeshMaterials;
 	class UMaterialInstanceDynamic* m_invisMatInst;
+	bool m_isInvisible;
 
 	// Ability Ultimate
 	AActor* m_ultiTargetActor;
@@ -180,6 +183,11 @@ public:
 	// Stuns the target for the duration in seconds
 	void ApplyStun(float duration);
 
+	// -1 for any, 0 melee, 1 advanced, 2 ability one, 3 ultimate
+	bool IsPerformingAbility(int abilIndex = -1);
+
+	// Begins the cooldown for ability one
+	void BeginAbilityOneCooldown();
 
 protected:
 	// Called when the game starts or when spawned

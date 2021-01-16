@@ -11,44 +11,24 @@
 UAction_Follow::UAction_Follow()
 {
 	// Initialize action with name, cost and target class
-	name = "follow player";
+	name = "follow target";
 	cost = 0.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
-	FAtom preRange;
-	preRange.name = "in-melee-range";
-	preRange.value = false;
-	preconditions.Add(preRange);
+	// Create preconditions for action
+	preconditions.Add(CreateAtom("in-melee-range", false));
 
 	// Create effects to world state once action is complete
-	FAtom followEffect;
-	followEffect.name = "in-melee-range";
-	followEffect.value = true;
-	effects.Add(followEffect);
+	effects.Add(CreateAtom("in-melee-range", true));
 }
 
 bool UAction_Follow::checkProceduralPrecondition(APawn* actingPawn)
 {
 	Super::checkProceduralPrecondition(actingPawn);
 
-	// Find the closest actor to the pawn
-	TArray<AActor*> actorTargets = getTargetsList(actingPawn);
-	AActor* closest = nullptr;
-	float closestDist = TNumericLimits<float>::Max();
-	for (int i = 0;  i < actorTargets.Num(); i++)
-	{
-		float dist = FVector::Dist(actorTargets[i]->GetActorLocation(), actingPawn->GetActorLocation());
-		if (dist < closestDist)
-		{
-			closest = actorTargets[i];
-			closestDist = dist;
-		}
-	}
+	bool set = TrySetTarget(actingPawn);
 
-	// Set the target pawn to the closest one
-	setTarget(closest);
-
-	return true;
+	return set;
 }
 
 bool UAction_Follow::doAction(APawn* aiCharPawn)
@@ -83,7 +63,7 @@ bool UAction_Follow::doAction(APawn* aiCharPawn)
 
 		if (type == EPathFollowingRequestResult::Type::AlreadyAtGoal)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Arrived at player's position!"));
+			//UE_LOG(LogTemp, Log, TEXT("Arrived at player's position!"));
 			return true;
 		}
 	}

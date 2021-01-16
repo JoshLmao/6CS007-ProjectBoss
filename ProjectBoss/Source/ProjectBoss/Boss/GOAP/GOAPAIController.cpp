@@ -13,8 +13,10 @@
 
 AGOAPAIController::AGOAPAIController()
 {
+	m_isPlanning = false;
+
 	// Create current world state
-	//currentWorld.Add(CreateAtom("in-melee-range", false));
+	currentWorld.Add(CreateAtom("in-melee-range", false));
 	//currentWorld.Add(CreateAtom("in-medium-range", false));
 	currentWorld.Add(CreateAtom("damage-player", false));
 	//currentWorld.Add(CreateAtom("is-player-alive", true));
@@ -23,10 +25,10 @@ AGOAPAIController::AGOAPAIController()
 	// Add array of actions available to AI
 	//actions.Add(UAction_Wait::StaticClass());
 	actions.Add(UAction_Follow::StaticClass());
-	//actions.Add(UAction_MeleeAttack::StaticClass());
+	actions.Add(UAction_MeleeAttack::StaticClass());
 	//actions.Add(UAction_Ultimate::StaticClass());
-	//actions.Add(UAction_AdvancedAttack::StaticClass());
-	//actions.Add(UAction_AbilityOne::StaticClass());
+	actions.Add(UAction_AdvancedAttack::StaticClass());
+	actions.Add(UAction_AbilityOne::StaticClass());
 }
 
 void AGOAPAIController::BeginPlay()
@@ -38,15 +40,24 @@ void AGOAPAIController::BeginPlay()
 	goals.Add(CreateAtom("damage-player", true));
 
 	setGoal(goals);
+
+	// Set max depth of planner
+	maxDepth = 20.0f;
 }
 
 void AGOAPAIController::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
+	if (m_isPlanning)
+		return;
+
+	m_isPlanning = true;
 	// Every tick, execute GOAP to create a plan
 	bool success = executeGOAP();
 	
+	TArray<UGOAPAction*> lastPlan = getPlan();
+
 	if (success)
 	{
 		PrintCurrentGOAPPlan();
@@ -54,10 +65,33 @@ void AGOAPAIController::Tick(float deltaTime)
 	else
 	{
 		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(0, 15.0f, FColor::Red, TEXT("Unable to create GOAP Plan!"));
+		{
+			GEngine->AddOnScreenDebugMessage(0, 15.0f, FColor::Red, TEXT("GOAP Plan: Unable to create"));
+		}
 
 		//UE_LOG(LogTemp, Log, TEXT("Unable to create GOAP execute plan."));
+
+		// Reset world state once damage-player has been set to true
+		TArray<FAtom> world = getCurrentWorldStateAtoms();
+		for (int i = 0; i < world.Num(); i++) {
+			if (world[i].name == "damage-player" && world[i].value) 
+			{
+				TArray<FAtom> goals;
+				goals.Add(CreateAtom("damage-player", false));
+				goals.Add(CreateAtom("in-melee-range", false));
+				setCurrentWorld(goals);
+
+				// Set new goal of reset world
+				TArray<FAtom> targetGoals;
+				targetGoals.Add(CreateAtom("damage-player", true));
+				setGoal(targetGoals);
+
+				break;
+			}
+		}
 	}
+
+	m_isPlanning = false;
 }
 
 FAtom AGOAPAIController::CreateAtom(FString name, bool val)
@@ -75,7 +109,7 @@ void AGOAPAIController::PrintCurrentGOAPPlan()
 	if (goapPlan.Num() <= 0)
 		return;
 
-	FString planString = "Plan: ";
+	FString planString = "GOAP Plan: ";
 	for (int i = goapPlan.Num() - 1; i >= 0; i--)
 	{
 		planString += goapPlan[i]->name;

@@ -22,6 +22,8 @@ ABossCharacter::ABossCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	m_isPerformingAnyAbility = false;
+
 	m_attackCount = 0;
 	m_isAttacking = false;
 	m_saveAttack = false; 
@@ -37,6 +39,8 @@ ABossCharacter::ABossCharacter()
 	AbilOneCritAmount = 150.0f;
 	AbilOneTotalCooldown = 10.0f;
 	AdvAbilityCurrentCd = 0.0f;
+
+	m_isInvisible = false;
 
 	UltimateDamage = 75.0f;
 	UltimateTotalCooldown = 50.0f;
@@ -160,6 +164,9 @@ float ABossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& 
 
 void ABossCharacter::PerformMeleeAttack()
 {
+	if (m_isPerformingAnyAbility)
+		return;
+
 	if (m_isAttacking)
 	{
 		m_saveAttack = true;
@@ -179,24 +186,37 @@ void ABossCharacter::PerformMeleeAttack()
 
 void ABossCharacter::PerformAdvancedAttack(AActor* target)
 {
-	if (!target)
+	if (!target || m_isPerformingAnyAbility)
 		return;
 
 	UE_LOG(LogBoss, Log, TEXT("Boss performing Advanced Attack"));
 
 	m_rmbTarget = target;
+	m_isPerformingAnyAbility = true;
 
 	this->PlayAnimMontage(AdvancedAttackMontages[0]);
-	AdvAbilityCurrentCd = AdvAbilityTotalCooldown;
 }
 
 void ABossCharacter::SetInvisible(bool isInvis)
 {
-	if (m_originalMeshMaterials.Num() > 0)
+	m_isInvisible = isInvis;
+
+	if (IsValid(GetMesh()) && m_originalMeshMaterials.Num() > 0)
 	{
 		for (int i = 0; i < m_originalMeshMaterials.Num(); i++)
 		{
-			GetMesh()->SetMaterial(i, isInvis ? m_invisMatInst : m_originalMeshMaterials[i]);
+			if (isInvis)
+			{
+				if (IsValid(m_originalMeshMaterials[i]))
+					GetMesh()->SetMaterial(i, m_originalMeshMaterials[i]);
+				else
+					UE_LOG(LogBoss, Error, TEXT("Material '%d' invalid!"), i);
+			}
+			else
+			{
+				GetMesh()->SetMaterial(i, m_invisMatInst);
+			}
+			
 		}
 	}
 }
@@ -262,16 +282,23 @@ void ABossCharacter::AdvAttackOnReleaseDagger()
 
 		dagger->SetMovementDirection(dagger->GetActorUpVector(), 3000.0f);
 	}
+
+	m_rmbTarget = nullptr;
+	m_isPerformingAnyAbility = false;
+	
+	// On cooldown once ability finished performing
+	AdvAbilityCurrentCd = AdvAbilityTotalCooldown;
 }
 
 void ABossCharacter::PerformUltimate(AActor* targetActor)
 {
-	if (!targetActor || m_ultiIsChanneling)
+	if (!targetActor || m_ultiIsChanneling || m_isPerformingAnyAbility)
 		return;
 
 	UE_LOG(LogBoss, Log, TEXT("Boss performing Ultimate!"));
 
 	m_ultiTargetActor = targetActor;
+	m_isPerformingAnyAbility = true;
 
 	// Play channel montage for ultimate
 	if (AbilityUltimateMontages.Num() > 0)
@@ -309,6 +336,7 @@ void ABossCharacter::UltimateTeleportTo()
 	m_ultiIsChanneling = false;
 	UltimateCurrentCd = UltimateTotalCooldown;
 	m_ultiTargetActor = false;
+	m_isPerformingAnyAbility = false;
 }
 
 void ABossCharacter::ComboAttackSave()
@@ -442,4 +470,27 @@ void ABossCharacter::EndStun()
 	this->StopAnimMontage(StunnedMontage);
 
 	UE_LOG(LogBoss, Log, TEXT("No longer stunned"));
+}
+
+bool ABossCharacter::IsPerformingAbility(int abilIndex)
+{
+	switch (abilIndex)
+	{
+	case 0: // Melee
+		return m_isAttacking;
+	case 1: // Advanced
+		return IsValid(m_rmbTarget);
+	case 2: // Ability one
+		return m_isInvisible;
+	case 3: // Ultimate
+		return IsValid(m_ultiTargetActor);
+	}
+
+	// any ability
+	return m_isPerformingAnyAbility;
+}
+
+void ABossCharacter::BeginAbilityOneCooldown()
+{
+	AbilOneCurrentCd = AbilOneTotalCooldown;
 }

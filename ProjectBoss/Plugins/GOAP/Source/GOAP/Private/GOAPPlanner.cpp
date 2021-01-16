@@ -62,12 +62,14 @@ TArray<GOAPNode> GOAPPlanner::getAdjacent(GOAPNode current, const TArray<UGOAPAc
 	{
 		// Checks if the action can be performed from the current world.
 		const bool bPredoncitionsAreMet = current.getWorld().isIncluded(vActions[i]->getPreconditions());
+		
 		// Checks if the action is the same as the current one. (This can be deleted if you want your AI to perform the same action consecutively).
-		const bool bSameActionAsBefore = current.getAction() == vActions[i];
+		//const bool bSameActionAsBefore = current.getAction() == vActions[i];
+
 		// Checks the procedural precondition of the action.
 		const bool bProceduralPreconditionFulfilled = vActions[i]->checkProceduralPrecondition(p);
 		
-		if (bPredoncitionsAreMet && !bSameActionAsBefore && bProceduralPreconditionFulfilled)
+		if (bPredoncitionsAreMet /*&& !bSameActionAsBefore*/ && bProceduralPreconditionFulfilled)
 		{
 			world = current.getWorld(); // Saves the current world.
 			world.joinWorldState(vActions[i]->getEffects()); // Applies effects of the action to the saved world.
@@ -83,32 +85,37 @@ TArray<UGOAPAction*> GOAPPlanner::generatePlan(APawn* p)
 {
 	TArray<UGOAPAction*> sol;
 
-	GOAPNode start; start.setWorld(*currentWorld); start.setParent(-1);
-	GOAPNode last;
+	// Store start and last nodes. Set start as the current world
+	GOAPNode startNode, lastNode;
+	startNode.setWorld(*currentWorld); 
+	startNode.setParent(-1);
+	
+	// Clear lists and start on startNode
 	openList.Empty();
 	closedList.Empty();
-	openList.Push(start);
+	openList.Push(startNode);
+
 	bool continues = true;
 	bool goalReached = false;
 
 	// Search and create the cheapest path between actions having into account their preconditions, effects and cost.
 	while (continues) 
 	{
-		GOAPNode current = lowestFinList(openList);
-		openList.Remove(current);
-		closedList.Push(current);
+		GOAPNode currentNode = lowestFinList(openList);
+		openList.Remove(currentNode);
+		closedList.Push(currentNode);
 		int pos = closedList.Num() - 1;
 		
 		// When the current plan reaches the goal, the plan stops.
-		if (current.getWorld().isIncluded(*goal)) 
+		if (currentNode.getWorld().isIncluded(*goal)) 
 		{
-			last = current;
+			lastNode = currentNode;
 			continues = false;
 			goalReached = true;
 			break;
 		}
 		// Get adjacents of actual node.
-		TArray<GOAPNode> adjacents = getAdjacent(current, actions, p);
+		TArray<GOAPNode> adjacents = getAdjacent(currentNode, actions, p);
 
 		// Explore adjacent nodes.
 		for (GOAPNode& adjacent : adjacents) 
@@ -117,15 +124,15 @@ TArray<UGOAPAction*> GOAPPlanner::generatePlan(APawn* p)
 			if (!containsNode(adjacent, openList)) 
 			{
 				adjacent.setParent(pos);
-				adjacent.setH(current.getWorld());
-				adjacent.setG(current);
+				adjacent.setH(currentNode.getWorld());
+				adjacent.setG(currentNode);
 				openList.Push(adjacent);
 			}
 			// If current path to adjacent node is cheaper than the previous one, the path changes. 
-			else if (adjacent.getG() > adjacent.getG() + current.getG()) 
+			else if (adjacent.getG() > adjacent.getG() + currentNode.getG()) 
 			{
 				adjacent.setParent(pos);
-				adjacent.setG(current);
+				adjacent.setG(currentNode);
 			}
 		}
 
@@ -139,8 +146,8 @@ TArray<UGOAPAction*> GOAPPlanner::generatePlan(APawn* p)
 	// Extracts the plan's path in reverse from closed list and copy it to a new variable.
 	if (goalReached)
 	{
-		GOAPNode planNode = last;
-		while (!(planNode == start))
+		GOAPNode planNode = lastNode;
+		while (!(planNode == startNode))
 		{
 			sol.Push(planNode.getAction());
 			planNode = closedList[planNode.getParent()];

@@ -7,51 +7,33 @@
 
 UAction_MeleeAttack::UAction_MeleeAttack()
 {
-	name = "Melee Attack";
-	cost = 00.0f;
+	name = "attack melee";
+	cost = 30.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
-	FAtom range;
-	range.name = "in-melee-range";
-	range.value = true;
-	preconditions.Add(range);
-	FAtom preDmg;
-	preDmg.name = "damage-player";
-	preDmg.value = false;
-	preconditions.Add(preDmg);
+	// precons of action
+	preconditions.Add(CreateAtom("in-melee-range", true));
+	preconditions.Add(CreateAtom("damage-player", false));
 
-	FAtom dmgPlayer;
-	dmgPlayer.name = "damage-player";
-	dmgPlayer.value = true;
-	effects.Add(dmgPlayer);
-	FAtom inRange;
-	inRange.name = "in-melee-range";
-	inRange.value = false;
-	effects.Add(inRange);
+	// Effects of action
+	effects.Add(CreateAtom("damage-player", true));
+	//effects.Add(CreateAtom("in-melee-range", false));
 }
 
 bool UAction_MeleeAttack::checkProceduralPrecondition(APawn* pawn)
 {
 	Super::checkProceduralPrecondition(pawn);
 
-	TArray<AActor*> targets = getTargetsList(pawn);
-	if (targets.Num() <= 0)
-	{
-		return false;
-	}
+	bool set = TrySetTarget(pawn);
 
-	for (int i = 0; i < targets.Num(); i++)
-	{
-		// Set target to Player
-		AProjectBossCharacter* bossChar = Cast<AProjectBossCharacter>(targets[i]);
-		if (bossChar)
-		{
-			setTarget(targets[i]);
-			//UE_LOG(LogTemp, Log, TEXT("Set Target of MeleeAttack!"));
-		}
-	}
+	AActor* meleeTarget = getTarget();
+	// Check target of melee is within melee range
+	//if (meleeTarget && FVector::Dist(meleeTarget->GetActorLocation(), pawn->GetActorLocation()) > 125.0f)
+	//{
+	//	return false;
+	//}
 
-	return true;
+	return set;
 }
 
 bool UAction_MeleeAttack::doAction(APawn* pawn)
@@ -59,17 +41,26 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 	Super::doAction(pawn);
 
 	AActor* targetActor = getTarget();
-	if (!targetActor)
+	if (!IsValid(targetActor))
 	{
 		return false;
+	}
+
+	// Check target is within melee range
+	float meleeRange = 150.0f;
+	if (FVector::Dist(targetActor->GetActorLocation(), pawn->GetActorLocation()) > meleeRange)
+	{
+		// finished action. target too far away
+		return true;
 	}
 
 	ABossCharacter* bossChar = Cast<ABossCharacter>(pawn);
 	if (bossChar)
 	{
+		// Perform melee attack.
 		bossChar->PerformMeleeAttack();
-		//return true; // completed action
 	}
 
+	// Never complete this action, dont return true
 	return false;
 }

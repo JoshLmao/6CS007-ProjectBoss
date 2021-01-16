@@ -8,10 +8,12 @@
 UAction_AbilityOne::UAction_AbilityOne()
 {
 	name = "ability one";
-	cost = 0.0f;
+	cost = 20.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	effects.Add(CreateAtom("damage-player", true));
+
+	m_currentState = EState::Enter;
 }
 
 bool UAction_AbilityOne::checkProceduralPrecondition(APawn* p)
@@ -21,12 +23,18 @@ bool UAction_AbilityOne::checkProceduralPrecondition(APawn* p)
 	bool setTarget = TrySetTarget(p);
 
 	// Check ability isnt on cooldown
-	ABossCharacter* boss = Cast<ABossCharacter>(p);
-	if (boss->GetAbilityOneCooldown() > 0)
+	m_boss = Cast<ABossCharacter>(p);
+	if (m_boss->GetAbilityOneCooldown() > 0)
 	{
 		return false;
 	}
 
+	// Unable to perform action if another ability is being performed
+	if (m_boss->IsPerformingAbility())
+	{
+		return false;
+	}
+	
 	return setTarget;
 }
 
@@ -34,8 +42,7 @@ bool UAction_AbilityOne::doAction(APawn* pawn)
 {
 	Super::doAction(pawn);
 
-	// On first run...
-	if (m_boss)
+	if (IsValid(m_boss))
 	{
 		bool completedAbility = UpdateFSM();
 		return completedAbility;
@@ -43,7 +50,6 @@ bool UAction_AbilityOne::doAction(APawn* pawn)
 	else
 	{
 		m_boss = Cast<ABossCharacter>(pawn);
-		m_currentState = EState::Enter;
 	}
 	return false;
 }
@@ -99,5 +105,7 @@ void UAction_AbilityOne::BeginExit()
 	{
 		m_boss->SetInvisible(false);
 		m_boss->PerformMeleeAttack();
+
+		m_boss->BeginAbilityOneCooldown();
 	}
 }
