@@ -96,7 +96,7 @@ void UAction_AbilityOne::UpdateInvisible()
 	if (m_boss)
 	{
 		bool isStunned = m_boss->GetIsStunned();
-		if (isStunned) d
+		if (isStunned)
 		{
 			m_boss->CancelChaseTarget();
 			return;
