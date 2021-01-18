@@ -7,6 +7,7 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "AIController.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "../../BossCharacter.h"
 
 UAction_Follow::UAction_Follow()
 {
@@ -44,6 +45,14 @@ bool UAction_Follow::doAction(APawn* aiCharPawn)
 		return false;
 	}
 
+	ABossCharacter* boss = Cast<ABossCharacter>(aiCharPawn);
+	// Check boss isn't stunned, cant move if so
+	if (boss->GetIsStunned() == true)
+	{
+		boss->CancelChaseTarget();
+		return false;
+	}
+
 	// Get AI controller for movement
 	AAIController* controller = Cast<AAIController>(aiCharPawn->GetController());
 	if (controller)
@@ -59,9 +68,8 @@ bool UAction_Follow::doAction(APawn* aiCharPawn)
 		aiCharPawn->GetController()->SetControlRotation(finalRot);
 		
 		// Move AI to player
-		EPathFollowingRequestResult::Type type = controller->MoveToActor(targetActor, FollowRadius);
-
-		if (type == EPathFollowingRequestResult::Type::AlreadyAtGoal)
+		bool reachedTarget = boss->ChaseTarget(targetActor);
+		if (reachedTarget)
 		{
 			//UE_LOG(LogTemp, Log, TEXT("Arrived at player's position!"));
 			return true;

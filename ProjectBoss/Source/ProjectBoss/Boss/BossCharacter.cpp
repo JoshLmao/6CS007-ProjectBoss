@@ -207,30 +207,43 @@ void ABossCharacter::SetInvisible(bool isInvis)
 		{
 			if (isInvis)
 			{
+				GetMesh()->SetMaterial(i, m_invisMatInst);
+			}
+			else
+			{
 				if (IsValid(m_originalMeshMaterials[i]))
 					GetMesh()->SetMaterial(i, m_originalMeshMaterials[i]);
 				else
 					UE_LOG(LogBoss, Error, TEXT("Material '%d' invalid!"), i);
 			}
-			else
-			{
-				GetMesh()->SetMaterial(i, m_invisMatInst);
-			}
-			
 		}
 	}
 }
 
 bool ABossCharacter::ChaseTarget(AActor* target)
 {
+	if (!IsValid(target))
+	{
+		return false;
+	}
+
 	LookAtActor(target);
 
 	if (IsValid(m_aiController))
 	{
-		EPathFollowingRequestResult::Type type = m_aiController->MoveToActor(target);
+		EPathFollowingRequestResult::Type type = m_aiController->MoveTo(FAIMoveRequest(target));
 		return type == EPathFollowingRequestResult::Type::AlreadyAtGoal;
 	}
 	return false;
+}
+
+void ABossCharacter::CancelChaseTarget()
+{
+	if (IsValid(m_aiController)) 
+	{
+		// Stop Movement of controller
+		m_aiController->StopMovement();
+	}
 }
 
 void ABossCharacter::AdvAttackFinishedPrepare()
@@ -470,6 +483,11 @@ void ABossCharacter::EndStun()
 	this->StopAnimMontage(StunnedMontage);
 
 	UE_LOG(LogBoss, Log, TEXT("No longer stunned"));
+}
+
+bool ABossCharacter::GetIsStunned()
+{
+	return IsStunned;
 }
 
 bool ABossCharacter::IsPerformingAbility(int abilIndex)

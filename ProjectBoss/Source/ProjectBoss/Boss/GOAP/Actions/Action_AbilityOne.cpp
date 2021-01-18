@@ -12,8 +12,6 @@ UAction_AbilityOne::UAction_AbilityOne()
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	effects.Add(CreateAtom("damage-player", true));
-
-	m_currentState = EState::Enter;
 }
 
 bool UAction_AbilityOne::checkProceduralPrecondition(APawn* p)
@@ -23,14 +21,14 @@ bool UAction_AbilityOne::checkProceduralPrecondition(APawn* p)
 	bool setTarget = TrySetTarget(p);
 
 	// Check ability isnt on cooldown
-	m_boss = Cast<ABossCharacter>(p);
-	if (m_boss->GetAbilityOneCooldown() > 0)
+	ABossCharacter* boss = Cast<ABossCharacter>(p);
+	if (boss->GetAbilityOneCooldown() > 0)
 	{
 		return false;
 	}
 
 	// Unable to perform action if another ability is being performed
-	if (m_boss->IsPerformingAbility())
+	if (boss->IsPerformingAbility())
 	{
 		return false;
 	}
@@ -45,11 +43,17 @@ bool UAction_AbilityOne::doAction(APawn* pawn)
 	if (IsValid(m_boss))
 	{
 		bool completedAbility = UpdateFSM();
+		if (completedAbility)
+		{
+			// Once ability finished, reset boss reference
+			m_boss = nullptr;
+		}
 		return completedAbility;
 	}
 	else
 	{
 		m_boss = Cast<ABossCharacter>(pawn);
+		SetState(EState::Enter);
 	}
 	return false;
 }
@@ -91,10 +95,19 @@ void UAction_AbilityOne::UpdateInvisible()
 {
 	if (m_boss)
 	{
-		AActor* targetActor = getTarget();
-		bool isInRange = m_boss->ChaseTarget(targetActor);
-		if (isInRange) {
-			SetState(EState::Exit);
+		bool isStunned = m_boss->GetIsStunned();
+		if (isStunned) d
+		{
+			m_boss->CancelChaseTarget();
+			return;
+		}
+		else
+		{
+			AActor* targetActor = getTarget();
+			bool isInRange = m_boss->ChaseTarget(targetActor);
+			if (isInRange) {
+				SetState(EState::Exit);
+			}
 		}
 	}
 }

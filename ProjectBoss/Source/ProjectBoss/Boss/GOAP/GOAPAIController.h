@@ -25,7 +25,15 @@ protected:
 private:
 	bool m_isPlanning;
 	
+	// Creates and returns an Atom with the name and value
 	FAtom CreateAtom(FString name, bool val);
 
+	// Prints the current GOAP plan
 	void PrintCurrentGOAPPlan();
+	
+	// Set a target world state for the GOAP system to achieve
+	void SetNewWorldTargets(TArray<FAtom> targets);
+
+	// Determines what the boss character should aim to do next and returns the world state
+	TArray<FAtom> DetermineNextWorldState();
 };

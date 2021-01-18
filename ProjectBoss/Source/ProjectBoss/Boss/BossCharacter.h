@@ -155,6 +155,8 @@ public:
 	void SetInvisible(bool isInvis);
 	// Chases a target, returns true if reached the target
 	bool ChaseTarget(AActor* target);
+	// Stops the chase target
+	void CancelChaseTarget();
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AdvAttackFinishedPrepare();
@@ -185,6 +187,8 @@ public:
 
 	// -1 for any, 0 melee, 1 advanced, 2 ability one, 3 ultimate
 	bool IsPerformingAbility(int abilIndex = -1);
+	// Get if the character is currently stunned
+	bool GetIsStunned();
 
 	// Begins the cooldown for ability one
 	void BeginAbilityOneCooldown();
