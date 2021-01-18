@@ -102,7 +102,6 @@ AProjectBossCharacter::AProjectBossCharacter()
 	m_audioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 	m_audioComponent->bAutoActivate = false;
 	m_audioComponent->SetupAttachment(RootComponent);
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -140,6 +139,10 @@ void AProjectBossCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	m_charMovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent());
+
+	// Configure character to use Mouse rotation
+	m_charMovementComponent->bOrientRotationToMovement = false;
+	bUseControllerRotationYaw = true;
 
 	if (PoleColliderComponent)
 	{
