@@ -96,7 +96,7 @@ void ABossCharacter::BeginPlay()
 
 	//m_originalMeshMaterials = GetMesh()->GetMaterials();
 	for (int i = 0; i < GetMesh()->GetNumMaterials(); i++) {
-		m_originalMeshMaterials.Add(GetMesh()->CreateDynamicMaterialInstance(i));
+		m_originalMeshMaterials.Add(GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(i, GetMesh()->GetMaterial(i)));
 	}
 
 	m_invisMatInst = GetMesh()->CreateDynamicMaterialInstance(0, InvisibleMatInst);

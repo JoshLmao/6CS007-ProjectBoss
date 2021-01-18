@@ -80,5 +80,8 @@ void ACapsuleAOEDamage::OnAOEBeginOverlap(UPrimitiveComponent* OverlappedComp, A
 			ABossCharacter* boss = Cast<ABossCharacter>(OtherActor);
 			boss->ApplyStun(m_stunDuration);
 		}
+
+		if (OnCapsuleDealtDamage.IsBound())
+			OnCapsuleDealtDamage.Broadcast();
 	}
 }

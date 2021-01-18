@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "CapsuleAOEDamage.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCapsuleDealtDamage);
+
 UCLASS()
 class PROJECTBOSS_API ACapsuleAOEDamage : public AActor
 {
@@ -16,6 +18,9 @@ public:
 	ACapsuleAOEDamage();
 
 	class UCapsuleComponent* CapsuleComponent;
+
+	UPROPERTY(BlueprintAssignable)
+	FCapsuleDealtDamage OnCapsuleDealtDamage;
 
 private:
 	float m_damageAmount;

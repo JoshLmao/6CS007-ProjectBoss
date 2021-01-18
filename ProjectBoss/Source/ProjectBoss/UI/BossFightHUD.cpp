@@ -29,3 +29,24 @@ void ABossFightHUD::DrawHUD()
 {
 	Super::DrawHUD();
 }
+
+void ABossFightHUD::AddHitMarker()
+{
+	// If hit marker hasn't been created yet, create it
+	if (!m_activeHitMarker)
+	{
+		m_activeHitMarker = CreateWidget<UUserWidget>(GetWorld(), HitMarkerWidget);
+	}
+
+	// Add to viewport and await removal
+	m_activeHitMarker->AddToViewport();
+
+	float delaySeconds = 0.35f;
+	GetWorldTimerManager().SetTimer(m_hitMarkerDelay, this, &ABossFightHUD::OnHitMarkerDelay, delaySeconds);
+}
+
+void ABossFightHUD::OnHitMarkerDelay()
+{
+	// Remove from viewport after delay
+	m_activeHitMarker->RemoveFromViewport();
+}

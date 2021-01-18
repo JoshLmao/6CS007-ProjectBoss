@@ -18,6 +18,7 @@
 #include "Player/CloudwalkCloud.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
+#include "UI/BossFightHUD.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProjectBossCharacter
@@ -352,11 +353,16 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 {
 	// Spawn AOE damage collider and configure
 	ACapsuleAOEDamage* dmgCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), FActorSpawnParameters());
+	// Listen to event when capsule deals damage
+	dmgCollider->OnCapsuleDealtDamage.AddDynamic(this, &AProjectBossCharacter::CapsuleDealtDamage);
+
+	// Set damage and size dimensions of capsule
 	float aoeHalfHeight = 250.0f;
 	dmgCollider->ConfigureDamage(AdvAttackOffensiveDamageAmount, GetController(), this);
 	dmgCollider->ConfigureCapsule(50.0f, aoeHalfHeight);
 	dmgCollider->SetLifeSpan(0.25f);
 
+	// Set spawn location and rotation. Rotation is spawning in front of actor
 	FVector capsuleSpawnLoc = GetActorLocation() + (GetActorForwardVector() * aoeHalfHeight);
 	FRotator capsuleSpawnRot = FRotator(90.0f, GetActorRotation().Yaw, 0);
 	dmgCollider->SetActorLocation(capsuleSpawnLoc);
@@ -462,7 +468,11 @@ void AProjectBossCharacter::AbilityOneLandDamage()
 
 	FVector colliderLocation = this->GetActorLocation() + FVector(0, 0, -50.0f);
 
+	// Spawn capsule and listen to capsule event on dealing damage
 	ACapsuleAOEDamage* aoeCapsuleCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), colliderLocation, FRotator(), FActorSpawnParameters());
+	aoeCapsuleCollider->OnCapsuleDealtDamage.AddDynamic(this, &AProjectBossCharacter::CapsuleDealtDamage);
+
+	// Configure capsule for Ability One
 	aoeCapsuleCollider->ConfigureDamage(AbilityOneDamageAmount, GetController(), this);
 	aoeCapsuleCollider->SetStunDuration(AbilOneStunDuration);
 	aoeCapsuleCollider->ConfigureCapsule(AbilityOneRadius, AbilityOneRadius);
@@ -628,6 +638,9 @@ void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedCo
 
 			FDamageEvent dmgEvent;
 			OtherActor->TakeDamage(MeleeAttackDamageAmount, dmgEvent, GetController(), this);
+
+			// Add hit marker to UI
+			HUDAddHitMarker();
 		}
 	}
 }
@@ -685,4 +698,19 @@ float AProjectBossCharacter::TakeDamage(float damageAmount, struct FDamageEvent 
 	}
 
 	return damage;
+}
+
+void AProjectBossCharacter::CapsuleDealtDamage()
+{
+	HUDAddHitMarker();
+}
+
+void AProjectBossCharacter::HUDAddHitMarker()
+{
+	// Get the player controller and HUD, cast to scripts
+	APlayerController* player = Cast<APlayerController>(GetController());
+	ABossFightHUD* hud = Cast<ABossFightHUD>(player->GetHUD());
+	
+	// Add hitmarker to screen
+	hud->AddHitMarker();
 }

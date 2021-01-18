@@ -275,6 +275,12 @@ private:
 	/// <returns></returns>
 	bool PlayCue(class USoundBase* sound, bool shouldOverrideExistingSound = false);
 
+	UFUNCTION()
+	void CapsuleDealtDamage();
+
+	// Adds a ht marker to the current player HUD
+	void HUDAddHitMarker();
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
