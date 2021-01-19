@@ -15,6 +15,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 ABossCharacter::ABossCharacter()
@@ -227,11 +228,14 @@ bool ABossCharacter::ChaseTarget(AActor* target)
 		return false;
 	}
 
+	// Look and face towards target
 	LookAtActor(target);
 
+	// Check if aiController is valid and move towards
 	if (IsValid(m_aiController))
 	{
-		EPathFollowingRequestResult::Type type = m_aiController->MoveTo(FAIMoveRequest(target));
+		FAIMoveRequest aiRequest(target);
+		EPathFollowingRequestResult::Type type = m_aiController->MoveTo(aiRequest);
 		return type == EPathFollowingRequestResult::Type::AlreadyAtGoal;
 	}
 	return false;
@@ -305,10 +309,12 @@ void ABossCharacter::AdvAttackOnReleaseDagger()
 
 void ABossCharacter::PerformUltimate(AActor* targetActor)
 {
-	if (!targetActor || m_ultiIsChanneling || m_isPerformingAnyAbility)
+	if (!targetActor || !CanPerformAction())
+	{
 		return;
+	}
 
-	UE_LOG(LogBoss, Log, TEXT("Boss performing Ultimate!"));
+	UE_LOG(LogBoss, Log, TEXT("Performing ultimate ability!"));
 
 	m_ultiTargetActor = targetActor;
 	m_isPerformingAnyAbility = true;
@@ -325,18 +331,16 @@ void ABossCharacter::PerformUltimate(AActor* targetActor)
 void ABossCharacter::UltimateTeleportTo()
 {
 	if (!m_ultiTargetActor)
-		return;
-
-	if (AbilityUltimateMontages.Num() > 1)
 	{
-		this->PlayAnimMontage(AbilityUltimateMontages[1]);
+		UE_LOG(LogPlayer, Error, TEXT("Unable to teleport on Ultimate! No Target actor set"));
+		return;
 	}
 
-	// Teleport boss to character
+	//  Determine teleport location next to target
 	FVector directionVector = UKismetMathLibrary::GetDirectionUnitVector(this->GetActorLocation(), m_ultiTargetActor->GetActorLocation());
 	UE_LOG(LogBoss, Log, TEXT("DirVector: %s"), *directionVector.ToString());
 	FVector targetLocation = m_ultiTargetActor->GetActorLocation() - (directionVector * 100.0f);
-
+	// Teleport actor to location
 	this->SetActorLocation(targetLocation);
 
 	// Only apply damage if player didn't "avoid" it
@@ -346,8 +350,17 @@ void ABossCharacter::UltimateTeleportTo()
 		m_ultiTargetActor->TakeDamage(UltimateDamage, FDamageEvent(), GetController(), this);
 	}
 
-	m_ultiIsChanneling = false;
+	// Play ultimate montage to attack player
+	if (AbilityUltimateMontages.Num() > 1)
+	{
+		this->PlayAnimMontage(AbilityUltimateMontages[1]);
+	}
+
+	// Set cooldown
 	UltimateCurrentCd = UltimateTotalCooldown;
+
+	// Reset flags
+	m_ultiIsChanneling = false;
 	m_ultiTargetActor = false;
 	m_isPerformingAnyAbility = false;
 }
@@ -449,6 +462,12 @@ float ABossCharacter::GetUltimateCooldown()
 
 void ABossCharacter::LookAtActor(AActor* target)
 {
+	if (!target || IsValid(GetController())) 
+	{
+		UE_LOG(LogBoss, Error, TEXT("Can't perform LookAtActor!"));
+		return;
+	}
+
 	// Set Actor to look at target actor
 	FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), target->GetActorLocation());
 	FRotator actorRotation = this->GetActorRotation();
@@ -456,10 +475,7 @@ void ABossCharacter::LookAtActor(AActor* target)
 	this->SetActorRotation(actorRotation);
 
 	// Also set Controller's look rotation
-	if (GetController() != nullptr)
-	{
-		GetController()->SetControlRotation(actorRotation);
-	}
+	GetController()->SetControlRotation(actorRotation);
 }
 
 void ABossCharacter::ApplyStun(float duration)
@@ -483,6 +499,15 @@ void ABossCharacter::EndStun()
 	this->StopAnimMontage(StunnedMontage);
 
 	UE_LOG(LogBoss, Log, TEXT("No longer stunned"));
+}
+
+bool ABossCharacter::CanPerformAction()
+{
+	if (m_isAttacking || m_isPerformingAnyAbility || m_ultiIsChanneling)
+	{
+		return false;
+	}
+	return true;
 }
 
 bool ABossCharacter::GetIsStunned()

@@ -239,12 +239,18 @@ EStance AProjectBossCharacter::GetStance()
 
 void AProjectBossCharacter::PerformMeleeAttack()
 {
+	// Check we have attack montages to play
 	if (AttackAnimMontages.Num() <= 0)
+	{
+		UE_LOG(LogPlayer, Error, TEXT("No Attack Montages set on player!"));
+		return;
+	}
+
+	// Dont continue if saveAttack flag or is performing another ability
+	if (m_isPerformingAbility || m_saveAttack)
 		return;
 
-	if (m_isPerformingAbility)
-		return;
-
+	
 	if (m_isAttacking)
 	{
 		m_saveAttack = true;
@@ -269,7 +275,10 @@ void AProjectBossCharacter::PerformMeleeAttack()
 void AProjectBossCharacter::ComboAttackSave()
 {
 	if (AttackAnimMontages.Num() <= 0)
+	{
+		UE_LOG(LogPlayer, Error, TEXT("No Attack Montages set on player!"));
 		return;
+	}
 
 	if (m_saveAttack)
 	{
@@ -280,6 +289,9 @@ void AProjectBossCharacter::ComboAttackSave()
 		{
 			MeleeAtkCurrentCd = SAVE_ATTACK_TIME * m_attackRate;
 			m_saveAttack = false;
+
+			UE_LOG(LogPlayer, Log, TEXT("Player performs Combo Melee Attack"));
+
 			m_attackCount++;
 			if (m_attackCount >= AttackAnimMontages.Num())
 				m_attackCount = 0;

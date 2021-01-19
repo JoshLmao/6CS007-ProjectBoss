@@ -26,13 +26,6 @@ bool UAction_MeleeAttack::checkProceduralPrecondition(APawn* pawn)
 
 	bool set = TrySetTarget(pawn);
 
-	AActor* meleeTarget = getTarget();
-	// Check target of melee is within melee range
-	//if (meleeTarget && FVector::Dist(meleeTarget->GetActorLocation(), pawn->GetActorLocation()) > 125.0f)
-	//{
-	//	return false;
-	//}
-
 	return set;
 }
 

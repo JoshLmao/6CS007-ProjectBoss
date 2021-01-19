@@ -153,7 +153,7 @@ public:
 	
 	// Sets the materials of the boss to be invisible
 	void SetInvisible(bool isInvis);
-	// Chases a target, returns true if reached the target
+	// Chases a target and returns the value of the pathfinding attempt
 	bool ChaseTarget(AActor* target);
 	// Stops the chase target
 	void CancelChaseTarget();
@@ -206,4 +206,7 @@ private:
 	void LookAtActor(AActor* target);
 
 	void EndStun();
+
+	// Gets if the boss can perform an ability or melee action
+	bool CanPerformAction();
 };

@@ -9,7 +9,7 @@
 UAction_Ultimate::UAction_Ultimate()
 {
 	name = "ability ultimate";
-	cost = 0.0f;
+	cost = 20.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	FAtom dmgEffect;
@@ -26,6 +26,13 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 	if (boss->GetUltimateCooldown() > 0)
+	{
+		return false;
+	}
+
+	// Don't perform action if too close to target
+	float dist = FVector::Distance(boss->GetActorLocation(), getTarget()->GetActorLocation());
+	if (dist <= 750.0f)
 	{
 		return false;
 	}
