@@ -32,6 +32,7 @@ ABossCharacter::ABossCharacter()
 
 	TotalHealth = 2500.0f;
 	MeleeDamage = 50.0f;
+	MeleeRadius = 150.0f;
 
 	AdvAbilityDamage = 50.0f;
 	AdvAbilityTotalCooldown = 20.0f;
@@ -73,7 +74,7 @@ void ABossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetActorLabel("Kalari");
+	SetActorLabel("Kallari");
 	CurrentHealth = TotalHealth;
 
 	m_aiController = Cast<AAIController>(GetController());
@@ -234,7 +235,11 @@ bool ABossCharacter::ChaseTarget(AActor* target)
 	// Check if aiController is valid and move towards
 	if (IsValid(m_aiController))
 	{
+		// Configure move request
 		FAIMoveRequest aiRequest(target);
+		aiRequest.SetAcceptanceRadius(MeleeRadius / 2);
+
+		// Set controller to move to target
 		EPathFollowingRequestResult::Type type = m_aiController->MoveTo(aiRequest);
 		return type == EPathFollowingRequestResult::Type::AlreadyAtGoal;
 	}
@@ -462,7 +467,7 @@ float ABossCharacter::GetUltimateCooldown()
 
 void ABossCharacter::LookAtActor(AActor* target)
 {
-	if (!target || IsValid(GetController())) 
+	if (!target || !IsValid(m_aiController))
 	{
 		UE_LOG(LogBoss, Error, TEXT("Can't perform LookAtActor!"));
 		return;
@@ -475,7 +480,12 @@ void ABossCharacter::LookAtActor(AActor* target)
 	this->SetActorRotation(actorRotation);
 
 	// Also set Controller's look rotation
-	GetController()->SetControlRotation(actorRotation);
+	m_aiController->SetControlRotation(actorRotation);
+}
+
+float ABossCharacter::GetMeleeRadius()
+{
+	return MeleeRadius;
 }
 
 void ABossCharacter::ApplyStun(float duration)

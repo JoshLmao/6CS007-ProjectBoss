@@ -31,6 +31,9 @@ protected:
 	// Amount of damage a melee attack deals
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	float MeleeDamage;
+	// Amount in units to be within radius of target to perform a melee attack
+	UPROPERTY(EditAnywhere, Category = "Melee Attack")
+	float MeleeRadius;
 
 	// Montages for performing the advanced attack
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
@@ -128,6 +131,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void ResetCombo();
 
+	// Event the triggers when this character has died
 	UPROPERTY(BlueprintAssignable)
 	FBossDeathSignature OnCharacterDied;
 
@@ -141,16 +145,13 @@ public:
 	// Called when this enemy takes damage
 	virtual float TakeDamage(float damageAmount, struct FDamageEvent const& damageEvent, class AController* eventInstigator, AActor* damageCauser) override;
 
-	/// <summary>
-	/// Executes a melee attack
-	/// </summary>
+	// Executes a melee attack
 	void PerformMeleeAttack();
-	/// <summary>
-	/// Performs the RMB advanced attack
-	/// </summary>
-	/// <param name="target"></param>
+	// Performs the RMB advanced attack
 	void PerformAdvancedAttack(AActor* target);
-	
+	// Performs the Ultimate ability
+	void PerformUltimate(AActor* target);
+
 	// Sets the materials of the boss to be invisible
 	void SetInvisible(bool isInvis);
 	// Chases a target and returns the value of the pathfinding attempt
@@ -165,22 +166,29 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AdvAttackOnReleaseDagger();
 
-	void PerformUltimate(AActor* target);
-
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void UltimateTeleportTo();
 
+	// Get the character's current health
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetCurrentHealth();
+	// Gets the total health of the character
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetTotalHealth();
 
+	// Gets the current cooldown of the advanced ability
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetAdvancedAbilityCooldown();
+	// Gets the current cooldown of ability one
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetAbilityOneCooldown();
+	// Gets the current cooldown of the ultimate
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetUltimateCooldown();
+
+	// Gets the distance in units to be in range to melee
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	float GetMeleeRadius();
 
 	// Stuns the target for the duration in seconds
 	void ApplyStun(float duration);

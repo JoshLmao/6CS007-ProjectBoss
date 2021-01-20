@@ -39,15 +39,18 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 		return false;
 	}
 
+	ABossCharacter* bossChar = Cast<ABossCharacter>(pawn);
+
 	// Check target is within melee range
-	float meleeRange = 150.0f;
-	if (FVector::Dist(targetActor->GetActorLocation(), pawn->GetActorLocation()) > meleeRange)
+	// Multiply 2 since var is radius
+	float meleeDistRange = bossChar->GetMeleeRadius() * 2;
+	float dist = FVector::Dist(targetActor->GetActorLocation(), pawn->GetActorLocation());
+	if (dist > meleeDistRange)
 	{
 		// finished action. target too far away
 		return true;
 	}
 
-	ABossCharacter* bossChar = Cast<ABossCharacter>(pawn);
 	if (bossChar)
 	{
 		// Perform melee attack.
