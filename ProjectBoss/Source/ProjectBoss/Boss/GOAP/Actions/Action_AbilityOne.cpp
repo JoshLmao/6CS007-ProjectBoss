@@ -98,13 +98,13 @@ void UAction_AbilityOne::UpdateInvisible()
 		bool isStunned = m_boss->GetIsStunned();
 		if (isStunned)
 		{
-			m_boss->CancelChaseTarget();
+			m_boss->CancelMoveToLocation();
 			return;
 		}
 		else
 		{
 			AActor* targetActor = getTarget();
-			bool isInRange = m_boss->ChaseTarget(targetActor);
+			bool isInRange = m_boss->MoveToLocation(targetActor->GetActorLocation());
 			if (isInRange) {
 				SetState(EState::Exit);
 			}

@@ -3,6 +3,7 @@
 
 #include "GOAPAIController.h"
 #include "../BossCharacter.h"
+#include "../../ProjectBoss.h"
 #pragma region AllActionsInclude
 #include "Actions/Action_Wait.h"
 #include "Actions/Action_Follow.h"
@@ -10,35 +11,42 @@
 #include "Actions/Action_Ultimate.h"
 #include "Actions/Action_AdvancedAttack.h"
 #include "Actions/Action_AbilityOne.h"
+#include "Actions/Action_Heal.h"
+#include "Actions/Action_SeekCover.h"
 #pragma endregion
 
 AGOAPAIController::AGOAPAIController()
 {
 	m_isPlanning = false;
+	m_printedLastFailPlan = false;
 
 	// Create current world state
 	currentWorld.Add(CreateAtom("in-melee-range", false));
-	//currentWorld.Add(CreateAtom("in-medium-range", false));
 	currentWorld.Add(CreateAtom("damage-player", false));
-	//currentWorld.Add(CreateAtom("is-player-alive", true));
-	//currentWorld.Add(CreateAtom("knife-fury-available", true));
+	currentWorld.Add(CreateAtom("heal", false));
+	currentWorld.Add(CreateAtom("in-cover", false));
 
 	// Add array of actions available to AI
 	//actions.Add(UAction_Wait::StaticClass());
 	actions.Add(UAction_Follow::StaticClass());
+	// Offensive Actions
 	actions.Add(UAction_MeleeAttack::StaticClass());
 	actions.Add(UAction_AdvancedAttack::StaticClass());
 	actions.Add(UAction_AbilityOne::StaticClass());
 	actions.Add(UAction_Ultimate::StaticClass());
+	// Defensive Actions
+	actions.Add(UAction_Heal::StaticClass());
+	actions.Add(UAction_SeekCover::StaticClass());
 }
 
 void AGOAPAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Create desired world state
+	// Create desired world state on start
 	TArray<FAtom> goals;
-	goals.Add(CreateAtom("damage-player", true));
+	//goals.Add(CreateAtom("damage-player", true));
+	goals.Add(CreateAtom("heal", true));
 
 	setGoal(goals);
 
@@ -66,9 +74,19 @@ void AGOAPAIController::Tick(float deltaTime)
 	else
 	{
 		TArray<FAtom> nextWorldState = DetermineNextWorldState();
+
 		if (nextWorldState.Num() <= 0)
 		{
+			if (m_printedLastFailPlan)
+			{
+				m_isPlanning = false;
+				return;
+			}
+
+			m_printedLastFailPlan = true;
+
 			// Couldnt determine next world state, show error
+			UE_LOG(LogGOAP, Error, TEXT("Unable to determine the next world state!"));
 			if (GEngine)
 			{
 				GEngine->AddOnScreenDebugMessage(0, 15.0f, FColor::Red, TEXT("GOAP Plan: Unable to create"));
@@ -76,6 +94,9 @@ void AGOAPAIController::Tick(float deltaTime)
 		}
 		else
 		{
+			if (m_printedLastFailPlan)
+				m_printedLastFailPlan = false;
+
 			SetNewWorldTargets(nextWorldState);
 		}
 	}
@@ -120,6 +141,8 @@ void AGOAPAIController::SetNewWorldTargets(TArray<FAtom> targets)
 	TArray<FAtom> goals;
 	goals.Add(CreateAtom("damage-player", false));
 	goals.Add(CreateAtom("in-melee-range", false));
+	goals.Add(CreateAtom("in-cover", false));
+	goals.Add(CreateAtom("heal", false));
 	setCurrentWorld(goals);
 
 	// Set new goal of reset world
@@ -132,22 +155,34 @@ TArray<FAtom> AGOAPAIController::DetermineNextWorldState()
 
 	ABossCharacter* boss = Cast<ABossCharacter>(GetPawn());
 	// if boss health is less than 35%, use self-heal
-	if (boss->GetCurrentHealth() <= boss->GetTotalHealth() * 0.35)
+	if (WorldContainsAtom("heal", false) && boss->CanHeal())
 	{
 		targets.Add(CreateAtom("heal", true));
 		return targets;
 	}
-	else
-	{
-		// Make boss endlessly aim to damage player if current world state isn't that already
-		TArray<FAtom> world = getCurrentWorldStateAtoms();
-		for (int i = 0; i < world.Num(); i++) {
-			if (world[i].name == "damage-player" && world[i].value)
-			{
-				targets.Add(CreateAtom("damage-player", true));
-			}
+	
+	// Make boss endlessly aim to damage player if current world state isn't that already
+	/*TArray<FAtom> world = getCurrentWorldStateAtoms();
+	for (int i = 0; i < world.Num(); i++) {
+		if (world[i].name == "damage-player" && world[i].value)
+		{
+			
 		}
-	}
+	}*/
+
+	targets.Add(CreateAtom("damage-player", true));
 
 	return targets;
+}
+
+bool AGOAPAIController::WorldContainsAtom(FString atomName, bool state)
+{
+	for (FAtom atom : currentWorld)
+	{
+		if (atom.name == atomName && atom.value == state)
+		{
+			return true;
+		}
+	}
+	return false;
 }

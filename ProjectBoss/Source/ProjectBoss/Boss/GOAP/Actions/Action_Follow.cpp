@@ -49,12 +49,18 @@ bool UAction_Follow::doAction(APawn* aiCharPawn)
 	// Check boss isn't stunned, cant move if so
 	if (boss->GetIsStunned() == true)
 	{
-		boss->CancelChaseTarget();
+		boss->CancelMoveToLocation();
+		return false;
+	}
+
+	// Check boss isn't attacking
+	if (boss->IsPerformingAbility(0))
+	{
 		return false;
 	}
 
 	// Move AI to player
-	bool reachedTarget = boss->ChaseTarget(targetActor);
+	bool reachedTarget = boss->MoveToLocation(targetActor->GetActorLocation());
 	if (reachedTarget)
 	{
 		//UE_LOG(LogTemp, Log, TEXT("Arrived at player's position!"));

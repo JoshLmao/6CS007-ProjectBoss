@@ -24,6 +24,7 @@ protected:
 
 private:
 	bool m_isPlanning;
+	bool m_printedLastFailPlan;
 	
 	// Creates and returns an Atom with the name and value
 	FAtom CreateAtom(FString name, bool val);
@@ -36,4 +37,8 @@ private:
 
 	// Determines what the boss character should aim to do next and returns the world state
 	TArray<FAtom> DetermineNextWorldState();
+
+	// Checks if the world has a current atom in state
+	bool WorldContainsAtom(FString atomName, bool state);
+
 };

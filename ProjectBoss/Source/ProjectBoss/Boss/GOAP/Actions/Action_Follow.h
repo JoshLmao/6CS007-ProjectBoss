@@ -15,13 +15,9 @@ class PROJECTBOSS_API UAction_Follow : public UPBGOAPAction
 	GENERATED_BODY()
 
 public:
-	// Amount of units to be within of the player to have reached the player
-	float FollowRadius = 50.0f;
-
-public:
 	UAction_Follow();
 
 	bool doAction(APawn* pawn) override;
 
-	bool checkProceduralPrecondition(APawn* p) override;
+	bool checkProceduralPrecondition(APawn* pawn) override;
 };

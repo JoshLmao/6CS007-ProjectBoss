@@ -73,8 +73,28 @@ protected:
 	// Total cooldown in seconds of the ultimate
 	UPROPERTY(EditAnywhere, Category = "Ability Ultimate")
 	float UltimateTotalCooldown;
+	// The current cooldown of the ultimate ability
 	UPROPERTY(BlueprintReadOnly, Category = "Ability Ultimate")
 	float UltimateCurrentCd;
+
+	// Montage to play when healing
+	UPROPERTY(EditAnywhere, Category = "Ability Heal")
+	class UAnimMontage* HealMontage;
+	// Percent to heal
+	UPROPERTY(EditAnywhere, Category = "Ability Heal")
+	float HealPercent;
+	// Time in seconds to spread the heal ability over
+	UPROPERTY(EditAnywhere, Category = "Ability Heal")
+	float HealDuration;
+	// Amount in health required the character to be <= to perform heal
+	UPROPERTY(EditAnywhere, Category = "Ability Heal")
+	float PerformHealThreshold;
+	// Total cooldown time in seconds of the heal 
+	UPROPERTY(EditAnywhere, Category = "Ability Heal")
+	float HealTotalCooldown;
+	// Current cooldown of the heal ability
+	UPROPERTY(BlueprintReadOnly, Category = "Ability Heal")
+	float HealCurrentCooldown;
 
 	// Capsule component for the left blade
 	UPROPERTY(EditAnywhere, Category = "General")
@@ -121,6 +141,9 @@ private:
 	AActor* m_ultiTargetActor;
 	bool m_ultiIsChanneling;
 
+	// Ability Heal
+	float m_healTimeRemaining;
+
 	FTimerHandle m_stunHandle;
 
 	/**  Events  **/
@@ -152,12 +175,17 @@ public:
 	// Performs the Ultimate ability
 	void PerformUltimate(AActor* target);
 
+	// Performs a self heal ability
+	void PerformHeal();
+	// If the boss is within range to perform heal ability
+	bool CanHeal();
+
 	// Sets the materials of the boss to be invisible
 	void SetInvisible(bool isInvis);
 	// Chases a target and returns the value of the pathfinding attempt
-	bool ChaseTarget(AActor* target);
-	// Stops the chase target
-	void CancelChaseTarget();
+	bool MoveToLocation(FVector location);
+	// Stops any move to location command
+	void CancelMoveToLocation();
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AdvAttackFinishedPrepare();
@@ -185,6 +213,9 @@ public:
 	// Gets the current cooldown of the ultimate
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetUltimateCooldown();
+	// Gets current cooldown of heal ability
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	float GetHealCooldown();
 
 	// Gets the distance in units to be in range to melee
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
@@ -194,6 +225,7 @@ public:
 	void ApplyStun(float duration);
 
 	// -1 for any, 0 melee, 1 advanced, 2 ability one, 3 ultimate
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	bool IsPerformingAbility(int abilIndex = -1);
 	// Get if the character is currently stunned
 	bool GetIsStunned();
@@ -209,12 +241,18 @@ private:
 	UFUNCTION()
 	void OnBladeBeginOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	void UpdateAbilityCooldowns(float deltaTime);
+
 	void OnDeath();
 
-	void LookAtActor(AActor* target);
+	// Rotates actor to look at location
+	void LookAtActor(FVector location);
 
 	void EndStun();
 
 	// Gets if the boss can perform an ability or melee action
 	bool CanPerformAction();
+
+	// Called when heal ability has finished
+	void OnFinishHeal();
 };

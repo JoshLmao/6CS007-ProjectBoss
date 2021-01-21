@@ -24,29 +24,35 @@ ABossCharacter::ABossCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	m_isPerformingAnyAbility = false;
-
-	m_attackCount = 0;
-	m_isAttacking = false;
-	m_saveAttack = false; 
-	m_dmgThisAttack = false;
-
+	// General
 	TotalHealth = 2500.0f;
 	MeleeDamage = 50.0f;
 	MeleeRadius = 150.0f;
-
+	// Melee Attack
+	m_attackCount = 0;
+	m_isAttacking = false;
+	m_saveAttack = false;
+	m_dmgThisAttack = false;
+	// Ability Advanced
 	AdvAbilityDamage = 50.0f;
 	AdvAbilityTotalCooldown = 20.0f;
 	AdvAbilityCurrentCd = 0.0f;
-
+	// Ability One
 	AbilOneCritAmount = 150.0f;
 	AbilOneTotalCooldown = 10.0f;
 	AdvAbilityCurrentCd = 0.0f;
-
+	// Ability Invis
 	m_isInvisible = false;
-
+	// Ability Ultimate
 	UltimateDamage = 75.0f;
 	UltimateTotalCooldown = 50.0f;
 	UltimateCurrentCd = 0.0f;
+	// Ability Heal
+	m_healTimeRemaining = 0.0f;
+	HealDuration = 5.0f;
+	HealPercent = 0.17;
+	HealTotalCooldown = 30.0f;
+	PerformHealThreshold = 0.35f;
 
 	LeftBladeCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("LeftBladeCollider"));
 	LeftBladeCollider->SetupAttachment(GetMesh());
@@ -75,7 +81,7 @@ void ABossCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	SetActorLabel("Kallari");
-	CurrentHealth = TotalHealth;
+	CurrentHealth = TotalHealth / 4;
 
 	m_aiController = Cast<AAIController>(GetController());
 
@@ -110,30 +116,54 @@ void ABossCharacter::Tick(float deltaTime)
 	Super::Tick(deltaTime);
 
 	// Lower any ability cooldowns
-	if (AdvAbilityCurrentCd > 0)
-		AdvAbilityCurrentCd -= deltaTime;
-	if (AbilOneCurrentCd > 0)
-		AbilOneCurrentCd -= deltaTime;
-	if (UltimateCurrentCd > 0)
-		UltimateCurrentCd -= deltaTime;
+	UpdateAbilityCooldowns(deltaTime);
 
 	// If stunned, disable any in movement/look at actions
 	if (IsStunned)
 		return;
 
+	// While Boss is alive, perform any abilities
 	if (CurrentHealth > 0)
 	{
 		// Look at player when aiming to throw RMB attack
 		if (IsValid(m_rmbTarget) && IsValid(m_aiController))
 		{
 			m_aiController->MoveToActor(m_rmbTarget, 1500.0f);
-			LookAtActor(m_rmbTarget);
+			LookAtActor(m_rmbTarget->GetActorLocation());
 		}
 
 		// Face actor towards target jump actor
 		if (m_ultiIsChanneling && IsValid(m_ultiTargetActor))
 		{
-			LookAtActor(m_ultiTargetActor);
+			LookAtActor(m_ultiTargetActor->GetActorLocation());
+		}
+
+		// Heal ability if time still remaining
+		if (m_healTimeRemaining > 0)
+		{
+			// Decrement time remaining
+			m_healTimeRemaining -= deltaTime;
+
+			// Determine amount to heal this tick
+			float totalHealAmount = GetTotalHealth() * HealPercent;
+			float oneSec = totalHealAmount / HealDuration;
+			float healAmount = oneSec * deltaTime;
+			CurrentHealth += healAmount;
+
+			// If current health is full, stop heal
+			if (CurrentHealth >= TotalHealth)
+			{
+				CurrentHealth = TotalHealth;
+				m_healTimeRemaining = 0;
+			}
+			
+			// Stop Heal montage once heal over
+			if (m_healTimeRemaining <= 0)
+			{
+				this->StopAnimMontage(HealMontage);
+
+				OnFinishHeal();
+			}
 		}
 	}
 }
@@ -222,21 +252,22 @@ void ABossCharacter::SetInvisible(bool isInvis)
 	}
 }
 
-bool ABossCharacter::ChaseTarget(AActor* target)
+bool ABossCharacter::MoveToLocation(FVector location)
 {
-	if (!IsValid(target))
+	/*if (!IsValid(location))
 	{
 		return false;
-	}
+	}*/
 
 	// Look and face towards target
-	LookAtActor(target);
+	LookAtActor(location);
 
 	// Check if aiController is valid and move towards
 	if (IsValid(m_aiController))
 	{
 		// Configure move request
-		FAIMoveRequest aiRequest(target);
+		FAIMoveRequest aiRequest;
+		aiRequest.SetGoalLocation(location);
 		aiRequest.SetAcceptanceRadius(MeleeRadius / 2);
 
 		// Set controller to move to target
@@ -246,7 +277,7 @@ bool ABossCharacter::ChaseTarget(AActor* target)
 	return false;
 }
 
-void ABossCharacter::CancelChaseTarget()
+void ABossCharacter::CancelMoveToLocation()
 {
 	if (IsValid(m_aiController)) 
 	{
@@ -331,6 +362,39 @@ void ABossCharacter::PerformUltimate(AActor* targetActor)
 	}
 
 	m_ultiIsChanneling = true;
+}
+
+void ABossCharacter::PerformHeal()
+{
+	if (!CanPerformAction())
+	{
+		return;
+	}
+
+ 	UE_LOG(LogBoss, Log, TEXT("Performing Heal ability at '%f' health for '%f' percent"), CurrentHealth, HealPercent);
+	m_isPerformingAnyAbility = true;
+
+	if (HealMontage)
+	{
+		this->PlayAnimMontage(HealMontage);
+	}
+
+	m_healTimeRemaining = HealDuration;
+}
+
+void ABossCharacter::OnFinishHeal()
+{
+	UE_LOG(LogBoss, Log, TEXT("Finished Heal ability to '%f' health. Cooldown for '%f' seconds"), CurrentHealth, HealTotalCooldown);
+
+	HealCurrentCooldown = HealTotalCooldown;
+	m_healTimeRemaining = 0;
+	
+	m_isPerformingAnyAbility = false;
+}
+
+bool ABossCharacter::CanHeal()
+{
+	return CurrentHealth < (TotalHealth * PerformHealThreshold) && HealCurrentCooldown <= 0;
 }
 
 void ABossCharacter::UltimateTeleportTo()
@@ -460,21 +524,33 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 	}
 }
 
+void ABossCharacter::UpdateAbilityCooldowns(float deltaTime)
+{
+	if (AdvAbilityCurrentCd > 0)
+		AdvAbilityCurrentCd -= deltaTime;
+	if (AbilOneCurrentCd > 0)
+		AbilOneCurrentCd -= deltaTime;
+	if (UltimateCurrentCd > 0)
+		UltimateCurrentCd -= deltaTime;
+	if (HealCurrentCooldown > 0)
+		HealCurrentCooldown -= deltaTime;
+}
+
 float ABossCharacter::GetUltimateCooldown()
 {
 	return UltimateCurrentCd;
 }
 
-void ABossCharacter::LookAtActor(AActor* target)
+void ABossCharacter::LookAtActor(FVector location)
 {
-	if (!target || !IsValid(m_aiController))
+	if (!IsValid(m_aiController))
 	{
 		UE_LOG(LogBoss, Error, TEXT("Can't perform LookAtActor!"));
 		return;
 	}
 
 	// Set Actor to look at target actor
-	FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), target->GetActorLocation());
+	FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), location);
 	FRotator actorRotation = this->GetActorRotation();
 	actorRotation.Yaw = lookAt.Yaw + -90.0f;
 	this->SetActorRotation(actorRotation);
@@ -537,6 +613,8 @@ bool ABossCharacter::IsPerformingAbility(int abilIndex)
 		return m_isInvisible;
 	case 3: // Ultimate
 		return IsValid(m_ultiTargetActor);
+	case 4: // Heal
+		return m_healTimeRemaining > 0;
 	}
 
 	// any ability
@@ -546,4 +624,9 @@ bool ABossCharacter::IsPerformingAbility(int abilIndex)
 void ABossCharacter::BeginAbilityOneCooldown()
 {
 	AbilOneCurrentCd = AbilOneTotalCooldown;
+}
+
+float ABossCharacter::GetHealCooldown()
+{
+	return HealCurrentCooldown;
 }
