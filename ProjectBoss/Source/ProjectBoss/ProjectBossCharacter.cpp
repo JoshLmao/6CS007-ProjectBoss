@@ -33,7 +33,7 @@ AProjectBossCharacter::AProjectBossCharacter()
 	AdvAttackOffensiveDamageAmount = 250.0f;
 
 	AdvAttackEvasiveCloudDuration = 2.0f;
-
+	
 	AbilityOneTotalCooldown = 10.0f;
 	AbilityOneRadius = 500.0f;
 	AbilOneStunDuration = 1.5f;

@@ -8,6 +8,17 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBossDeathSignature);
 
+UENUM()
+enum EAbilities
+{
+	Any = -1		UMETA(DisplayName = "Any"),
+	Melee = 0		UMETA(DisplayName = "Melee"),
+	Advanced = 1	UMETA(DisplayName = "Advanced"),
+	One = 2			UMETA(DisplayName = "One"),
+	Ultimate = 3	UMETA(DisplayName = "Ultimate"),
+	Heal = 4		UMETA(DisplayName = "Heal"),
+};
+
 UCLASS()
 class PROJECTBOSS_API ABossCharacter : public ACharacter
 {
@@ -34,6 +45,9 @@ protected:
 	// Amount in units to be within radius of target to perform a melee attack
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	float MeleeRadius;
+	// Rate the character attacks/melee's the target
+	UPROPERTY(EditAnywhere, Category = "Melee Attack")
+	float AttackRate;
 
 	// Montages for performing the advanced attack
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
@@ -41,10 +55,13 @@ protected:
 	// Throwable Dagger blueprint for Ability One
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	TSubclassOf<class AThrowableDagger> ThrowableDagger;
+	// Amount of damage the advanced ability does to the target
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAbilityDamage;
+	// Current cooldown of the avanced ability
 	UPROPERTY(BlueprintReadOnly, Category = "Advanced Attack")
 	float AdvAbilityCurrentCd;
+	// Total cooldown of the advanced ability
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAbilityTotalCooldown;
 
@@ -110,6 +127,9 @@ protected:
 	// The current health of the boss
 	UPROPERTY(BlueprintReadOnly, Category = "General")
 	float CurrentHealth;
+	// Percentage crit multiplier for the next melee attack
+	UPROPERTY(EditAnywhere, Category = "General")
+	float MeleeCritMultiplier;
 
 	// Montage to play while character is stunned
 	UPROPERTY(EditAnywhere, Category = "Montages")
@@ -217,12 +237,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetHealCooldown();
 
+	// Sets a percentage multiplier to the next melee attack
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	void SetMeleeCritMultiplier(float percentMultiplier);
+
 	// Gets the distance in units to be in range to melee
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetMeleeRadius();
 
 	// Stuns the target for the duration in seconds
 	void ApplyStun(float duration);
+
+	float GetAbilityOneCritMultiplier();
 
 	// -1 for any, 0 melee, 1 advanced, 2 ability one, 3 ultimate
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")

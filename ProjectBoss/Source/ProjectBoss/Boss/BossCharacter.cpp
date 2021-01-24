@@ -26,13 +26,14 @@ ABossCharacter::ABossCharacter()
 	m_isPerformingAnyAbility = false;
 	// General
 	TotalHealth = 2500.0f;
-	MeleeDamage = 50.0f;
-	MeleeRadius = 150.0f;
 	// Melee Attack
 	m_attackCount = 0;
 	m_isAttacking = false;
 	m_saveAttack = false;
 	m_dmgThisAttack = false;
+	AttackRate = 1.25f;
+	MeleeDamage = 50.0f;
+	MeleeRadius = 150.0f;
 	// Ability Advanced
 	AdvAbilityDamage = 50.0f;
 	AdvAbilityTotalCooldown = 20.0f;
@@ -41,10 +42,9 @@ ABossCharacter::ABossCharacter()
 	AbilOneCritAmount = 150.0f;
 	AbilOneTotalCooldown = 10.0f;
 	AdvAbilityCurrentCd = 0.0f;
-	// Ability Invis
 	m_isInvisible = false;
 	// Ability Ultimate
-	UltimateDamage = 75.0f;
+	UltimateDamage = 150.0f;
 	UltimateTotalCooldown = 50.0f;
 	UltimateCurrentCd = 0.0f;
 	// Ability Heal
@@ -80,8 +80,9 @@ void ABossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Set actor label & start health
 	SetActorLabel("Kallari");
-	CurrentHealth = TotalHealth / 4;
+	CurrentHealth = TotalHealth;
 
 	m_aiController = Cast<AAIController>(GetController());
 
@@ -196,7 +197,7 @@ float ABossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& 
 
 void ABossCharacter::PerformMeleeAttack()
 {
-	if (m_isPerformingAnyAbility)
+	if (IsPerformingAbility())
 		return;
 
 	if (m_isAttacking)
@@ -207,7 +208,25 @@ void ABossCharacter::PerformMeleeAttack()
 	{
 		m_isAttacking = true;
 
-		this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
+		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 1 / AttackRate);
+		m_attackCount++;
+		if (m_attackCount >= AttackAnimMontages.Num())
+		{
+			m_attackCount = 0;
+		}
+	}
+}
+
+void ABossCharacter::ComboAttackSave()
+{
+	// Only combo if saveAttack has been set to true (called PerformMeleeAttack again)
+	if (m_saveAttack)
+	{
+		m_saveAttack = false;
+		m_dmgThisAttack = false;
+
+		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 1 / AttackRate);
+
 		m_attackCount++;
 		if (m_attackCount >= AttackAnimMontages.Num())
 		{
@@ -243,7 +262,7 @@ void ABossCharacter::SetInvisible(bool isInvis)
 			}
 			else
 			{
-				if (IsValid(m_originalMeshMaterials[i]))
+				if (IsValid(m_originalMeshMaterials[i]) && m_originalMeshMaterials[i]->IsValidLowLevel())
 					GetMesh()->SetMaterial(i, m_originalMeshMaterials[i]);
 				else
 					UE_LOG(LogBoss, Error, TEXT("Material '%d' invalid!"), i);
@@ -268,7 +287,7 @@ bool ABossCharacter::MoveToLocation(FVector location)
 		// Configure move request
 		FAIMoveRequest aiRequest;
 		aiRequest.SetGoalLocation(location);
-		aiRequest.SetAcceptanceRadius(MeleeRadius / 2);
+		aiRequest.SetAcceptanceRadius(MeleeRadius / 1.25);
 
 		// Set controller to move to target
 		EPathFollowingRequestResult::Type type = m_aiController->MoveTo(aiRequest);
@@ -412,7 +431,7 @@ void ABossCharacter::UltimateTeleportTo()
 	// Teleport actor to location
 	this->SetActorLocation(targetLocation);
 
-	// Only apply damage if player didn't "avoid" it
+	// Only apply damage if player didn't "avoid"/evade it
 	AProjectBossCharacter* player = Cast<AProjectBossCharacter>(m_ultiTargetActor);
 	if (!player->IsEvading())
 	{
@@ -432,24 +451,6 @@ void ABossCharacter::UltimateTeleportTo()
 	m_ultiIsChanneling = false;
 	m_ultiTargetActor = false;
 	m_isPerformingAnyAbility = false;
-}
-
-void ABossCharacter::ComboAttackSave()
-{
-	// Only combo if saveAttack has been set to true (called PerformMeleeAttack again)
-	if (m_saveAttack)
-	{
-		m_saveAttack = false;
-		m_dmgThisAttack = false;
-
-		this->PlayAnimMontage(AttackAnimMontages[m_attackCount]);
-
-		m_attackCount++;
-		if (m_attackCount >= AttackAnimMontages.Num())
-		{
-			m_attackCount = 0;
-		}
-	}
 }
 
 void ABossCharacter::ResetCombo()
@@ -518,8 +519,16 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 {
 	if (OtherActor->IsA(AProjectBossCharacter::StaticClass()) && m_isAttacking && !m_dmgThisAttack)
 	{
+		float dmgAmount = MeleeDamage;
+		// If performing certain ability that changes attack damage, set to that
+		if (MeleeCritMultiplier > 0)
+		{
+			dmgAmount = MeleeDamage * (MeleeCritMultiplier / 100);
+			MeleeCritMultiplier = 0;
+		}
+
 		FDamageEvent dmgEvent;
-		OtherActor->TakeDamage(MeleeDamage, dmgEvent, GetController(), this);
+		OtherActor->TakeDamage(dmgAmount, dmgEvent, GetController(), this);
 		m_dmgThisAttack = true;
 	}
 }
@@ -578,6 +587,11 @@ void ABossCharacter::ApplyStun(float duration)
 	UE_LOG(LogBoss, Log, TEXT("Boss is stunned for '%f' seconds"), duration);
 }
 
+float ABossCharacter::GetAbilityOneCritMultiplier()
+{
+	return AbilOneCritAmount;
+}
+
 void ABossCharacter::EndStun()
 {
 	// On stun end, stop playing the stun montage
@@ -605,20 +619,19 @@ bool ABossCharacter::IsPerformingAbility(int abilIndex)
 {
 	switch (abilIndex)
 	{
-	case 0: // Melee
-		return m_isAttacking;
-	case 1: // Advanced
-		return IsValid(m_rmbTarget);
-	case 2: // Ability one
-		return m_isInvisible;
-	case 3: // Ultimate
-		return IsValid(m_ultiTargetActor);
-	case 4: // Heal
-		return m_healTimeRemaining > 0;
+		case EAbilities::Melee:
+			return m_isAttacking;
+		case EAbilities::Advanced:
+			return IsValid(m_rmbTarget);
+		case EAbilities::One:
+			return m_isInvisible;
+		case EAbilities::Ultimate:
+			return IsValid(m_ultiTargetActor);
+		case EAbilities::Heal:
+			return m_healTimeRemaining > 0;
+		default:
+			return m_isPerformingAnyAbility;
 	}
-
-	// any ability
-	return m_isPerformingAnyAbility;
 }
 
 void ABossCharacter::BeginAbilityOneCooldown()
@@ -629,4 +642,9 @@ void ABossCharacter::BeginAbilityOneCooldown()
 float ABossCharacter::GetHealCooldown()
 {
 	return HealCurrentCooldown;
+}
+
+void ABossCharacter::SetMeleeCritMultiplier(float percentMultiplier)
+{
+	MeleeCritMultiplier = percentMultiplier;
 }

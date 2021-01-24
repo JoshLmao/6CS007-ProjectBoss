@@ -33,7 +33,7 @@ bool UAction_AdvancedAttack::checkProceduralPrecondition(APawn* pawn)
 	{
 		return false;
 	}
-	
+
 	// Check we have target and ultimate isn't on cooldown
 	return setTarget;
 }
