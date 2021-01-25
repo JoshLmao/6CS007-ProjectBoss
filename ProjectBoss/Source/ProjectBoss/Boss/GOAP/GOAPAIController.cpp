@@ -58,10 +58,6 @@ void AGOAPAIController::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-	if (m_isPlanning)
-		return;
-
-	m_isPlanning = true;
 	// Every tick, execute GOAP to create a plan
 	bool success = executeGOAP();
 	
@@ -79,7 +75,6 @@ void AGOAPAIController::Tick(float deltaTime)
 		{
 			if (m_printedLastFailPlan)
 			{
-				m_isPlanning = false;
 				return;
 			}
 
@@ -100,8 +95,6 @@ void AGOAPAIController::Tick(float deltaTime)
 			SetNewWorldTargets(nextWorldState);
 		}
 	}
-
-	m_isPlanning = false;
 }
 
 FAtom AGOAPAIController::CreateAtom(FString name, bool val)

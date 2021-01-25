@@ -23,7 +23,6 @@ protected:
 	virtual void Tick(float deltaTime) override;
 
 private:
-	bool m_isPlanning;
 	bool m_printedLastFailPlan;
 	
 	// Creates and returns an Atom with the name and value
