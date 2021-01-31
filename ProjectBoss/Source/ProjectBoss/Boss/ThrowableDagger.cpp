@@ -60,6 +60,10 @@ void AThrowableDagger::OnDaggerBeginOverlap(class UPrimitiveComponent* Overlappe
 	if (OtherActor->IsA(AProjectBossCharacter::StaticClass()))
 	{
 		OtherActor->TakeDamage(m_damageAmount, FDamageEvent(), NULL, this);
+
+		if (OnDaggerDealtDamage.IsBound())
+			OnDaggerDealtDamage.Broadcast();
+
 		Destroy();
 	}
 }

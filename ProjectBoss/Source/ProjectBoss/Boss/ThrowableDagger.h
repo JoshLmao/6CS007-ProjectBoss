@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "ThrowableDagger.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDaggerDealtDamage);
+
 UCLASS()
 class PROJECTBOSS_API AThrowableDagger : public AActor
 {
@@ -28,6 +30,10 @@ private:
 	float m_damageAmount;
 	FVector m_movementDirection;
 	float m_speed;
+
+public:
+	UPROPERTY(BlueprintAssignable)
+	FDaggerDealtDamage OnDaggerDealtDamage;
 
 	/*
 	*	METHODS

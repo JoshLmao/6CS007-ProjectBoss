@@ -4,7 +4,7 @@
 #include "GOAPAIController.h"
 #include "../BossCharacter.h"
 #include "../../ProjectBoss.h"
-#pragma region AllActionsInclude
+#pragma region include AllActions
 #include "Actions/Action_Wait.h"
 #include "Actions/Action_Follow.h"
 #include "Actions/Action_MeleeAttack.h"
@@ -17,7 +17,6 @@
 
 AGOAPAIController::AGOAPAIController()
 {
-	m_isPlanning = false;
 	m_printedLastFailPlan = false;
 
 	// Create current world state
@@ -52,6 +51,8 @@ void AGOAPAIController::BeginPlay()
 
 	// Set max depth of planner
 	maxDepth = 20.0f;
+
+	m_bossPawn = Cast<ABossCharacter>(GetPawn());
 }
 
 void AGOAPAIController::Tick(float deltaTime)

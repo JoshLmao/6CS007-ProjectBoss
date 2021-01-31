@@ -31,7 +31,7 @@ bool UAction_AbilityOne::checkProceduralPrecondition(APawn* p)
 	}
 
 	// Unable to perform action if another ability is being performed
-	if (m_boss->IsPerformingAbility(1) || m_boss->IsPerformingAbility(3) || m_boss->IsPerformingAbility(4))
+	if (m_boss->IsPerformingAbility(EAbilities::Advanced) || m_boss->IsPerformingAbility(EAbilities::Ultimate) || m_boss->IsPerformingAbility(EAbilities::Heal))
 	{
 		return false;
 	}

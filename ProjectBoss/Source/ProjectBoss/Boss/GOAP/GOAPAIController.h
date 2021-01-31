@@ -24,6 +24,7 @@ protected:
 
 private:
 	bool m_printedLastFailPlan;
+	class ABossCharacter* m_bossPawn;
 	
 	// Creates and returns an Atom with the name and value
 	FAtom CreateAtom(FString name, bool val);
@@ -39,5 +40,8 @@ private:
 
 	// Checks if the world has a current atom in state
 	bool WorldContainsAtom(FString atomName, bool state);
+
+	// Check if the world state has reached it's target world state. Returns true if so
+	bool HasWorldReachedGoal();
 
 };

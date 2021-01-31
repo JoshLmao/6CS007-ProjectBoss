@@ -156,6 +156,7 @@ private:
 	TArray<class UMaterialInstanceDynamic*> m_originalMeshMaterials;
 	class UMaterialInstanceDynamic* m_invisMatInst;
 	bool m_isInvisible;
+	bool m_abilOneIsAttacking;
 
 	// Ability Ultimate
 	AActor* m_ultiTargetActor;
@@ -165,6 +166,8 @@ private:
 	float m_healTimeRemaining;
 
 	FTimerHandle m_stunHandle;
+
+	class UCombatStats* m_combatStats;
 
 	/**  Events  **/
 public:
@@ -245,6 +248,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetMeleeRadius();
 
+	// Gets the pointer to the combat statistics of the boss
+	UCombatStats* GetCombatStats();
+
 	// Stuns the target for the duration in seconds
 	void ApplyStun(float duration);
 
@@ -258,6 +264,7 @@ public:
 
 	// Begins the cooldown for ability one
 	void BeginAbilityOneCooldown();
+	void AbilOneMeleeAttack();
 
 protected:
 	// Called when the game starts or when spawned
@@ -274,6 +281,8 @@ private:
 	// Rotates actor to look at location
 	void LookAtActor(FVector location);
 
+	void DoMelee();
+
 	void EndStun();
 
 	// Gets if the boss can perform an ability or melee action
@@ -281,4 +290,7 @@ private:
 
 	// Called when heal ability has finished
 	void OnFinishHeal();
+
+	UFUNCTION()
+	void OnAdvAttackDealtDamage();
 };

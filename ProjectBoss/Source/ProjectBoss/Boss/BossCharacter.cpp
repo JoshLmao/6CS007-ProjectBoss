@@ -16,6 +16,8 @@
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
 #include "DrawDebugHelpers.h"
+#include "../Statistics/CombatStats.h"
+#include "UObject/UObjectGlobals.h"
 
 // Sets default values
 ABossCharacter::ABossCharacter()
@@ -80,6 +82,9 @@ void ABossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Init combat stats class
+	m_combatStats = NewObject<UCombatStats>();
+
 	// Set actor label & start health
 	SetActorLabel("Kallari");
 	CurrentHealth = TotalHealth;
@@ -126,20 +131,20 @@ void ABossCharacter::Tick(float deltaTime)
 	// While Boss is alive, perform any abilities
 	if (CurrentHealth > 0)
 	{
-		// Look at player when aiming to throw RMB attack
+		// Advanced Ability: Look at player when aiming to throw RMB attack
 		if (IsValid(m_rmbTarget) && IsValid(m_aiController))
 		{
 			m_aiController->MoveToActor(m_rmbTarget, 1500.0f);
 			LookAtActor(m_rmbTarget->GetActorLocation());
 		}
 
-		// Face actor towards target jump actor
+		// Ultimate: Face actor towards target jump actor
 		if (m_ultiIsChanneling && IsValid(m_ultiTargetActor))
 		{
 			LookAtActor(m_ultiTargetActor->GetActorLocation());
 		}
 
-		// Heal ability if time still remaining
+		// Heal: Heal ability if time still remaining
 		if (m_healTimeRemaining > 0)
 		{
 			// Decrement time remaining
@@ -206,14 +211,7 @@ void ABossCharacter::PerformMeleeAttack()
 	}
 	else
 	{
-		m_isAttacking = true;
-
-		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 1 / AttackRate);
-		m_attackCount++;
-		if (m_attackCount >= AttackAnimMontages.Num())
-		{
-			m_attackCount = 0;
-		}
+		DoMelee();
 	}
 }
 
@@ -225,14 +223,23 @@ void ABossCharacter::ComboAttackSave()
 		m_saveAttack = false;
 		m_dmgThisAttack = false;
 
-		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 1 / AttackRate);
-
-		m_attackCount++;
-		if (m_attackCount >= AttackAnimMontages.Num())
-		{
-			m_attackCount = 0;
-		}
+		DoMelee();
 	}
+}
+
+void ABossCharacter::DoMelee()
+{
+	m_isAttacking = true;
+
+	this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 1 / AttackRate);
+
+	m_attackCount++;
+	if (m_attackCount >= AttackAnimMontages.Num())
+	{
+		m_attackCount = 0;
+	}
+
+	m_combatStats->AddAttack();
 }
 
 void ABossCharacter::PerformAdvancedAttack(AActor* target)
@@ -343,23 +350,36 @@ void ABossCharacter::AdvAttackOnReleaseDagger()
 	AThrowableDagger* daggerActor = GetWorld()->SpawnActor<AThrowableDagger>(ThrowableDagger.Get(), spawnLoc, FRotator());
 	if (daggerActor)
 	{
+		// Cast actor to dagger and configure
 		AThrowableDagger* dagger = Cast<AThrowableDagger>(daggerActor);
 		dagger->SetDamage(AdvAbilityDamage);
-		
-		dagger->SetActorLocation(spawnLoc);
+		// Listen to when dagger overlaps with player
+		dagger->OnDaggerDealtDamage.AddDynamic(this, &ABossCharacter::OnAdvAttackDealtDamage);
 
+		// Set its spawn location and look direction
+		dagger->SetActorLocation(spawnLoc);
 		FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(dagger->GetActorLocation(), m_rmbTarget->GetActorLocation());
 		FRotator daggerRot = dagger->GetActorRotation();
 		dagger->SetActorRotation(lookAt + FRotator(-90, 0, 0));
-
-		dagger->SetMovementDirection(dagger->GetActorUpVector(), 3000.0f);
+		// Set movement direction to fly toward player at speed
+		float daggerSpeed = 3000.0f;
+		dagger->SetMovementDirection(dagger->GetActorUpVector(), daggerSpeed);
 	}
 
 	m_rmbTarget = nullptr;
 	m_isPerformingAnyAbility = false;
+
+	// Add attempt to stats
+	m_combatStats->AddAbilityAttempt(EAbilities::Advanced);
 	
 	// On cooldown once ability finished performing
 	AdvAbilityCurrentCd = AdvAbilityTotalCooldown;
+}
+
+// On dagger collided with player
+void ABossCharacter::OnAdvAttackDealtDamage()
+{
+	m_combatStats->AddAbilitySuccess(EAbilities::Advanced);
 }
 
 void ABossCharacter::PerformUltimate(AActor* targetActor)
@@ -381,6 +401,7 @@ void ABossCharacter::PerformUltimate(AActor* targetActor)
 	}
 
 	m_ultiIsChanneling = true;
+	m_combatStats->AddAbilityAttempt(EAbilities::Ultimate);
 }
 
 void ABossCharacter::PerformHeal()
@@ -399,6 +420,7 @@ void ABossCharacter::PerformHeal()
 	}
 
 	m_healTimeRemaining = HealDuration;
+	m_combatStats->AddAbilityAttempt(EAbilities::Heal);
 }
 
 void ABossCharacter::OnFinishHeal()
@@ -409,6 +431,8 @@ void ABossCharacter::OnFinishHeal()
 	m_healTimeRemaining = 0;
 	
 	m_isPerformingAnyAbility = false;
+
+	m_combatStats->AddAbilitySuccess(EAbilities::Heal);
 }
 
 bool ABossCharacter::CanHeal()
@@ -426,7 +450,6 @@ void ABossCharacter::UltimateTeleportTo()
 
 	//  Determine teleport location next to target
 	FVector directionVector = UKismetMathLibrary::GetDirectionUnitVector(this->GetActorLocation(), m_ultiTargetActor->GetActorLocation());
-	UE_LOG(LogBoss, Log, TEXT("DirVector: %s"), *directionVector.ToString());
 	FVector targetLocation = m_ultiTargetActor->GetActorLocation() - (directionVector * 100.0f);
 	// Teleport actor to location
 	this->SetActorLocation(targetLocation);
@@ -436,6 +459,7 @@ void ABossCharacter::UltimateTeleportTo()
 	if (!player->IsEvading())
 	{
 		m_ultiTargetActor->TakeDamage(UltimateDamage, FDamageEvent(), GetController(), this);
+		m_combatStats->AddAbilitySuccess(EAbilities::Ultimate);
 	}
 
 	// Play ultimate montage to attack player
@@ -530,6 +554,8 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 		FDamageEvent dmgEvent;
 		OtherActor->TakeDamage(dmgAmount, dmgEvent, GetController(), this);
 		m_dmgThisAttack = true;
+
+		m_combatStats->AddSuccessfulAttack();
 	}
 }
 
@@ -571,6 +597,11 @@ void ABossCharacter::LookAtActor(FVector location)
 float ABossCharacter::GetMeleeRadius()
 {
 	return MeleeRadius;
+}
+
+UCombatStats* ABossCharacter::GetCombatStats()
+{
+	return m_combatStats;
 }
 
 void ABossCharacter::ApplyStun(float duration)
