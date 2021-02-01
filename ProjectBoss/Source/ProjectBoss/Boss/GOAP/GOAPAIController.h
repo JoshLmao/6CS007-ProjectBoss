@@ -44,4 +44,7 @@ private:
 	// Check if the world state has reached it's target world state. Returns true if so
 	bool HasWorldReachedGoal();
 
+	// Gets the default world state
+	TArray<FAtom> GetDefaultWorldState();
+
 };

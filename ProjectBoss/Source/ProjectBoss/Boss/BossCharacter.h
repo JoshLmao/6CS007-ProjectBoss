@@ -64,6 +64,9 @@ protected:
 	// Total cooldown of the advanced ability
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAbilityTotalCooldown;
+	// Minimum and Maximum distance to perform advanced ability
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
+	float AdvAbilityMaxRange;
 
 	// Montages for performing Ability One
 	UPROPERTY(EditAnywhere, Category = "Ability One")
@@ -209,6 +212,8 @@ public:
 	bool MoveToLocation(FVector location);
 	// Stops any move to location command
 	void CancelMoveToLocation();
+	// Rotates actor to look at location
+	void LookAtActor(FVector location);
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AdvAttackFinishedPrepare();
@@ -247,6 +252,9 @@ public:
 	// Gets the distance in units to be in range to melee
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetMeleeRadius();
+	// Gets if the character is currently attacking
+	UFUNCTION(BlueprintCallable, Category = "Project Boss")
+	bool IsAttacking();
 
 	// Gets the pointer to the combat statistics of the boss
 	UCombatStats* GetCombatStats();
@@ -261,10 +269,11 @@ public:
 	bool IsPerformingAbility(int abilIndex = -1);
 	// Get if the character is currently stunned
 	bool GetIsStunned();
+	// Get if the character is currently invisible
+	bool GetIsInvisible();
 
 	// Begins the cooldown for ability one
 	void BeginAbilityOneCooldown();
-	void AbilOneMeleeAttack();
 
 protected:
 	// Called when the game starts or when spawned
@@ -277,9 +286,6 @@ private:
 	void UpdateAbilityCooldowns(float deltaTime);
 
 	void OnDeath();
-
-	// Rotates actor to look at location
-	void LookAtActor(FVector location);
 
 	void DoMelee();
 

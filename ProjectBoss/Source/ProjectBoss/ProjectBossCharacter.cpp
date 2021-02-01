@@ -44,6 +44,8 @@ AProjectBossCharacter::AProjectBossCharacter()
 	AbilTwoCurrentCd = 0.0f;
 	Evasive_AttackRate = 0.75f;
 	Evasive_MaxMS = 700.0f;
+	Evasive_MeleeDamageAmount = 30.0f;
+	Offensive_MeleeDamageAmount = 50.0f;
 	Offensive_AttackRate = 1.25f;
 	Offensive_MaxMS = 600.0f;
 
@@ -570,10 +572,10 @@ void AProjectBossCharacter::SetStance(EStance targetStance)
 {
 	CurrentStance = targetStance;
 
+	UE_LOG(LogPlayer, Log, TEXT("Changed stance to '%s'"), *StanceToString(CurrentStance));
 
 	if (CurrentStance == EStance::Evasive)
 	{
-		UE_LOG(LogPlayer, Log, TEXT("Current stance is Evasive"));
 		m_attackRate = Evasive_AttackRate;
 		m_charMovementComponent->MaxWalkSpeed = Evasive_MaxMS;
 
@@ -584,7 +586,6 @@ void AProjectBossCharacter::SetStance(EStance targetStance)
 	}
 	else if (CurrentStance == EStance::Offensive)
 	{
-		UE_LOG(LogPlayer, Log, TEXT("Current stance is Offensive"));
 		m_attackRate = Offensive_AttackRate;
 		m_charMovementComponent->MaxWalkSpeed = Offensive_MaxMS;
 
@@ -648,8 +649,21 @@ void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedCo
 		{
 			m_hasAttackedThisSwing = true;
 
+			float stanceMeleeDmg = 0.0f;
+			switch (CurrentStance)
+			{
+				case EStance::Offensive:
+					stanceMeleeDmg = Offensive_MeleeDamageAmount;
+					break;
+				case EStance::Evasive:
+					stanceMeleeDmg = Evasive_MeleeDamageAmount;
+					break;
+			}
+
+			UE_LOG(LogPlayer, Log, TEXT("Player deals '%f' damage in stance '%s'"), stanceMeleeDmg, *StanceToString(CurrentStance));
+
 			FDamageEvent dmgEvent;
-			OtherActor->TakeDamage(MeleeAttackDamageAmount, dmgEvent, GetController(), this);
+			OtherActor->TakeDamage(stanceMeleeDmg, dmgEvent, GetController(), this);
 
 			// Add hit marker to UI
 			HUDAddHitMarker();
@@ -725,4 +739,17 @@ void AProjectBossCharacter::HUDAddHitMarker()
 	
 	// Add hitmarker to screen
 	hud->AddHitMarker();
+}
+
+FString AProjectBossCharacter::StanceToString(EStance stance)
+{
+	switch (stance)
+	{
+	case EStance::Offensive:
+		return "Offensive";
+	case EStance::Evasive:
+		return "Evasive";
+	default:
+		return "Unknown";
+	}
 }

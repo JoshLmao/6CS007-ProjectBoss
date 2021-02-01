@@ -34,6 +34,12 @@ bool UAction_AdvancedAttack::checkProceduralPrecondition(APawn* pawn)
 		return false;
 	}
 
+	float minDist = 400.0f;
+	if (FVector::Distance(boss->GetActorLocation(), getTarget()->GetActorLocation()) < minDist)
+	{
+		return false;
+	}
+
 	// Check we have target and ultimate isn't on cooldown
 	return setTarget;
 }

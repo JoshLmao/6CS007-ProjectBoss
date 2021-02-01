@@ -40,6 +40,7 @@ ABossCharacter::ABossCharacter()
 	AdvAbilityDamage = 50.0f;
 	AdvAbilityTotalCooldown = 20.0f;
 	AdvAbilityCurrentCd = 0.0f;
+	AdvAbilityMaxRange = 1500.0f;
 	// Ability One
 	AbilOneCritAmount = 150.0f;
 	AbilOneTotalCooldown = 10.0f;
@@ -134,7 +135,7 @@ void ABossCharacter::Tick(float deltaTime)
 		// Advanced Ability: Look at player when aiming to throw RMB attack
 		if (IsValid(m_rmbTarget) && IsValid(m_aiController))
 		{
-			m_aiController->MoveToActor(m_rmbTarget, 1500.0f);
+			m_aiController->MoveToActor(m_rmbTarget, AdvAbilityMaxRange);
 			LookAtActor(m_rmbTarget->GetActorLocation());
 		}
 
@@ -599,6 +600,11 @@ float ABossCharacter::GetMeleeRadius()
 	return MeleeRadius;
 }
 
+bool ABossCharacter::IsAttacking()
+{
+	return m_isAttacking;
+}
+
 UCombatStats* ABossCharacter::GetCombatStats()
 {
 	return m_combatStats;
@@ -644,6 +650,11 @@ bool ABossCharacter::CanPerformAction()
 bool ABossCharacter::GetIsStunned()
 {
 	return IsStunned;
+}
+
+bool ABossCharacter::GetIsInvisible()
+{
+	return m_isInvisible;
 }
 
 bool ABossCharacter::IsPerformingAbility(int abilIndex)

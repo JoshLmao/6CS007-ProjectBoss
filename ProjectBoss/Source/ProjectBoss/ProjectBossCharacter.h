@@ -69,7 +69,9 @@ public:
 
 	// Amount of damage a basic melee attack will deal
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float MeleeAttackDamageAmount;
+	float Evasive_MeleeDamageAmount;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float Offensive_MeleeDamageAmount;
 	// Current cooldown of melee attack
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	float MeleeAtkCurrentCd;
@@ -280,6 +282,8 @@ private:
 
 	// Adds a ht marker to the current player HUD
 	void HUDAddHitMarker();
+
+	FString StanceToString(EStance stance);
 
 public:
 	/** Returns CameraBoom subobject **/

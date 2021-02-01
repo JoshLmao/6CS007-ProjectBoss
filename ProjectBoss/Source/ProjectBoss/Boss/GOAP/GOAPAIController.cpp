@@ -10,7 +10,8 @@
 #include "Actions/Action_MeleeAttack.h"
 #include "Actions/Action_Ultimate.h"
 #include "Actions/Action_AdvancedAttack.h"
-#include "Actions/Action_AbilityOne.h"
+#include "Actions/Action_InvisibleRelocate.h"
+#include "Actions/Action_CriticalMelee.h"
 #include "Actions/Action_Heal.h"
 #include "Actions/Action_SeekCover.h"
 #pragma endregion
@@ -20,10 +21,7 @@ AGOAPAIController::AGOAPAIController()
 	m_printedLastFailPlan = false;
 
 	// Create current world state
-	currentWorld.Add(CreateAtom("in-melee-range", false));
-	currentWorld.Add(CreateAtom("damage-player", false));
-	currentWorld.Add(CreateAtom("heal", false));
-	currentWorld.Add(CreateAtom("in-cover", false));
+	setCurrentWorld(GetDefaultWorldState());
 
 	// Add array of actions available to AI
 	//actions.Add(UAction_Wait::StaticClass());
@@ -31,7 +29,8 @@ AGOAPAIController::AGOAPAIController()
 	// Offensive Actions
 	actions.Add(UAction_MeleeAttack::StaticClass());
 	actions.Add(UAction_AdvancedAttack::StaticClass());
-	actions.Add(UAction_AbilityOne::StaticClass());
+	actions.Add(UAction_InvisibleRelocate::StaticClass());
+	actions.Add(UAction_CriticalMelee::StaticClass());
 	actions.Add(UAction_Ultimate::StaticClass());
 	// Defensive Actions
 	actions.Add(UAction_Heal::StaticClass());
@@ -44,8 +43,8 @@ void AGOAPAIController::BeginPlay()
 
 	// Create desired world state on start
 	TArray<FAtom> goals;
-	//goals.Add(CreateAtom("damage-player", true));
-	goals.Add(CreateAtom("heal", true));
+	goals.Add(CreateAtom("damage-player", true));
+	//goals.Add(CreateAtom("heal", true));
 
 	setGoal(goals);
 
@@ -132,12 +131,7 @@ void AGOAPAIController::PrintCurrentGOAPPlan()
 void AGOAPAIController::SetNewWorldTargets(TArray<FAtom> targets)
 {
 	// Reset all targets to initial state
-	TArray<FAtom> goals;
-	goals.Add(CreateAtom("damage-player", false));
-	goals.Add(CreateAtom("in-melee-range", false));
-	goals.Add(CreateAtom("in-cover", false));
-	goals.Add(CreateAtom("heal", false));
-	setCurrentWorld(goals);
+	setCurrentWorld(GetDefaultWorldState());
 
 	// Set new goal of reset world
 	setGoal(targets);
@@ -179,4 +173,16 @@ bool AGOAPAIController::WorldContainsAtom(FString atomName, bool state)
 		}
 	}
 	return false;
+}
+
+TArray<FAtom> AGOAPAIController::GetDefaultWorldState()
+{
+	TArray<FAtom> state;
+	state.Add(CreateAtom("in-melee-range", false));
+	state.Add(CreateAtom("damage-player", false));
+	state.Add(CreateAtom("heal", false));
+	state.Add(CreateAtom("in-cover", false));
+	state.Add(CreateAtom("is-invisible", false));
+
+	return state;
 }
