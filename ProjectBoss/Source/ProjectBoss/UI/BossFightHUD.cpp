@@ -38,15 +38,18 @@ void ABossFightHUD::AddHitMarker()
 		m_activeHitMarker = CreateWidget<UUserWidget>(GetWorld(), HitMarkerWidget);
 	}
 
-	// Dont add if already in viewport
-	if (m_activeHitMarker->IsInViewport())
-		return;
+	if (IsValid(m_activeHitMarker))
+	{
+		// Dont add if already in viewport
+		if (m_activeHitMarker->IsInViewport())
+			return;
 
-	// Add to viewport and await removal
-	m_activeHitMarker->AddToViewport();
+		// Add to viewport and await removal
+		m_activeHitMarker->AddToViewport();
 
-	float delaySeconds = 0.35f;
-	GetWorldTimerManager().SetTimer(m_hitMarkerDelay, this, &ABossFightHUD::OnHitMarkerDelay, delaySeconds);
+		float delaySeconds = 0.35f;
+		GetWorldTimerManager().SetTimer(m_hitMarkerDelay, this, &ABossFightHUD::OnHitMarkerDelay, delaySeconds);
+	}
 }
 
 void ABossFightHUD::OnHitMarkerDelay()
