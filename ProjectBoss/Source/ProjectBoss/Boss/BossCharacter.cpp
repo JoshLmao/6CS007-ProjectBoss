@@ -281,11 +281,6 @@ void ABossCharacter::SetInvisible(bool isInvis)
 
 bool ABossCharacter::MoveToLocation(FVector location)
 {
-	/*if (!IsValid(location))
-	{
-		return false;
-	}*/
-
 	// Look and face towards target
 	LookAtActor(location);
 
@@ -316,7 +311,6 @@ void ABossCharacter::CancelMoveToLocation()
 void ABossCharacter::AdvAttackFinishedPrepare()
 {
 	// Finish prepare anim, start rand delay to throw dagger
-
 	float randDuration = FMath::RandRange(0.75f, 3.25f);
 	GetWorldTimerManager().SetTimer(m_rmbDelayHandle, this, &ABossCharacter::AdvAttackOnThrowDagger, randDuration, false);
 	UE_LOG(LogBoss, Log, TEXT("Delaying RMB Throw by '%f' seconds"), randDuration);
@@ -330,7 +324,7 @@ void ABossCharacter::AdvAttackFinishedPrepare()
 
 void ABossCharacter::AdvAttackOnThrowDagger()
 {
-	// Waited random time, play throw anim
+	// Waited random time, Play the throw animation
 	if (AdvancedAttackMontages.Num() > 2)
 	{
 		this->PlayAnimMontage(AdvancedAttackMontages[2]);
@@ -367,12 +361,17 @@ void ABossCharacter::AdvAttackOnReleaseDagger()
 		dagger->SetMovementDirection(dagger->GetActorUpVector(), daggerSpeed);
 	}
 
+	AdvAttackOnFinish();
+}
+
+void ABossCharacter::AdvAttackOnFinish()
+{
 	m_rmbTarget = nullptr;
 	m_isPerformingAnyAbility = false;
 
 	// Add attempt to stats
 	m_combatStats->AddAbilityAttempt(EAbilities::Advanced);
-	
+
 	// On cooldown once ability finished performing
 	AdvAbilityCurrentCd = AdvAbilityTotalCooldown;
 }
@@ -617,11 +616,19 @@ void ABossCharacter::ApplyStun(float duration)
 	{
 		this->PlayAnimMontage(StunnedMontage);
 	}
+
 	// Set IsStunned
 	IsStunned = true;
 	GetWorldTimerManager().SetTimer(m_stunHandle, this, &ABossCharacter::EndStun, duration, false);
 
 	UE_LOG(LogBoss, Log, TEXT("Boss is stunned for '%f' seconds"), duration);
+
+	// Cancel Advanced Ability if in progress
+	if (GetWorldTimerManager().IsTimerActive(m_rmbDelayHandle))
+	{
+		GetWorldTimerManager().ClearTimer(m_rmbDelayHandle);
+		AdvAttackOnFinish();
+	}
 }
 
 float ABossCharacter::GetAbilityOneCritMultiplier()

@@ -252,7 +252,6 @@ void AProjectBossCharacter::PerformMeleeAttack()
 	if (m_isPerformingAbility || m_saveAttack)
 		return;
 
-	
 	if (m_isAttacking)
 	{
 		m_saveAttack = true;
@@ -340,6 +339,8 @@ void AProjectBossCharacter::PerformAdvancedAttack()
 			float playDuration = this->PlayAnimMontage(AdvancedAttackMontage);
 			if (playDuration <= 0.0f)
 				UE_LOG(LogPlayer, Error, TEXT("Unable to play AdvancedAttackMontage"));
+
+			m_isPerformingAbility = true;
 		}
 	}
 	else if (CurrentStance == EStance::Evasive)
@@ -384,6 +385,8 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 
 	// Draw additional debug capsule for debug
 	DrawDebugCapsule(GetWorld(), capsuleSpawnLoc, aoeHalfHeight, 50.0f, capsuleSpawnRot.Quaternion(), FColor::Green, false, 1.0f, 0, 2.0f);
+
+	m_isPerformingAbility = false;
 }
 
 void AProjectBossCharacter::PerformAbilityOne()
@@ -429,7 +432,6 @@ void AProjectBossCharacter::PerformAbilityOne()
 			if (m_charMovementComponent)
 				LaunchCharacter(FVector(0, 0, m_charMovementComponent->JumpZVelocity), false, true);
 
-			m_isPerformingAbility = true;
 		}
 	}
 	else if (CurrentStance == EStance::Evasive)
@@ -455,10 +457,10 @@ void AProjectBossCharacter::PerformAbilityOne()
 
 			// Play double jump montage
 			this->PlayAnimMontage(AbilityOneEvasiveMontage);
-
-			m_isPerformingAbility = true;
 		}
 	}
+
+	m_isPerformingAbility = true;
 }
 
 void AProjectBossCharacter::AbilityOneForceGround()
@@ -475,7 +477,6 @@ void AProjectBossCharacter::AbilityOneForceGround()
 
 void AProjectBossCharacter::AbilityOneLandDamage()
 {
-	m_offAbilOneIsFalling = false;
 
 	// Once slam has landed on ground
 	this->PlayAnimMontage(AbilityOneMontages[2]);
@@ -494,6 +495,8 @@ void AProjectBossCharacter::AbilityOneLandDamage()
 
 	// Draw additional debug capsule for debug
 	DrawDebugSphere(GetWorld(), colliderLocation, AbilityOneRadius, 20.0f, FColor::Green, false, 1.0f, 0, 2.0f);
+
+	m_offAbilOneIsFalling = false;
 }
 
 void AProjectBossCharacter::FinishAbilityOne()

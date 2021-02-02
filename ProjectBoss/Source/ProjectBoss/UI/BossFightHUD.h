@@ -32,6 +32,7 @@ private:
 	// Current list of created UI widgets that are constantly active on screen
 	TArray<class UUserWidget*> m_createdWidgets;
 	// Active hit marker user widget
+	UPROPERTY()
 	class UUserWidget* m_activeHitMarker;
 
 	// Tracks the delay to destroy a hit marker

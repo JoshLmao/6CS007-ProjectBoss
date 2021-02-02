@@ -38,6 +38,7 @@ void ABossFightHUD::AddHitMarker()
 		m_activeHitMarker = CreateWidget<UUserWidget>(GetWorld(), HitMarkerWidget);
 	}
 
+	// Check hit marker is still valid
 	if (IsValid(m_activeHitMarker))
 	{
 		// Dont add if already in viewport

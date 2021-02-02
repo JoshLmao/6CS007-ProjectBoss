@@ -33,3 +33,12 @@ bool UPBGOAPAction::TrySetTarget(APawn* pawn)
 	}
 	return false;
 }
+
+void UPBGOAPAction::UpdateCost(float newCost)
+{
+	if (newCost >= 0) {
+		cost = newCost;
+	} else {
+		cost = 0.0f;
+	}
+}

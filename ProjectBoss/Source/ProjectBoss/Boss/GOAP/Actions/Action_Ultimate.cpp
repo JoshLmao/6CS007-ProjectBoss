@@ -9,7 +9,7 @@
 UAction_Ultimate::UAction_Ultimate()
 {
 	name = "ability ultimate";
-	cost = 20.0f;
+	cost = BaseCost = 20.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	FAtom dmgEffect;
@@ -22,9 +22,22 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 {
 	Super::checkProceduralPrecondition(pawn);
 
+	// Get action self and target
+	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 	bool setTarget = TrySetTarget(pawn);
 
-	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
+	if (setTarget)
+	{
+		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
+
+		// Positive if boss has less health than Player, Negative if boss has more health than Player
+		float playerHealthLost = player->GetTotalHealth() - player->GetCurrentHealth();
+		float bossHealthLost = boss->GetTotalHealth() - boss->GetCurrentHealth();
+		float healthDiff = (playerHealthLost - bossHealthLost) / 100;
+		
+		UpdateCost(BaseCost + healthDiff);
+	}
+
 	if (boss->GetUltimateCooldown() > 0)
 	{
 		return false;

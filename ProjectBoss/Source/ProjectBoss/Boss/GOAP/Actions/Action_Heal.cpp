@@ -3,6 +3,7 @@
 
 #include "Action_Heal.h"
 #include "../../BossCharacter.h"
+#include "../../../ProjectBossCharacter.h"
 
 UAction_Heal::UAction_Heal()
 {
@@ -22,6 +23,8 @@ bool UAction_Heal::checkProceduralPrecondition(APawn* pawn)
 	Super::checkProceduralPrecondition(pawn);
 
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
+	bool setTarget = TrySetTarget(pawn);
+	
 	if (boss)
 	{
 		if (boss->GetHealCooldown() > 0)
@@ -35,7 +38,7 @@ bool UAction_Heal::checkProceduralPrecondition(APawn* pawn)
 		}
 	}
 
-	return true;
+	return setTarget;
 }
 
 bool UAction_Heal::doAction(APawn* pawn)

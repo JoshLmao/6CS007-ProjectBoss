@@ -61,6 +61,8 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 		{
 			// Perform melee attack.
 			boss->PerformMeleeAttack();
+
+			UpdateCost(cost + 1.0f);
 		}
 	}
 

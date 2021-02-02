@@ -156,8 +156,11 @@ private:
 	bool m_rmbAimAtPlayer;
 
 	// Ability one
+	UPROPERTY()
 	TArray<class UMaterialInstanceDynamic*> m_originalMeshMaterials;
+	UPROPERTY()
 	class UMaterialInstanceDynamic* m_invisMatInst;
+
 	bool m_isInvisible;
 	bool m_abilOneIsAttacking;
 
@@ -221,6 +224,7 @@ public:
 	void AdvAttackOnThrowDagger();
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AdvAttackOnReleaseDagger();
+	void AdvAttackOnFinish();
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void UltimateTeleportTo();
