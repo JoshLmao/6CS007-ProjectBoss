@@ -136,18 +136,27 @@ public:
 	float Evasive_AttackRate;
 
 protected:
+	// Attack animations to play for a melee attack
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<class UAnimMontage*> AttackAnimMontages;
 
+	// Sound cue's to play when this character lands an attack
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<class USoundBase*> AttackImpactSounds;
+
+	// Montage to play for the Offensive advanced ability
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	class UAnimMontage* AdvancedAttackMontage;
 
+	// Montage to play for the Evasive advanced ability
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	class UAnimMontage* AdvancedEvadeMontage;
 
+	// Sequence of monatages to use for ability one
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	TArray<class UAnimMontage*> AbilityOneMontages;
 
+	// Montage to use for the evasive Ability One
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	class UAnimMontage* AbilityOneEvasiveMontage;
 
@@ -275,7 +284,7 @@ private:
 	/// <param name="sound"></param>
 	/// <param name="shouldOverrideExistingSound"></param>
 	/// <returns></returns>
-	bool PlayCue(class USoundBase* sound, bool shouldOverrideExistingSound = false);
+	bool PlayCue(class USoundBase* sound, bool shouldOverrideExistingSound = false, float volumeMultiplier = 1.0f, float pitchMultiplier = 1.0f);
 
 	UFUNCTION()
 	void CapsuleDealtDamage();

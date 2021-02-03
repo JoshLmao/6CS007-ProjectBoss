@@ -24,8 +24,10 @@ private:
 	float m_totalDealtDamage;
 
 	// Dictionary of ability index and attempts to perform the ability
+	UPROPERTY()
 	TMap<int, int> m_abilityAttempt;
 	// Dictionary of ability index and success count
+	UPROPERTY()
 	TMap<int, int> m_abilitySuccess;
 
 	/*

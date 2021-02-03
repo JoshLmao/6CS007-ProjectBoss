@@ -39,6 +39,10 @@ protected:
 	// Basic melee attack montages
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	TArray<class UAnimMontage*> AttackAnimMontages;
+	// Array of sounds to play when character lands an attack
+	UPROPERTY(EditAnywhere, Category = "Melee Attack")
+	TArray<class USoundBase*> AttackSoundCues;
+
 	// Amount of damage a melee attack deals
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	float MeleeDamage;
@@ -228,6 +232,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void UltimateTeleportTo();
+	void UltimateOnFinish();
 
 	// Get the character's current health
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
@@ -303,4 +308,7 @@ private:
 
 	UFUNCTION()
 	void OnAdvAttackDealtDamage();
+
+	// Plays a sound cue
+	void PlayCue(USoundBase* sound, float volumeMultiplier = 1.0f, float pitchMultiplier = 1.0f);
 };

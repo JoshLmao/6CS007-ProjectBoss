@@ -468,6 +468,11 @@ void ABossCharacter::UltimateTeleportTo()
 		this->PlayAnimMontage(AbilityUltimateMontages[1]);
 	}
 
+	UltimateOnFinish();
+}
+
+void ABossCharacter::UltimateOnFinish()
+{
 	// Set cooldown
 	UltimateCurrentCd = UltimateTotalCooldown;
 
@@ -512,11 +517,7 @@ void ABossCharacter::OnDeath()
 	if (OnCharacterDied.IsBound())
 		OnCharacterDied.Broadcast();
 
-	if (m_bossAudioComponent)
-	{
-		m_bossAudioComponent->SetSound(DeathCue);
-		m_bossAudioComponent->Play();
-	}
+	PlayCue(DeathCue);
 
 	DetachFromControllerPendingDestroy();
 
@@ -543,7 +544,9 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 {
 	if (OtherActor->IsA(AProjectBossCharacter::StaticClass()) && m_isAttacking && !m_dmgThisAttack)
 	{
+		// Get the damage for this melee attack
 		float dmgAmount = MeleeDamage;
+
 		// If performing certain ability that changes attack damage, set to that
 		if (MeleeCritMultiplier > 0)
 		{
@@ -551,29 +554,39 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 			MeleeCritMultiplier = 0;
 		}
 
+		// Apply damage to other actor
 		FDamageEvent dmgEvent;
 		OtherActor->TakeDamage(dmgAmount, dmgEvent, GetController(), this);
 		m_dmgThisAttack = true;
 
+		// Add successful attack to stats
 		m_combatStats->AddSuccessfulAttack();
+
+		// Play Impact sound
+		if (AttackSoundCues.Num() > 0)
+		{
+			// Random sound and random pitch
+			int rndIndex = FMath::RandRange(0, AttackSoundCues.Num() - 1);
+			float pitch = FMath::RandRange(0.7f, 1.35f);
+			PlayCue(AttackSoundCues[rndIndex], 0.07f, pitch);
+		}
 	}
 }
 
 void ABossCharacter::UpdateAbilityCooldowns(float deltaTime)
 {
+	// Update Advanced Abilitycooldown
 	if (AdvAbilityCurrentCd > 0)
 		AdvAbilityCurrentCd -= deltaTime;
+	// Update Ability One cooldown
 	if (AbilOneCurrentCd > 0)
 		AbilOneCurrentCd -= deltaTime;
+	// Update Ultimate cooldown
 	if (UltimateCurrentCd > 0)
 		UltimateCurrentCd -= deltaTime;
+	// Update Heal ability cooldown
 	if (HealCurrentCooldown > 0)
 		HealCurrentCooldown -= deltaTime;
-}
-
-float ABossCharacter::GetUltimateCooldown()
-{
-	return UltimateCurrentCd;
 }
 
 void ABossCharacter::LookAtActor(FVector location)
@@ -594,6 +607,11 @@ void ABossCharacter::LookAtActor(FVector location)
 	m_aiController->SetControlRotation(actorRotation);
 }
 
+float ABossCharacter::GetUltimateCooldown()
+{
+	return UltimateCurrentCd;
+}
+
 float ABossCharacter::GetMeleeRadius()
 {
 	return MeleeRadius;
@@ -607,6 +625,21 @@ bool ABossCharacter::IsAttacking()
 UCombatStats* ABossCharacter::GetCombatStats()
 {
 	return m_combatStats;
+}
+
+float ABossCharacter::GetAbilityOneCritMultiplier()
+{
+	return AbilOneCritAmount;
+}
+
+bool ABossCharacter::GetIsStunned()
+{
+	return IsStunned;
+}
+
+bool ABossCharacter::GetIsInvisible()
+{
+	return m_isInvisible;
 }
 
 void ABossCharacter::ApplyStun(float duration)
@@ -629,11 +662,13 @@ void ABossCharacter::ApplyStun(float duration)
 		GetWorldTimerManager().ClearTimer(m_rmbDelayHandle);
 		AdvAttackOnFinish();
 	}
-}
 
-float ABossCharacter::GetAbilityOneCritMultiplier()
-{
-	return AbilOneCritAmount;
+	// Cancel Ultimate if in progress
+	if (IsPerformingAbility(EAbilities::Ultimate))
+	{
+		// Set cooldown
+		UltimateOnFinish();
+	}
 }
 
 void ABossCharacter::EndStun()
@@ -652,16 +687,6 @@ bool ABossCharacter::CanPerformAction()
 		return false;
 	}
 	return true;
-}
-
-bool ABossCharacter::GetIsStunned()
-{
-	return IsStunned;
-}
-
-bool ABossCharacter::GetIsInvisible()
-{
-	return m_isInvisible;
 }
 
 bool ABossCharacter::IsPerformingAbility(int abilIndex)
@@ -696,4 +721,18 @@ float ABossCharacter::GetHealCooldown()
 void ABossCharacter::SetMeleeCritMultiplier(float percentMultiplier)
 {
 	MeleeCritMultiplier = percentMultiplier;
+}
+
+void ABossCharacter::PlayCue(USoundBase* sound, float volumeMultiplier, float pitchMultiplier)
+{
+	if (m_bossAudioComponent)
+	{
+		// Set volume and pitch
+		m_bossAudioComponent->SetVolumeMultiplier(volumeMultiplier);
+		m_bossAudioComponent->SetPitchMultiplier(pitchMultiplier);
+		
+		// Set sound and play
+		m_bossAudioComponent->SetSound(sound);
+		m_bossAudioComponent->Play();
+	}
 }

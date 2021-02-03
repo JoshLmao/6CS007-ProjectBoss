@@ -30,11 +30,11 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 	{
 		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
 
-		// Positive if boss has less health than Player, Negative if boss has more health than Player
+		// Update cost to be higher if the boss has more HP than the player
 		float playerHealthLost = player->GetTotalHealth() - player->GetCurrentHealth();
 		float bossHealthLost = boss->GetTotalHealth() - boss->GetCurrentHealth();
+		// Health Difference will be positive if boss has less health than Player, negative if boss has more health than Player
 		float healthDiff = (playerHealthLost - bossHealthLost) / 100;
-		
 		UpdateCost(BaseCost + healthDiff);
 	}
 

@@ -603,7 +603,7 @@ void AProjectBossCharacter::SetStance(EStance targetStance)
 	MeleeAttackCooldown = m_attackRate;
 }
 
-bool AProjectBossCharacter::PlayCue(USoundBase* sound, bool shouldOverrideExistingSound)
+bool AProjectBossCharacter::PlayCue(USoundBase* sound, bool shouldOverrideExistingSound, float volumeMultiplier, float pitchMultiplier)
 {
 	if (m_audioComponent)
 	{
@@ -622,9 +622,14 @@ bool AProjectBossCharacter::PlayCue(USoundBase* sound, bool shouldOverrideExisti
 			}
 		}
 
-		// Set the sound and play it
+		// Set sound and prepare component for this sound
 		m_audioComponent->SetSound(sound);
+		m_audioComponent->SetVolumeMultiplier(volumeMultiplier);
+		m_audioComponent->SetPitchMultiplier(pitchMultiplier);
+
+		// Play and return true
 		m_audioComponent->Play();
+
 		return true;
 	}
 
@@ -652,6 +657,7 @@ void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedCo
 		{
 			m_hasAttackedThisSwing = true;
 
+			// Determine correct damage from the current stance
 			float stanceMeleeDmg = 0.0f;
 			switch (CurrentStance)
 			{
@@ -665,11 +671,21 @@ void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedCo
 
 			UE_LOG(LogPlayer, Log, TEXT("Player deals '%f' damage in stance '%s'"), stanceMeleeDmg, *StanceToString(CurrentStance));
 
+			// Apply damage to the attacking target
 			FDamageEvent dmgEvent;
 			OtherActor->TakeDamage(stanceMeleeDmg, dmgEvent, GetController(), this);
 
 			// Add hit marker to UI
 			HUDAddHitMarker();
+
+			// Play melee impact sound
+			if (AttackImpactSounds.Num() > 0)
+			{
+				// Random impact sound and random pitch
+				int rndIndex = FMath::RandRange(0, AttackImpactSounds.Num() - 1);
+				float rndPitch = FMath::RandRange(0.75f, 1.35f);
+				PlayCue(AttackImpactSounds[rndIndex], true, 0.1f, rndPitch);
+			}
 		}
 	}
 }

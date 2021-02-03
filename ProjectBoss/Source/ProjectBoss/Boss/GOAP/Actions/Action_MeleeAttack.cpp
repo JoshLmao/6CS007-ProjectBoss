@@ -8,7 +8,8 @@
 UAction_MeleeAttack::UAction_MeleeAttack()
 {
 	name = "attack melee";
-	cost = 30.0f;
+	BaseCost = 10.0f;
+	cost = BaseCost;
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	// precons of action
@@ -56,14 +57,10 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 			return true;
 		}
 
-		// Make sure boss isn't attacking before performing another attack
-		if (!boss->IsAttacking())
-		{
-			// Perform melee attack.
-			boss->PerformMeleeAttack();
+		// Perform melee attack.
+		boss->PerformMeleeAttack();
 
-			UpdateCost(cost + 1.0f);
-		}
+		//UpdateCost(BaseCost);
 	}
 
 	// Never complete this action, dont return true
