@@ -10,7 +10,7 @@
 UAction_SeekCover::UAction_SeekCover()
 {
 	name = "seek cover";
-	cost = 0.0f;
+	BaseCost = cost = 5.0f;
 
 	// Preconditions
 	preconditions.Add(CreateAtom("in-cover", false));

@@ -9,7 +9,7 @@
 UAction_AdvancedAttack::UAction_AdvancedAttack()
 {
 	name = "ability advanced";
-	cost = 20.0f;
+	BaseCost = cost = 20.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	effects.Add(CreateAtom("damage-player", true));

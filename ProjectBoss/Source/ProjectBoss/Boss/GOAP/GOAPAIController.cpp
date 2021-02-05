@@ -5,7 +5,6 @@
 #include "../BossCharacter.h"
 #include "../../ProjectBoss.h"
 #pragma region include AllActions
-#include "Actions/Action_Wait.h"
 #include "Actions/Action_Follow.h"
 #include "Actions/Action_MeleeAttack.h"
 #include "Actions/Action_Ultimate.h"

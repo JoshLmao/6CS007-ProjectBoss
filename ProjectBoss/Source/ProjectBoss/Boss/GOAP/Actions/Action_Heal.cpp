@@ -8,7 +8,7 @@
 UAction_Heal::UAction_Heal()
 {
 	name = "heal";
-	cost = 0.0f;
+	BaseCost = cost = 5.0f;
 
 	// Preconditions
 	preconditions.Add(CreateAtom("in-cover", true));

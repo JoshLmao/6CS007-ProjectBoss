@@ -8,7 +8,7 @@
 UAction_CriticalMelee::UAction_CriticalMelee()
 {
 	name = "critical melee";
-	cost = 1.0f;
+	BaseCost = cost = 10.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	preconditions.Add(CreateAtom("is-invisible", true));

@@ -8,8 +8,7 @@
 UAction_MeleeAttack::UAction_MeleeAttack()
 {
 	name = "attack melee";
-	BaseCost = 10.0f;
-	cost = BaseCost;
+	BaseCost = cost = 50.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	// precons of action

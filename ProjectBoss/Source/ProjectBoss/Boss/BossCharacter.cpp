@@ -90,8 +90,6 @@ void ABossCharacter::BeginPlay()
 	SetActorLabel("Kallari");
 	CurrentHealth = TotalHealth;
 
-	m_aiController = Cast<AAIController>(GetController());
-
 	if (LeftBladeCollider)
 	{
 		LeftBladeCollider->AttachTo(GetMesh(), "sword_handle_l", EAttachLocation::SnapToTarget, false);
@@ -115,6 +113,13 @@ void ABossCharacter::BeginPlay()
 	}
 
 	m_invisMatInst = GetMesh()->CreateDynamicMaterialInstance(0, InvisibleMatInst);
+}
+
+void ABossCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	m_aiController = Cast<AAIController>(NewController);
 }
 
 // Called every frame

@@ -12,7 +12,7 @@ UAction_InvisibleRelocate::UAction_InvisibleRelocate()
 	m_movedToRndLoc = false;
 	
 	name = "invisible relocate";
-	cost = 1.0f;
+	BaseCost = cost = 10.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	effects.Add(CreateAtom("is-invisible", true));

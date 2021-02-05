@@ -13,6 +13,21 @@ void UBossWidget::NativeConstruct()
 	m_bossCharacter = Cast<ABossCharacter>(boss);
 }
 
+void UBossWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	// Keep searching for boss until spawned
+	if (!m_bossCharacter)
+	{
+		AActor* boss = UGameplayStatics::GetActorOfClass(GetWorld(), ABossCharacter::StaticClass());
+		if (boss)
+		{
+			m_bossCharacter = Cast<ABossCharacter>(boss);
+		}
+	}
+}
+
 float UBossWidget::GetCurrentHealth()
 {
 	if (m_bossCharacter)
