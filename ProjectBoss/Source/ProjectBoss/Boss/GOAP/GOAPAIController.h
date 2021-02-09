@@ -25,6 +25,7 @@ protected:
 private:
 	bool m_printedLastFailPlan;
 	class ABossCharacter* m_bossPawn;
+	class AProjectBossCharacter* m_player;
 	
 	// Creates and returns an Atom with the name and value
 	FAtom CreateAtom(FString name, bool val);

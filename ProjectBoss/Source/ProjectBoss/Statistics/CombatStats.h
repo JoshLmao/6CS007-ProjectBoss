@@ -48,4 +48,7 @@ public:
 	float GetSuccessfulAttacks();
 	// Gets the total damage dealt
 	float GetTotalDamageDealt();
+
+	// Builds a string of all of the current stats
+	FString GetAllStatsString();
 };

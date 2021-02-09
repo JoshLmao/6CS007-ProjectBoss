@@ -5,6 +5,7 @@
 #include "../../../ProjectBossCharacter.h"
 #include "../../BossCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "../../../UtilityHelper.h"
 
 UAction_Ultimate::UAction_Ultimate()
 {
@@ -30,12 +31,10 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 	{
 		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
 
-		// Update cost to be higher if the boss has more HP than the player
-		float playerHealthLost = player->GetTotalHealth() - player->GetCurrentHealth();
-		float bossHealthLost = boss->GetTotalHealth() - boss->GetCurrentHealth();
 		// Health Difference will be positive if boss has less health than Player, negative if boss has more health than Player
-		float healthDiff = (playerHealthLost - bossHealthLost) / 100;
-		UpdateCost(BaseCost + healthDiff);
+		float healthDiff = UtilityHelper::GetHealthDifference(player->GetCurrentHealth(), player->GetTotalHealth(), boss->GetCurrentHealth(), boss->GetTotalHealth());
+		float smallIncrements = healthDiff / 100;
+		UpdateCost(BaseCost + smallIncrements);
 	}
 
 	if (boss->GetUltimateCooldown() > 0)

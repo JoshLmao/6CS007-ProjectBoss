@@ -51,3 +51,26 @@ float UCombatStats::GetTotalDamageDealt()
 {
 	return m_totalDealtDamage;
 }
+
+FString UCombatStats::GetAllStatsString()
+{
+	FString output;
+	// Add total and successful attacks
+	output += "Total/Successful Attacks: " + FString::SanitizeFloat(m_totalAttacks) + " / " + FString::SanitizeFloat(m_successfullAttacks);
+	output += "\n";
+
+	// Append abilities 
+	for (const TPair<int, int> pair : m_abilityAttempt)
+	{
+		output += "Ability '" + FString::SanitizeFloat(pair.Key) + "' attempted '" + FString::SanitizeFloat(pair.Value) + "' times";
+		output += "\n";
+	}
+
+	for (const TPair<int, int> successPair : m_abilitySuccess)
+	{
+		output += "Ability '" + FString::SanitizeFloat(successPair.Key) + "' succeessfully landed '" + FString::SanitizeFloat(successPair.Value) + "' times";
+		output += "\n";
+	}
+
+	return output;
+}

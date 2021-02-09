@@ -49,9 +49,13 @@ protected:
 	// Amount in units to be within radius of target to perform a melee attack
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	float MeleeRadius;
-	// Rate the character attacks/melee's the target
+	// Slowest attack rate the character attacks/melees the target
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
-	float AttackRate;
+	float MinAttackRate;
+	// Fastest attack rate the character attacks/melees the target
+	UPROPERTY(EditAnywhere, Category = "Melee Attack")
+	float MaxAttackRate;
+
 
 	// Montages for performing the advanced attack
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
@@ -153,6 +157,8 @@ private:
 	bool m_saveAttack;
 	int m_attackCount;
 	bool m_dmgThisAttack;
+	// Value from zero to one that influences where between the Min and Max attack rate to set the attack rate
+	float m_attackRateDifficulty;
 
 	// Advanced Attack
 	AActor* m_rmbTarget;
@@ -284,12 +290,20 @@ public:
 	// Begins the cooldown for ability one
 	void BeginAbilityOneCooldown();
 
+	// Set the attack rate difficulty of the character. Difficulty can range between 1 and 0
+	void SetAttackRateDifficulty(float difficulty);
+	// Gets the current attack rate between the min and max, including the difficulty
+	float GetCurrentDifficultyAttackRate();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	// Called when controller has been set on the character
 	virtual void PossessedBy(AController* NewController) override;
+
+	// Called when end of play for level
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	UFUNCTION()

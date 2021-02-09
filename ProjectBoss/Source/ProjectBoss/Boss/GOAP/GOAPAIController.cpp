@@ -4,6 +4,7 @@
 #include "GOAPAIController.h"
 #include "../BossCharacter.h"
 #include "../../ProjectBoss.h"
+#include "../../ProjectBossCharacter.h"
 #pragma region include AllActions
 #include "Actions/Action_Follow.h"
 #include "Actions/Action_MeleeAttack.h"
@@ -51,11 +52,18 @@ void AGOAPAIController::BeginPlay()
 	maxDepth = 20.0f;
 
 	m_bossPawn = Cast<ABossCharacter>(GetPawn());
+	m_player = Cast<AProjectBossCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 }
 
 void AGOAPAIController::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
+
+	// If the player is valid and is dead, stop executing GOAP
+	if (m_player && m_player->GetCurrentHealth() <= 0)
+	{
+		return;
+	}
 
 	// Every tick, execute GOAP to create a plan
 	bool success = executeGOAP();
@@ -157,6 +165,7 @@ TArray<FAtom> AGOAPAIController::DetermineNextWorldState()
 		}
 	}*/
 
+	// If player is valid and has enough health
 	targets.Add(CreateAtom("damage-player", true));
 
 	return targets;

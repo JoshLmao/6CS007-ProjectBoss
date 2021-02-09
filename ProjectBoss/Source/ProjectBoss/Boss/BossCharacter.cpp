@@ -33,7 +33,9 @@ ABossCharacter::ABossCharacter()
 	m_isAttacking = false;
 	m_saveAttack = false;
 	m_dmgThisAttack = false;
-	AttackRate = 1.25f;
+	m_attackRateDifficulty = 0.50f;
+	MinAttackRate = 0.80f;
+	MaxAttackRate = 1.2f;
 	MeleeDamage = 50.0f;
 	MeleeRadius = 150.0f;
 	// Ability Advanced
@@ -122,6 +124,13 @@ void ABossCharacter::PossessedBy(AController* NewController)
 	m_aiController = Cast<AAIController>(NewController);
 }
 
+void ABossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// Log out end statistics for the character
+	FString statsStr = m_combatStats->GetAllStatsString();
+	UE_LOG(LogBoss, Log, TEXT("Boss End Play Statistics:\n%s"), *statsStr);
+}
+
 // Called every frame
 void ABossCharacter::Tick(float deltaTime)
 {
@@ -208,9 +217,11 @@ float ABossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& 
 
 void ABossCharacter::PerformMeleeAttack()
 {
+	// Can't perform if any ability in progress
 	if (IsPerformingAbility())
 		return;
 
+	// Save attack if in progress or perform normal melee
 	if (m_isAttacking)
 	{
 		m_saveAttack = true;
@@ -237,14 +248,23 @@ void ABossCharacter::DoMelee()
 {
 	m_isAttacking = true;
 
-	this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 1 / AttackRate);
+	// Play current attack montage with the current attack rate
+	float currentAtkRate = GetCurrentDifficultyAttackRate();
+	if (GEngine)
+	{
+		FString msg = "AtkRate: " + FString::SanitizeFloat(currentAtkRate) + " AtkDifficulty: " + FString::SanitizeFloat(m_attackRateDifficulty);
+		GEngine->AddOnScreenDebugMessage(5, 5.0, FColor::Red, msg);
+	}
+	this->PlayAnimMontage(AttackAnimMontages[m_attackCount], currentAtkRate);
 
+	// Increment attack count
 	m_attackCount++;
 	if (m_attackCount >= AttackAnimMontages.Num())
 	{
 		m_attackCount = 0;
 	}
 
+	// Add attack statistic
 	m_combatStats->AddAttack();
 }
 
@@ -255,30 +275,40 @@ void ABossCharacter::PerformAdvancedAttack(AActor* target)
 
 	UE_LOG(LogBoss, Log, TEXT("Boss performing Advanced Attack"));
 
-	m_rmbTarget = target;
 	m_isPerformingAnyAbility = true;
 
+	// Set aim target and play aim animation
+	m_rmbTarget = target;
 	this->PlayAnimMontage(AdvancedAttackMontages[0]);
 }
 
 void ABossCharacter::SetInvisible(bool isInvis)
 {
+	// Set is invisible bool
 	m_isInvisible = isInvis;
 
+	// If original materials dynamic materials exist (have been created)
 	if (IsValid(GetMesh()) && m_originalMeshMaterials.Num() > 0)
 	{
+		// Loop over dynamic materials
 		for (int i = 0; i < m_originalMeshMaterials.Num(); i++)
 		{
 			if (isInvis)
 			{
+				// Set to invisible dynamic material
 				GetMesh()->SetMaterial(i, m_invisMatInst);
 			}
 			else
 			{
-				if (IsValid(m_originalMeshMaterials[i]) && m_originalMeshMaterials[i]->IsValidLowLevel())
+				// Set to original dynamic material
+				if (IsValid(m_originalMeshMaterials[i]))
+				{
 					GetMesh()->SetMaterial(i, m_originalMeshMaterials[i]);
+				}
 				else
+				{
 					UE_LOG(LogBoss, Error, TEXT("Material '%d' invalid!"), i);
+				}
 			}
 		}
 	}
@@ -716,6 +746,22 @@ bool ABossCharacter::IsPerformingAbility(int abilIndex)
 void ABossCharacter::BeginAbilityOneCooldown()
 {
 	AbilOneCurrentCd = AbilOneTotalCooldown;
+}
+
+void ABossCharacter::SetAttackRateDifficulty(float difficulty)
+{
+	float value = difficulty;
+	if (difficulty < 0)
+		value = 0.0f;
+	else if (difficulty > 1)
+		value = 1.0f;
+		
+	m_attackRateDifficulty = value;
+}
+
+float ABossCharacter::GetCurrentDifficultyAttackRate()
+{
+	return FMath::Lerp(MaxAttackRate, MinAttackRate, m_attackRateDifficulty);
 }
 
 float ABossCharacter::GetHealCooldown()
