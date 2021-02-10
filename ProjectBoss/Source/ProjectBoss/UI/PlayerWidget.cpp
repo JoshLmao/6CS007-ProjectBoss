@@ -4,28 +4,22 @@
 #include "PlayerWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "../ProjectBossCharacter.h"
+#include "../UtilityHelper.h"
 
 void UPlayerWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	// Get reference to player actor on construct
 	AActor* player = UGameplayStatics::GetActorOfClass(GetWorld(), AProjectBossCharacter::StaticClass());
 	m_player = Cast<AProjectBossCharacter>(player);
-}
-
-float UPlayerWidget::BeautifyNumber(float num)
-{
-	float val = FMath::RoundHalfToZero(10.0 * num) / 10;
-	if (val < 0)
-		val = 0;
-	return val;
 }
 
 float UPlayerWidget::GetBasicAttackCooldown()
 {
 	if (m_player)
 	{
-		return BeautifyNumber(m_player->MeleeAtkCurrentCd);
+		return UtilityHelper::BeautifyNumber(m_player->MeleeAtkCurrentCd);
 	}
 	return 0.0f;
 }
@@ -34,7 +28,7 @@ float UPlayerWidget::GetAdvancedAttackCooldown()
 {
 	if (m_player)
 	{
-		return BeautifyNumber(m_player->AdvAttackCurrentCd);
+		return UtilityHelper::BeautifyNumber(m_player->AdvAttackCurrentCd);
 	}
 	return 0.0f;
 }
@@ -43,7 +37,7 @@ float UPlayerWidget::GetAbilityOneCooldown()
 {
 	if (m_player)
 	{
-		return BeautifyNumber(m_player->AbilOneCurrentCd);
+		return UtilityHelper::BeautifyNumber(m_player->AbilOneCurrentCd);
 	}
 	return 0.0f;
 }
@@ -52,7 +46,7 @@ float UPlayerWidget::GetAbilityTwoCooldown()
 {
 	if (m_player)
 	{
-		return BeautifyNumber(m_player->AbilTwoCurrentCd);
+		return UtilityHelper::BeautifyNumber(m_player->AbilTwoCurrentCd);
 	}
 	return 0.0f;
 }
@@ -69,7 +63,7 @@ EStance UPlayerWidget::GetStance()
 float UPlayerWidget::GetCurrentHealth()
 {
 	if (m_player)
-		return m_player->GetCurrentHealth();
+		return UtilityHelper::BeautifyNumber(m_player->GetCurrentHealth());
 	return 0.0f;
 }
 

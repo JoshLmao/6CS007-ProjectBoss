@@ -31,6 +31,11 @@ bool UAction_InvisibleRelocate::checkProceduralPrecondition(APawn* p)
 		return false;
 	}
 
+	if (boss && boss->IsPerformingAbility())
+	{
+		return false;
+	}
+
 	return setTarget;
 }
 
@@ -40,22 +45,30 @@ bool UAction_InvisibleRelocate::doAction(APawn* p)
 
 	ABossCharacter* boss = Cast<ABossCharacter>(p);
 
-	if (!boss->GetIsInvisible())
-	{
-		boss->SetInvisible(true);
-	}
-		
-	
-
 	// Check if stunned
 	bool isStunned = boss->GetIsStunned();
 	if (isStunned)
 	{
+		// Cancel move to location and wait until unstunned
 		boss->CancelMoveToLocation();
+
+		// Reveal from invisible while stunned
+		if (boss->GetIsInvisible())
+		{
+			boss->SetInvisible(false);
+		}
+
+		// False to continue to execute action
 		return false;
 	}
 	else
 	{
+		// Set to invisible if not already
+		if (!boss->GetIsInvisible())
+		{
+			boss->SetInvisible(true);
+		}
+
 		// Move to relocate location first
 		if (!m_movedToRndLoc)
 		{

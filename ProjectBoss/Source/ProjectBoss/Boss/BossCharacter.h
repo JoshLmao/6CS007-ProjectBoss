@@ -43,9 +43,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	TArray<class USoundBase*> AttackSoundCues;
 
-	// Amount of damage a melee attack deals
+	// Minimum amount of damage a melee attack deals
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
-	float MeleeDamage;
+	float MinMeleeDamage;
+	// Maximum amount of damage a melee attack deals
+	UPROPERTY(EditAnywhere, Category = "Melee Attack")
+	float MaxMeleeDamage;
 	// Amount in units to be within radius of target to perform a melee attack
 	UPROPERTY(EditAnywhere, Category = "Melee Attack")
 	float MeleeRadius;
@@ -161,6 +164,7 @@ private:
 	float m_attackRateDifficulty;
 
 	// Advanced Attack
+	UPROPERTY()
 	AActor* m_rmbTarget;
 	FTimerHandle m_rmbDelayHandle;
 	bool m_rmbAimAtPlayer;

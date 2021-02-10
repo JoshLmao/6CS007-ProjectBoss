@@ -17,4 +17,8 @@ public:
 	// Returns positive if B has less health than A 
 	// or negative if B has more health than A
 	static float GetHealthDifference(float aCurrent, float aTotal, float bCurrent, float bTotal);
+
+	// Modifies the number to be rounded to one decimal place, and also checks if number is to below 0 and sets to 0
+	static float BeautifyNumber(float num);
+
 };

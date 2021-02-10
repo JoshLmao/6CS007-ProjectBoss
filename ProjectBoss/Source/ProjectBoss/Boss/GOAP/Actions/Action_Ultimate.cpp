@@ -37,6 +37,7 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 		UpdateCost(BaseCost + smallIncrements);
 	}
 
+	// Check ability action isn't on cooldown
 	if (boss->GetUltimateCooldown() > 0)
 	{
 		return false;
@@ -62,7 +63,13 @@ bool UAction_Ultimate::doAction(APawn* pawn)
 	{
 		AActor* targetActor = getTarget();
 		boss->PerformUltimate(targetActor);
-		return true;
+
+		bool isPerforming = boss->IsPerformingAbility(EAbilities::Ultimate);
+		if (!isPerforming)
+		{
+			//UE_LOG(LogGOAPAction, Log, TEXT("Completed Ultimate action!"));
+			return true;
+		}
 	}
 
 	return false;

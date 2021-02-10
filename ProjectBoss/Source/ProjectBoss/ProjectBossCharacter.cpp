@@ -248,23 +248,59 @@ void AProjectBossCharacter::PerformMeleeAttack()
 		return;
 	}
 
-	// Dont continue if saveAttack flag or is performing another ability
-	if (m_isPerformingAbility || m_saveAttack)
+	// Dont continue if performing another ability
+	if (m_isPerformingAbility)
+	{
 		return;
+	}
 
+	// If save attack flag has already been set before melee animation has reached ComboAttackSave called
+	if (m_saveAttack)
+	{
+		// Check attack montage is still being played and exit.
+		UAnimMontage* currentMontage = GetCurrentMontage();
+		if (IsValid(currentMontage))
+		{
+			return;
+		}
+		else
+		{
+			// Save attack flag has been set but no attack animation in progress, reset melee flags
+			UE_LOG(LogPlayer, Error, TEXT("Trying to melee but m_saveAttack is true with no melee montage! Resetting Melee state"));
+			m_isAttacking = false;
+			m_saveAttack = false;
+		}
+	}
+
+	// If Attack montage is already in progress
 	if (m_isAttacking)
 	{
-		m_saveAttack = true;
-		m_hasAttackedThisSwing = false;
+		// Check Attack montage is still in progress
+		UAnimMontage* currentMontage = GetCurrentMontage();
+		if (IsValid(currentMontage))
+		{
+			// Set to save attack
+			m_saveAttack = true;
+			m_hasAttackedThisSwing = false;
+		}
+		else
+		{
+			// No attack montage is being played, reset melee flags
+			UE_LOG(LogPlayer, Error, TEXT("Tried to save attack but no montage playing!"));
+			m_isAttacking = false;
+		}
 	}
 	else
 	{
+		// Set is attacking and cooldown for melee
 		m_isAttacking = true;
 		MeleeAtkCurrentCd = SAVE_ATTACK_TIME * m_attackRate;
 		UE_LOG(LogPlayer, Log, TEXT("Player performs Melee Attack"));
 
+		// Play attack montage on actor
 		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
 
+		// Increment attack count and wrap number back to 0 if reached end
 		m_attackCount++;
 		if (m_attackCount >= AttackAnimMontages.Num())
 		{
@@ -275,12 +311,16 @@ void AProjectBossCharacter::PerformMeleeAttack()
 
 void AProjectBossCharacter::ComboAttackSave()
 {
+	// Called by every attack montage at point of save attack
+
+	// Check attack montages exist
 	if (AttackAnimMontages.Num() <= 0)
 	{
 		UE_LOG(LogPlayer, Error, TEXT("No Attack Montages set on player!"));
 		return;
 	}
 
+	// Only continue if right click press again (save attack flag)
 	if (m_saveAttack)
 	{
 		// Check montage is playing before confirming

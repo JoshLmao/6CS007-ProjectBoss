@@ -4,11 +4,13 @@
 #include "BossWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Boss/BossCharacter.h"
+#include "../UtilityHelper.h"
 
 void UBossWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	// Initially search scene for boss
 	AActor* boss = UGameplayStatics::GetActorOfClass(GetWorld(), ABossCharacter::StaticClass());
 	m_bossCharacter = Cast<ABossCharacter>(boss);
 }
@@ -17,7 +19,7 @@ void UBossWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	// Keep searching for boss until spawned
+	// If no reference, keep searching for boss until spawned
 	if (!m_bossCharacter)
 	{
 		AActor* boss = UGameplayStatics::GetActorOfClass(GetWorld(), ABossCharacter::StaticClass());
@@ -31,7 +33,7 @@ void UBossWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 float UBossWidget::GetCurrentHealth()
 {
 	if (m_bossCharacter)
-		return m_bossCharacter->GetCurrentHealth();
+		return UtilityHelper::BeautifyNumber(m_bossCharacter->GetCurrentHealth());
 	return 0.0f;
 }
 

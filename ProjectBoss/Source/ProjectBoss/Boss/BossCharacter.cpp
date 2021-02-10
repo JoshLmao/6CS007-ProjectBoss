@@ -36,7 +36,8 @@ ABossCharacter::ABossCharacter()
 	m_attackRateDifficulty = 0.50f;
 	MinAttackRate = 0.80f;
 	MaxAttackRate = 1.2f;
-	MeleeDamage = 50.0f;
+	MinMeleeDamage = 45.0f;
+	MaxMeleeDamage = 55.0f;
 	MeleeRadius = 150.0f;
 	// Ability Advanced
 	AdvAbilityDamage = 50.0f;
@@ -250,11 +251,14 @@ void ABossCharacter::DoMelee()
 
 	// Play current attack montage with the current attack rate
 	float currentAtkRate = GetCurrentDifficultyAttackRate();
+#if PROJ_BOSS_SCREEN_DEBUG
 	if (GEngine)
 	{
-		FString msg = "AtkRate: " + FString::SanitizeFloat(currentAtkRate) + " AtkDifficulty: " + FString::SanitizeFloat(m_attackRateDifficulty);
-		GEngine->AddOnScreenDebugMessage(5, 5.0, FColor::Red, msg);
+		FString msg = "Attack Rate: " + FString::SanitizeFloat(currentAtkRate) + " Attack Difficulty: " + FString::SanitizeFloat(m_attackRateDifficulty);
+		GEngine->AddOnScreenDebugMessage(5, 5.0, FColor::White, msg);
 	}
+#endif
+	// Play attack anim with attack rate
 	this->PlayAnimMontage(AttackAnimMontages[m_attackCount], currentAtkRate);
 
 	// Increment attack count
@@ -580,12 +584,13 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 	if (OtherActor->IsA(AProjectBossCharacter::StaticClass()) && m_isAttacking && !m_dmgThisAttack)
 	{
 		// Get the damage for this melee attack
-		float dmgAmount = MeleeDamage;
+		float rangeMeleeDmg = FMath::RandRange(MinMeleeDamage, MaxMeleeDamage);
+		float dmgAmount = rangeMeleeDmg;
 
 		// If performing certain ability that changes attack damage, set to that
 		if (MeleeCritMultiplier > 0)
 		{
-			dmgAmount = MeleeDamage * (MeleeCritMultiplier / 100);
+			dmgAmount = rangeMeleeDmg * (MeleeCritMultiplier / 100);
 			MeleeCritMultiplier = 0;
 		}
 

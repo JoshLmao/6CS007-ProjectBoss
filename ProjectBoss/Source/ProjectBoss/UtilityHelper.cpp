@@ -21,3 +21,13 @@ float UtilityHelper::GetHealthDifference(float aCurrent, float aTotal, float bCu
 
 	return healthDiff;
 }
+
+float UtilityHelper::BeautifyNumber(float num)
+{
+	// Round to one decimal place by (* 10) first, then (/ 10)
+	float val = FMath::RoundHalfToZero(10.0 * num) / 10;
+	// If less than 0, set to 0
+	if (val < 0)
+		val = 0;
+	return val;
+}

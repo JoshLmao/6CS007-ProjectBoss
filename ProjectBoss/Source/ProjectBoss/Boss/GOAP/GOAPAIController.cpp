@@ -89,10 +89,12 @@ void AGOAPAIController::Tick(float deltaTime)
 
 			// Couldnt determine next world state, show error
 			UE_LOG(LogGOAP, Error, TEXT("Unable to determine the next world state!"));
+#if PROJ_BOSS_SCREEN_DEBUG
 			if (GEngine)
 			{
 				GEngine->AddOnScreenDebugMessage(0, 15.0f, FColor::Red, TEXT("GOAP Plan: Unable to create"));
 			}
+#endif
 		}
 		else
 		{
@@ -129,10 +131,12 @@ void AGOAPAIController::PrintCurrentGOAPPlan()
 			planString += "->";
 	}
 
+#if PROJ_BOSS_SCREEN_DEBUG
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(0, 15.0f, FColor::White, planString);
 	}
+#endif
 }
 
 void AGOAPAIController::SetNewWorldTargets(TArray<FAtom> targets)
