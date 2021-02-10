@@ -114,7 +114,8 @@ void AProjectBossCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AProjectBossCharacter::OnJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	// Setup move forward & backward functions
@@ -244,7 +245,7 @@ void AProjectBossCharacter::PerformMeleeAttack()
 	// Check we have attack montages to play
 	if (AttackAnimMontages.Num() <= 0)
 	{
-		UE_LOG(LogPlayer, Error, TEXT("No Attack Montages set on player!"));
+		UE_LOG(LogPlayer, Error, TEXT("Perform Melee: No Attack Montages set on player!"));
 		return;
 	}
 
@@ -316,7 +317,7 @@ void AProjectBossCharacter::ComboAttackSave()
 	// Check attack montages exist
 	if (AttackAnimMontages.Num() <= 0)
 	{
-		UE_LOG(LogPlayer, Error, TEXT("No Attack Montages set on player!"));
+		UE_LOG(LogPlayer, Error, TEXT("ComboAttackSave: No Attack Montages set on player!"));
 		return;
 	}
 
@@ -364,48 +365,76 @@ void AProjectBossCharacter::PerformAdvancedAttack()
 
 	if (CurrentStance == EStance::Offensive)
 	{
-		// Push staff at enemy.
+		/*
+		* Advanced Ability: Offensive
+		* Shoot fire out of end of staff, forward
+		*/
 		if (!AdvancedAttackMontage)
 		{
 			UE_LOG(LogPlayer, Error, TEXT("No Montage set for AdvancedAttack"));
 			return;
 		}
 
+		// Check ability isn't on cooldown and isn't falling
 		if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
 		{
 			UE_LOG(LogPlayer, Log, TEXT("Using Offensive advanced ability"));
 
+			// Set advanced ability on cooldown and play montage
 			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
 			float playDuration = this->PlayAnimMontage(AdvancedAttackMontage);
 			if (playDuration <= 0.0f)
 				UE_LOG(LogPlayer, Error, TEXT("Unable to play AdvancedAttackMontage"));
 
+			// Set is performing flag
 			m_isPerformingAbility = true;
 		}
 	}
 	else if (CurrentStance == EStance::Evasive)
 	{
-		// Push staff into ground and leap
+		/* 
+		* Advanced Ability: Evasive
+		* Push staff into ground and leap
+		*/
 		if (!AdvancedEvadeMontage)
 		{
 			UE_LOG(LogPlayer, Error, TEXT("No montage set for AdvancedEvadeMonatge"));
 			return;
 		}
 
+		// Check we aren't falling and isn't on cooldown
 		if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
 		{
 			UE_LOG(LogPlayer, Log, TEXT("Using Evasive advanced ability"));
 
+			// Set ability on cooldown and play montage
 			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
 			this->PlayAnimMontage(AdvancedEvadeMontage);
 
+			// Add vertical force to character to launch in air
 			LaunchCharacter(FVector(0, 0, 900.0f), false, true);
+
+			// Play Evasive advanced ability cue
+			if (IsValid(Evasive_AdvAbilSoundCue))
+			{
+				PlayCue(Evasive_AdvAbilSoundCue, true, 1.0f, FMath::RandRange(0.8f, 1.2f));
+			}
 		}
 	}
 }
 
 void AProjectBossCharacter::AdvancedAttackLandDamage()
 {
+	/* 
+	* Called by AnimMontage, once fire appears out of staff in montage
+	*/
+
+	// Play offensive sound cue
+	if (IsValid(Offensive_AdvAbilSoundCue))
+	{
+		PlayCue(Offensive_AdvAbilSoundCue, true, 0.2f);
+	}
+
 	// Spawn AOE damage collider and configure
 	ACapsuleAOEDamage* dmgCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), FActorSpawnParameters());
 	// Listen to event when capsule deals damage
@@ -426,6 +455,7 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 	// Draw additional debug capsule for debug
 	DrawDebugCapsule(GetWorld(), capsuleSpawnLoc, aoeHalfHeight, 50.0f, capsuleSpawnRot.Quaternion(), FColor::Green, false, 1.0f, 0, 2.0f);
 
+	// Reset performing flag
 	m_isPerformingAbility = false;
 }
 
@@ -447,19 +477,22 @@ void AProjectBossCharacter::PerformAbilityOne()
 	// Start of AbilityOne
 	if (CurrentStance == EStance::Offensive)
 	{
-		// Thrust pole forward for damage and stun
+		/*
+		* Ability One: Offensive
+		* Leap forward in the air and launch down to ground
+		*/
 		if (AbilityOneMontages.Num() <= 0)
 		{
 			UE_LOG(LogPlayer, Error, TEXT("No AbilityOneMontage has been set!"));
 			return;
 		}
 
-		// If not on cooldown & is in air
+		// If not on cooldown & *is* in air
 		if (AbilOneCurrentCd <= 0 && GetMovementComponent()->IsFalling())
 		{
 			UE_LOG(LogPlayer, Log, TEXT("Using AbilityOne Offensive"));
 
-			// Set ability on cooldown
+			// Set ability on cooldown and set flags
 			AbilOneCurrentCd = AbilityOneTotalCooldown;
 			m_disableLocomotionMovement = true;
 
@@ -468,35 +501,51 @@ void AProjectBossCharacter::PerformAbilityOne()
 			if (playDuration <= 0.0f)
 				UE_LOG(LogPlayer, Error, TEXT("Unable to play AbilityOneMontage"));
 
+			// Play jump grunt with rnd pitch
+			if (IsValid(JumpGruntSoundCue))
+			{
+				PlayCue(JumpGruntSoundCue, true, 1.0f, FMath::RandRange(0.8f, 1.2f));
+			}
+
 			// Apply additional double jump
 			if (m_charMovementComponent)
 				LaunchCharacter(FVector(0, 0, m_charMovementComponent->JumpZVelocity), false, true);
-
 		}
 	}
 	else if (CurrentStance == EStance::Evasive)
 	{
-		// Evasive cloudwalk ability
+		/*
+		* Ability One: Evasive
+		* Leap into air and walk on clouds
+		*/
 		if (!AbilityOneEvasiveMontage)
 		{
 			UE_LOG(LogPlayer, Error, TEXT("AbilityOneEvasiveMontage not set!"));
 			return;
 		}
 
+		// Check Ability One isnt in cooldown and *is* in air
 		if (AbilOneCurrentCd <= 0 && GetMovementComponent()->IsFalling())
 		{
 			UE_LOG(LogPlayer, Log, TEXT("Using AbilityOne Evasive Cloudwalk"));
 
+			// Put ability one on cooldown
 			AbilOneCurrentCd = AbilityOneTotalCooldown;
+
+			// Play jump grunt with rnd pitch
+			if (IsValid(JumpGruntSoundCue))
+			{
+				PlayCue(JumpGruntSoundCue, true, 1.0f, FMath::RandRange(0.8f, 1.2f));
+			}
+
+			// Play double jump montage
+			this->PlayAnimMontage(AbilityOneEvasiveMontage);
 
 			// Apply additional double jump
 			if (m_charMovementComponent)
 			{
 				LaunchCharacter(FVector(0, 0, m_charMovementComponent->JumpZVelocity), false, true);
 			}
-
-			// Play double jump montage
-			this->PlayAnimMontage(AbilityOneEvasiveMontage);
 		}
 	}
 
@@ -517,10 +566,18 @@ void AProjectBossCharacter::AbilityOneForceGround()
 
 void AProjectBossCharacter::AbilityOneLandDamage()
 {
-
 	// Once slam has landed on ground
+
+	// Play slam montage
 	this->PlayAnimMontage(AbilityOneMontages[2]);
 
+	// Play sound cue for explosion if exists
+	if (IsValid(Offensive_AbilityOneSoundCue))
+	{
+		PlayCue(Offensive_AbilityOneSoundCue, true, 0.2f);
+	}
+
+	// Determine floor location to create explosion
 	FVector colliderLocation = this->GetActorLocation() + FVector(0, 0, -50.0f);
 
 	// Spawn capsule and listen to capsule event on dealing damage
@@ -536,6 +593,7 @@ void AProjectBossCharacter::AbilityOneLandDamage()
 	// Draw additional debug capsule for debug
 	DrawDebugSphere(GetWorld(), colliderLocation, AbilityOneRadius, 20.0f, FColor::Green, false, 1.0f, 0, 2.0f);
 
+	// Disable ability one falling flag
 	m_offAbilOneIsFalling = false;
 }
 
@@ -810,5 +868,21 @@ FString AProjectBossCharacter::StanceToString(EStance stance)
 		return "Evasive";
 	default:
 		return "Unknown";
+	}
+}
+
+void AProjectBossCharacter::OnJump()
+{
+	// Check character can jump and isn't airborne
+	if (IsValid(m_charMovementComponent) && m_charMovementComponent->CanAttemptJump() && !m_charMovementComponent->IsFalling())
+	{
+		// Play jump grunt sound cue
+		if (IsValid(JumpGruntSoundCue))
+		{
+			PlayCue(JumpGruntSoundCue, true, 1.0f, FMath::RandRange(0.9f, 1.1f));
+		}
+
+		// Use ACharacter's Jump function
+		Jump();
 	}
 }

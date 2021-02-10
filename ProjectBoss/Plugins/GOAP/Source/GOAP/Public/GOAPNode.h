@@ -22,8 +22,9 @@ private:
 
 	GOAPWorldState world;
 
+	// Heuristic
 	int h;
-
+	// Cost so far
 	float g;
 
 	int parent;
@@ -41,10 +42,13 @@ public:
 
 	// GETS
 
+	// Gets H - the heuristic
 	int getH();
 
+	// Gets G - the cost so far
 	float getG();
 
+	// Get F - the estimated total cost
 	float getF();
 
 	int getParent();

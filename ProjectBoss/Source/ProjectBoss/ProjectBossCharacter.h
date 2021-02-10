@@ -88,14 +88,10 @@ public:
 	// Total cooldown in seconds of the advanced attack
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAttackOffensiveTotalCooldown;
-
 	/// Duration in seconds the cloudwalk ability will last. The duration the player can walk on clouds
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	float AdvAttackEvasiveCloudDuration;
 
-	// Sound cue to play when landing ability one
-	UPROPERTY(EditAnywhere, Category = "Ability One")
-	class USoundCue* AbilityOneSoundCue;
 	// Total cooldown in seconds of ability one
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	float AbilityOneTotalCooldown;
@@ -105,15 +101,12 @@ public:
 	// Amount of damage Ability One deals to the enemy
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	float AbilityOneDamageAmount;
+	// Amount in seconds to apply to target if in AoE of stun
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	float AbilOneStunDuration;
 	// Current cooldown of ability one
 	UPROPERTY(BlueprintReadOnly, Category = "Ability One")
 	float AbilOneCurrentCd;
-
-	// Voice sound cue to play when trying to perform an ability on cooldown
-	UPROPERTY(EditAnywhere, Category = "Ability One")
-	class USoundCue* CooldownVoiceCue;
 
 	// Total cooldown of Ability Two
 	UPROPERTY(EditAnywhere, Category = "Ability Two")
@@ -139,7 +132,6 @@ protected:
 	// Attack animations to play for a melee attack
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<class UAnimMontage*> AttackAnimMontages;
-
 	// Sound cue's to play when this character lands an attack
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<class USoundBase*> AttackImpactSounds;
@@ -147,18 +139,35 @@ protected:
 	// Montage to play for the Offensive advanced ability
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	class UAnimMontage* AdvancedAttackMontage;
-
 	// Montage to play for the Evasive advanced ability
 	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
 	class UAnimMontage* AdvancedEvadeMontage;
+	// Sound cue to play for offensive ability one (Shoot fire from staff)
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
+	class USoundCue* Offensive_AdvAbilSoundCue;
+	// Sound cue to play for evasive ability one (Spring into air)
+	UPROPERTY(EditAnywhere, Category = "Advanced Attack")
+	class USoundCue* Evasive_AdvAbilSoundCue;
 
 	// Sequence of monatages to use for ability one
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	TArray<class UAnimMontage*> AbilityOneMontages;
-
 	// Montage to use for the evasive Ability One
 	UPROPERTY(EditAnywhere, Category = "Ability One")
 	class UAnimMontage* AbilityOneEvasiveMontage;
+	// Voice sound cue to play when trying to perform an ability on cooldown
+	UPROPERTY(EditAnywhere, Category = "Ability One")
+	class USoundCue* CooldownVoiceCue;
+	// Sound cue to play when landing ability one (Slam down to ground, explosion)
+	UPROPERTY(EditAnywhere, Category = "Ability One")
+	class USoundCue* Offensive_AbilityOneSoundCue;
+	// Evasive Ability One sound cue
+	//UPROPERTY(EditAnywhere, Category = "Ability One")
+	//class USoundCue* Evasive_AbilityOneSoundCue;
+
+	// Grunt sound to use when jumping
+	UPROPERTY(EditAnywhere, Category = "Sounds")
+	class USoundCue* JumpGruntSoundCue;
 
 private:
 	// Time in seconds to save the attack when performing melee montage
@@ -270,6 +279,7 @@ private:
 	void OnPoleEndOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	void CloudwalkDisable();
+	// Once player has no more health
 	void OnDeath();
 
 	/// <summary>
@@ -286,13 +296,18 @@ private:
 	/// <returns></returns>
 	bool PlayCue(class USoundBase* sound, bool shouldOverrideExistingSound = false, float volumeMultiplier = 1.0f, float pitchMultiplier = 1.0f);
 
+	// Callback for when a capsule component owned by Character deals damage
 	UFUNCTION()
 	void CapsuleDealtDamage();
 
 	// Adds a ht marker to the current player HUD
 	void HUDAddHitMarker();
 
+	// Converts the target stance to it's string representation
 	FString StanceToString(EStance stance);
+
+	// Called when Jump input is pressed
+	void OnJump();
 
 public:
 	/** Returns CameraBoom subobject **/
