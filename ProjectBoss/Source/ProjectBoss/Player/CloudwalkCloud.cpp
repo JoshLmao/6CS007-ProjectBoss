@@ -37,8 +37,8 @@ ACloudwalkCloud::ACloudwalkCloud()
 		FloorPS->SetTemplate(cloudParticles.Object);
 	}
 
-
-	if (!m_disableDirections.Contains( EDirections::East))
+	// If East box collider should be enabled...
+	if (!m_disableDirections.Contains(EDirections::East))
 	{
 		m_eastWallCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("EastWallCollider"));
 		m_eastWallCollider->SetupAttachment(CloudFloor);
@@ -48,6 +48,7 @@ ACloudwalkCloud::ACloudwalkCloud()
 		m_eastWallCollider->AddLocalOffset(FVector(0, 200.0f, 200.0f));
 	}
 
+	// West box collider
 	if (!m_disableDirections.Contains(EDirections::West))
 	{
 		m_westWallCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("WestWallCollider"));
@@ -58,6 +59,7 @@ ACloudwalkCloud::ACloudwalkCloud()
 		m_westWallCollider->AddLocalOffset(FVector(0, -200.0f, 200.0f));
 	}
 
+	// South box collider
 	if (!m_disableDirections.Contains(EDirections::South))
 	{
 		m_southWallCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("SouthWallCollider"));
@@ -68,6 +70,7 @@ ACloudwalkCloud::ACloudwalkCloud()
 		m_southWallCollider->AddLocalOffset(FVector(-200.0f, 0, 200.0f));
 	}
 
+	// North box collider
 	if (!m_disableDirections.Contains(EDirections::North))
 	{
 		m_northWallCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("NorthWallCollider"));
@@ -103,10 +106,17 @@ void ACloudwalkCloud::Tick(float DeltaTime)
 
 void ACloudwalkCloud::OnEastOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	/*
+	* Called when actor walks through east wall
+	*/
+
+	// if east should be disabled, don't execute
 	if (m_disableDirections.Contains(EDirections::East))
 	{
 		return;
 	}
+
+	// 
 	if (m_nextCloud)
 	{
 		m_nextCloud->DisableDirection(EDirections::West);
@@ -195,22 +205,28 @@ void ACloudwalkCloud::SpawnNewCloud(EDirections disableDirection, FVector spawnO
 	if (!m_shouldCollide)
 		return;
 	
+	// Determine next cloud position
 	FVector oldCloudLocation = GetActorLocation();
 	FVector newLocation =  oldCloudLocation + spawnOffset;
 
+	// Create cloud
 	AActor* newActor = GetWorld()->SpawnActor<ACloudwalkCloud>(ACloudwalkCloud::StaticClass(), FActorSpawnParameters());
 	
+	// Add cloud to array to track
 	if (m_arrayPtr)
 		m_arrayPtr->Add(newActor);
 
 	UE_LOG(LogTemp, Log, TEXT("Created a new Cloud"));
 
+	// Configure new cloud
 	ACloudwalkCloud* newCloud = Cast<ACloudwalkCloud>(newActor);
 	newCloud->DisableDirection(disableDirection);
 	newCloud->SetActorLocation(newLocation, false);
 	newCloud->SetTrackingArray(m_arrayPtr);
 
+	// Set next cloud var
 	m_nextCloud = newCloud;
+
 	//DrawDebugBox(GetWorld(), newLocation, FVector(200.0f, 200.0f, 0.5f), FColor::Red, false, 10.0f, 0, 5.0f);
 }
 

@@ -129,7 +129,7 @@ void ABossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// Log out end statistics for the character
 	FString statsStr = m_combatStats->GetAllStatsString();
-	UE_LOG(LogBoss, Log, TEXT("Boss End Play Statistics:\n%s"), *statsStr);
+	UE_LOG(LogBoss, Log, TEXT("---\nBoss End Play Statistics:\n%s\n---"), *statsStr);
 }
 
 // Called every frame

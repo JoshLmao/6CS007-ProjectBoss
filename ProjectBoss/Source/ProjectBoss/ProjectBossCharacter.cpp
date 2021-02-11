@@ -19,6 +19,7 @@
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
 #include "UI/BossFightHUD.h"
+#include "Statistics\CombatStats.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProjectBossCharacter
@@ -142,12 +143,17 @@ void AProjectBossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Cast the movement component to the character movemenet component
 	m_charMovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent());
+
+	// Init combat stats class
+	m_combatStats = NewObject<UCombatStats>();
 
 	// Configure character to use Mouse rotation
 	m_charMovementComponent->bOrientRotationToMovement = false;
 	bUseControllerRotationYaw = true;
 
+	// Init pole arm collider used to track melee damage
 	if (PoleColliderComponent)
 	{
 		PoleColliderComponent->AttachTo(GetMesh(), "weapon_r", EAttachLocation::SnapToTarget, true);
@@ -157,6 +163,7 @@ void AProjectBossCharacter::BeginPlay()
 		PS_PoleStance->SetTemplate(OffensivePolePS);
 	}
 
+	// Set initial stance to offensive
 	SetStance(EStance::Offensive);
 }
 
@@ -186,6 +193,15 @@ void AProjectBossCharacter::Tick(float deltaTime)
 			this->PlayAnimMontage(AbilityOneMontages[1]);
 		}
 	}
+}
+
+void AProjectBossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	// Log out end statistics for the character
+	FString statsStr = m_combatStats->GetAllStatsString();
+	UE_LOG(LogBoss, Log, TEXT("---\nPlayer End Play Statistics:\n%s\n---"), *statsStr);
 }
 
 void AProjectBossCharacter::TurnAtRate(float Rate)
@@ -295,18 +311,11 @@ void AProjectBossCharacter::PerformMeleeAttack()
 	{
 		// Set is attacking and cooldown for melee
 		m_isAttacking = true;
-		MeleeAtkCurrentCd = SAVE_ATTACK_TIME * m_attackRate;
+
 		UE_LOG(LogPlayer, Log, TEXT("Player performs Melee Attack"));
 
-		// Play attack montage on actor
-		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
-
-		// Increment attack count and wrap number back to 0 if reached end
-		m_attackCount++;
-		if (m_attackCount >= AttackAnimMontages.Num())
-		{
-			m_attackCount = 0;
-		}
+		// perform melee
+		DoMelee();
 	}
 }
 
@@ -324,25 +333,40 @@ void AProjectBossCharacter::ComboAttackSave()
 	// Only continue if right click press again (save attack flag)
 	if (m_saveAttack)
 	{
-		// Check montage is playing before confirming
-		// Attack Rate affects attack montage play speed. Higher attack rate, faster attack speed
-		float playDuration = this->PlayAnimMontage(AttackAnimMontages[m_attackCount], 1 / m_attackRate );
-		if (playDuration > 0.0f)
-		{
-			MeleeAtkCurrentCd = SAVE_ATTACK_TIME * m_attackRate;
-			m_saveAttack = false;
+		// Disable save attack flag
+		m_saveAttack = false;
 
-			UE_LOG(LogPlayer, Log, TEXT("Player performs Combo Melee Attack"));
+		UE_LOG(LogPlayer, Log, TEXT("Player performs Combo Melee Attack"));
 
-			m_attackCount++;
-			if (m_attackCount >= AttackAnimMontages.Num())
-				m_attackCount = 0;
-		}
+		// Perform melee
+		DoMelee();
 	}
 }
 
+void AProjectBossCharacter::DoMelee()
+{
+	// Set cooldown of melee
+	// SAVE_ATTACK_TIME = time in seconds of save attack mark in Montage
+	MeleeAtkCurrentCd = SAVE_ATTACK_TIME * m_attackRate;
+
+	// Play attack montage on actor
+	this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
+
+	// Add attempted attack to stats
+	m_combatStats->AddAttack();
+
+	// Increment attack count and wrap number back to 0 if reached end
+	m_attackCount++;
+	if (m_attackCount >= AttackAnimMontages.Num())
+	{
+		m_attackCount = 0;
+	}
+}
+
+
 void AProjectBossCharacter::ResetCombo()
 {
+	// Reset all flags
 	m_isAttacking = false;
 	m_saveAttack = false;
 	m_attackCount = 0;
@@ -357,6 +381,7 @@ void AProjectBossCharacter::PerformAdvancedAttack()
 		return;
 	}
 
+	// If advanced attack on cooldown, play voice cue
 	if (AdvAttackCurrentCd > 0)
 	{
 		PlayCue(CooldownVoiceCue);
@@ -379,6 +404,9 @@ void AProjectBossCharacter::PerformAdvancedAttack()
 		if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
 		{
 			UE_LOG(LogPlayer, Log, TEXT("Using Offensive advanced ability"));
+
+			// Add offensive advanced ability attempt
+			m_combatStats->AddAbilityAttempt(EPlayerAbilities::Offensive_AdvAbility);
 
 			// Set advanced ability on cooldown and play montage
 			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
@@ -406,6 +434,10 @@ void AProjectBossCharacter::PerformAdvancedAttack()
 		if (AdvAttackCurrentCd <= 0 && !GetMovementComponent()->IsFalling())
 		{
 			UE_LOG(LogPlayer, Log, TEXT("Using Evasive advanced ability"));
+
+			// Add evasive advanced ability attempt and success. Will always be success since no dmg is dealt
+			m_combatStats->AddAbilityAttempt(EPlayerAbilities::Evasive_AdvAbility);
+			m_combatStats->AddAbilitySuccess(EPlayerAbilities::Evasive_AdvAbility);
 
 			// Set ability on cooldown and play montage
 			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
@@ -438,7 +470,7 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 	// Spawn AOE damage collider and configure
 	ACapsuleAOEDamage* dmgCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), FActorSpawnParameters());
 	// Listen to event when capsule deals damage
-	dmgCollider->OnCapsuleDealtDamage.AddDynamic(this, &AProjectBossCharacter::CapsuleDealtDamage);
+	dmgCollider->OnCapsuleDealtDamage.AddDynamic(this, &AProjectBossCharacter::AdvAbilityDealtDamage);
 
 	// Set damage and size dimensions of capsule
 	float aoeHalfHeight = 250.0f;
@@ -492,6 +524,9 @@ void AProjectBossCharacter::PerformAbilityOne()
 		{
 			UE_LOG(LogPlayer, Log, TEXT("Using AbilityOne Offensive"));
 
+			// Add evasive ability one attempt
+			m_combatStats->AddAbilityAttempt(EPlayerAbilities::Offensive_AbilityOne);
+
 			// Set ability on cooldown and set flags
 			AbilOneCurrentCd = AbilityOneTotalCooldown;
 			m_disableLocomotionMovement = true;
@@ -529,6 +564,9 @@ void AProjectBossCharacter::PerformAbilityOne()
 		{
 			UE_LOG(LogPlayer, Log, TEXT("Using AbilityOne Evasive Cloudwalk"));
 
+			// Add evasive ability one attempt
+			m_combatStats->AddAbilityAttempt(EPlayerAbilities::Evasive_AbilityOne);
+
 			// Put ability one on cooldown
 			AbilOneCurrentCd = AbilityOneTotalCooldown;
 
@@ -557,6 +595,7 @@ void AProjectBossCharacter::AbilityOneForceGround()
 	// Stop any X/Y movement and slam down with force
 	GetCharacterMovement()->Velocity += FVector(0, 0, -2500.0f);
 
+	// Play next montage in sequence
 	if (AbilityOneMontages.Num() > 1)
 	{
 		this->PlayAnimMontage(AbilityOneMontages[1]);
@@ -582,7 +621,7 @@ void AProjectBossCharacter::AbilityOneLandDamage()
 
 	// Spawn capsule and listen to capsule event on dealing damage
 	ACapsuleAOEDamage* aoeCapsuleCollider = GetWorld()->SpawnActor<ACapsuleAOEDamage>(ACapsuleAOEDamage::StaticClass(), colliderLocation, FRotator(), FActorSpawnParameters());
-	aoeCapsuleCollider->OnCapsuleDealtDamage.AddDynamic(this, &AProjectBossCharacter::CapsuleDealtDamage);
+	aoeCapsuleCollider->OnCapsuleDealtDamage.AddDynamic(this, &AProjectBossCharacter::AbilOneDealtDamage);
 
 	// Configure capsule for Ability One
 	aoeCapsuleCollider->ConfigureDamage(AbilityOneDamageAmount, GetController(), this);
@@ -612,7 +651,9 @@ bool AProjectBossCharacter::IsEvading()
 
 void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
 {
-	// Walk in the air for 1 second
+	/*
+	*  Walk in the air for 1 second
+	*/
 
 	// Create walkable cloud below player's feet to enable "cloudwalking"
 	AActor* cloud = GetWorld()->SpawnActor<ACloudwalkCloud>(ACloudwalkCloud::StaticClass(), FActorSpawnParameters());
@@ -620,8 +661,10 @@ void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
 	Cast<ACloudwalkCloud>(cloud)->SetTrackingArray(&m_spawnedClouds);
 	m_spawnedClouds.Add(cloud);
 
+	// Start timer to destroy clouds after delay
 	GetWorldTimerManager().SetTimer(m_cloudwalkDelayTimer, this, &AProjectBossCharacter::CloudwalkDisable, AdvAttackEvasiveCloudDuration, false);
 
+	// Set performing flag
 	m_isPerformingAbility = true;
 }
 
@@ -629,14 +672,21 @@ void AProjectBossCharacter::CloudwalkDisable()
 {
 	UE_LOG(LogPlayer, Log, TEXT("Disabling Evasive Cloudwalk"));
 
+	// If spawned clouds contains any created clouds
 	if (m_spawnedClouds.Num() > 0)
 	{
+		// Destroy all clouds (actors)
 		for (int i = 0; i < m_spawnedClouds.Num(); i++)
 		{
 			GetWorld()->DestroyActor(m_spawnedClouds[i]);
 		}
 	}
 
+	// Evasive ability success end once all clouds destroyed
+	// Should always success since evasive deals no dmg
+	m_combatStats->AddAbilitySuccess(EPlayerAbilities::Evasive_AbilityOne);
+
+	// Set performing flag
 	m_isPerformingAbility = false;
 }
 
@@ -776,6 +826,9 @@ void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedCo
 			// Add hit marker to UI
 			HUDAddHitMarker();
 
+			// Add successful attack to stats
+			m_combatStats->AddSuccessfulAttack();
+
 			// Play melee impact sound
 			if (AttackImpactSounds.Num() > 0)
 			{
@@ -800,22 +853,25 @@ void AProjectBossCharacter::OnDeath()
 {
 	UE_LOG(LogPlayer, Log, TEXT("Player has died!"));
 
+	// Broadcast died event to any listeners
 	if (OnCharacterDied.IsBound())
 		OnCharacterDied.Broadcast();
 
 	// Ragdoll character on it's death
 	DetachFromControllerPendingDestroy();
 
-	GetMovementComponent()->StopMovementImmediately();
+	// Disable any collision on main capsule
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
 
 	SetActorEnableCollision(true);
+	// Configure mesh to use ragdoll
 	GetMesh()->SetCollisionProfileName("Ragdoll");
 	GetMesh()->SetAllBodiesSimulatePhysics(true);
 	GetMesh()->WakeAllRigidBodies();
 	GetMesh()->bBlendPhysics = true;
 
+	// Configure movement component
 	if (m_charMovementComponent)
 	{
 		m_charMovementComponent->StopMovementImmediately();
@@ -827,11 +883,13 @@ void AProjectBossCharacter::OnDeath()
 float AProjectBossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& damageEvent, class AController* eventInstigator, AActor* damageCauser)
 {
 	float damage = Super::TakeDamage(damageAmount, damageEvent, eventInstigator, damageCauser);
-
+	
+	// Reduce current health with damage amount
 	CurrentHealth -= damage;
 
 	UE_LOG(LogPlayer, Log, TEXT("Player takes '%f' damage from '%s' (Total Health: '%f')"), damageAmount, *damageCauser->GetName(), CurrentHealth);
 
+	// If health is below 0, proceed with death
 	if (CurrentHealth <= 0)
 	{
 		UE_LOG(LogPlayer, Log, TEXT("Player has died!"));
@@ -843,9 +901,22 @@ float AProjectBossCharacter::TakeDamage(float damageAmount, struct FDamageEvent 
 	return damage;
 }
 
-void AProjectBossCharacter::CapsuleDealtDamage()
+void AProjectBossCharacter::AdvAbilityDealtDamage()
 {
+	// Add hit marker
 	HUDAddHitMarker();
+
+	// Add success to combat stats
+	m_combatStats->AddAbilitySuccess(EPlayerAbilities::Offensive_AdvAbility);
+}
+
+void AProjectBossCharacter::AbilOneDealtDamage()
+{
+	// Add hit marker
+	HUDAddHitMarker();
+
+	// Add success to combat stats
+	m_combatStats->AddAbilitySuccess(EPlayerAbilities::Offensive_AbilityOne);
 }
 
 void AProjectBossCharacter::HUDAddHitMarker()

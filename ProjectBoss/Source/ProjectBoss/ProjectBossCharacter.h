@@ -11,8 +11,18 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerDeathSignature);
 UENUM()
 enum EStance
 {
-	Offensive UMETA(DisplayName = "Offensive"),
-	Evasive UMETA(DisplayName = "Evasive"),
+	Offensive = 0	UMETA(DisplayName = "Offensive"),
+	Evasive = 1		UMETA(DisplayName = "Evasive"),
+};
+
+UENUM()
+enum EPlayerAbilities
+{
+	Offensive_AdvAbility = 0		UMETA(DisplayName = "Offensive AdvAbility"),
+	Evasive_AdvAbility = 1			UMETA(DisplayName = "Evasive AdvAbility"),
+
+	Offensive_AbilityOne = 2		UMETA(DisplayName = "Offensive AbilityOne"),
+	Evasive_AbilityOne = 3			UMETA(DisplayName = "Evasive AbilityOne"),
 };
 
 UCLASS(config=Game)
@@ -173,26 +183,35 @@ private:
 	// Time in seconds to save the attack when performing melee montage
 	const float SAVE_ATTACK_TIME = 0.59f;
 	
+	// Core audio component to use for character
 	class UAudioComponent* m_audioComponent;
+	// Store casted movement component
 	class UCharacterMovementComponent* m_charMovementComponent;
 
+	// Track combat stats
+	class UCombatStats* m_combatStats;
+
+	// Attacking boolean flags
 	bool m_isAttacking;
 	bool m_hasAttackedThisSwing;
 	bool m_saveAttack;
 	float m_attackRate;
 
+	// is character performing any ability
 	bool m_isPerformingAbility;
+	// Current attack index to use with attack montages
 	int m_attackCount;
+	// Flag for tracking when character is falling due to ability one
 	bool m_offAbilOneIsFalling;
 
+	// Timer Handle for delay destroy of created clouds
 	FTimerHandle m_cloudwalkDelayTimer;
+	// Array of spawned clouds created during ability
 	TArray<AActor*> m_spawnedClouds;
-
+	// Is the character "evading"
 	bool m_isEvading;
 
-	/// <summary>
 	/// Disables any walking movement of the character
-	/// </summary>
 	bool m_disableLocomotionMovement;
 
 	/*
@@ -247,6 +266,8 @@ protected:
 	virtual void BeginPlay() override;
 	// Called when this character takes damage
 	virtual float TakeDamage(float damageAmount, struct FDamageEvent const& damageEvent, class AController* eventInstigator, AActor* damageCauser) override;
+	// Called when level has finished play
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
@@ -296,9 +317,12 @@ private:
 	/// <returns></returns>
 	bool PlayCue(class USoundBase* sound, bool shouldOverrideExistingSound = false, float volumeMultiplier = 1.0f, float pitchMultiplier = 1.0f);
 
-	// Callback for when a capsule component owned by Character deals damage
+	// Callback for when a advanced ability deals damage
 	UFUNCTION()
-	void CapsuleDealtDamage();
+	void AdvAbilityDealtDamage();
+	// Callback for when ability one deals damage
+	UFUNCTION()
+	void AbilOneDealtDamage();
 
 	// Adds a ht marker to the current player HUD
 	void HUDAddHitMarker();
@@ -308,6 +332,9 @@ private:
 
 	// Called when Jump input is pressed
 	void OnJump();
+
+	// Core functionality to perform a melee
+	void DoMelee();
 
 public:
 	/** Returns CameraBoom subobject **/
