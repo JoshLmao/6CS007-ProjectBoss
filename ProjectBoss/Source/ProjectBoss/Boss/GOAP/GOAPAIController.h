@@ -19,6 +19,9 @@ public:
 
 	virtual void BeginPlay() override;
 
+	// Update an action to a new cost
+	void UpdateActionCost(int action, float newCost);
+
 protected:
 	virtual void Tick(float deltaTime) override;
 

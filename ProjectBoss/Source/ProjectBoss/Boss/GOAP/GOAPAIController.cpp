@@ -198,3 +198,8 @@ TArray<FAtom> AGOAPAIController::GetDefaultWorldState()
 
 	return state;
 }
+
+void AGOAPAIController::UpdateActionCost(int action, float newCost)
+{
+
+}

@@ -12,7 +12,8 @@
 				"Engine",
 				"GOAP",
 				"CoreUObject",
-				"UMG"
+				"UMG",
+				"UnrealEnginePython"
 			]
 		}
 	]
