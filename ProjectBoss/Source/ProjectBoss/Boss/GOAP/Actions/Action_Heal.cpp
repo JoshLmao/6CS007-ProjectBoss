@@ -16,6 +16,8 @@ UAction_Heal::UAction_Heal()
 	// Effects
 	effects.Add(CreateAtom("heal", true));
 	effects.Add(CreateAtom("in-cover", false));
+
+	BossAbilityIndex = EAbilities::Heal;
 }
 
 bool UAction_Heal::checkProceduralPrecondition(APawn* pawn)
@@ -45,6 +47,8 @@ bool UAction_Heal::doAction(APawn* pawn)
 {
 	Super::doAction(pawn);
 
+	SetActionInProgress(true);
+
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 
 	if (boss)
@@ -55,6 +59,7 @@ bool UAction_Heal::doAction(APawn* pawn)
 		bool isHealing = boss->IsPerformingAbility(4);
 		if (!isHealing)
 		{
+			SetActionInProgress(false);
 			return true;
 		}
 	}

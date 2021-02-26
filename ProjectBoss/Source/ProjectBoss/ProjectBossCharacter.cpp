@@ -649,6 +649,16 @@ bool AProjectBossCharacter::IsEvading()
 	return GetMovementComponent()->IsFalling() || m_spawnedClouds.Num() > 0;
 }
 
+int AProjectBossCharacter::GetAbilityAttempts(EPlayerAbilities ability)
+{
+	return m_combatStats->GetAbilityAttempts(ability);
+}
+
+int AProjectBossCharacter::GetAbilitySuccesses(EPlayerAbilities ability)
+{
+	return m_combatStats->GetAbilitySuccessfulAttempts(ability);
+}
+
 void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
 {
 	/*

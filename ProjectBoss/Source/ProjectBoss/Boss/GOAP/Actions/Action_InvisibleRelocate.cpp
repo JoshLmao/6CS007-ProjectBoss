@@ -16,6 +16,8 @@ UAction_InvisibleRelocate::UAction_InvisibleRelocate()
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	effects.Add(CreateAtom("is-invisible", true));
+
+	BossAbilityIndex = EAbilities::One;
 }
 
 bool UAction_InvisibleRelocate::checkProceduralPrecondition(APawn* p)
@@ -42,6 +44,8 @@ bool UAction_InvisibleRelocate::checkProceduralPrecondition(APawn* p)
 bool UAction_InvisibleRelocate::doAction(APawn* p)
 {
 	Super::doAction(p);
+
+	SetActionInProgress(true);
 
 	ABossCharacter* boss = Cast<ABossCharacter>(p);
 
@@ -80,7 +84,8 @@ bool UAction_InvisibleRelocate::doAction(APawn* p)
 
 			// Move towards relocate location and set to true once reached
 			bool isInRange = boss->MoveToLocation(m_rndLoc);
-			if (isInRange) {
+			if (isInRange) 
+			{
 				m_movedToRndLoc = true;
 			}
 		}
@@ -89,7 +94,9 @@ bool UAction_InvisibleRelocate::doAction(APawn* p)
 			// Move towards actor
 			AActor* targetActor = getTarget();
 			bool isInRange = boss->MoveToLocation(targetActor->GetActorLocation());
-			if (isInRange) {
+			if (isInRange) 
+			{
+				SetActionInProgress(false);
 				return true;
 			}
 		}

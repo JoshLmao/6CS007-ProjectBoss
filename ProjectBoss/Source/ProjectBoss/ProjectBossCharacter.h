@@ -261,6 +261,11 @@ public:
 
 	bool IsEvading();
 
+	// Gets the amount of attempts the ability has been performed
+	int GetAbilityAttempts(EPlayerAbilities ability);
+	// Gets the amount of successful attempts the ability has be performed
+	int GetAbilitySuccesses(EPlayerAbilities ability);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

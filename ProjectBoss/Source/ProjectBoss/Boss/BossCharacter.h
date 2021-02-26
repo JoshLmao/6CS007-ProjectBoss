@@ -175,7 +175,9 @@ private:
 	UPROPERTY()
 	class UMaterialInstanceDynamic* m_invisMatInst;
 
+	// Is the Boss currently invisible?
 	bool m_isInvisible;
+	// Is the boss performing the ability one attack?
 	bool m_abilOneIsAttacking;
 
 	// Ability Ultimate
@@ -184,9 +186,9 @@ private:
 
 	// Ability Heal
 	float m_healTimeRemaining;
-
+	// Stun timer handle
 	FTimerHandle m_stunHandle;
-
+	// Combat statistics tracking for the boss character
 	class UCombatStats* m_combatStats;
 
 	/**  Events  **/
@@ -254,12 +256,19 @@ public:
 	// Gets the current cooldown of the advanced ability
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetAdvancedAbilityCooldown();
+	// Gets the damage amount for Advanced Ability
+	float GetAdvancedAbilityDamage();
+
 	// Gets the current cooldown of ability one
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetAbilityOneCooldown();
+
 	// Gets the current cooldown of the ultimate
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetUltimateCooldown();
+	// Gets the damage amount for Ultimate ability
+	float GetUltimateDamage();
+
 	// Gets current cooldown of heal ability
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetHealCooldown();
@@ -271,6 +280,8 @@ public:
 	// Gets the distance in units to be in range to melee
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	float GetMeleeRadius();
+	// Gets the average melee damage
+	float GetMeleeDamage();
 	// Gets if the character is currently attacking
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	bool IsAttacking();

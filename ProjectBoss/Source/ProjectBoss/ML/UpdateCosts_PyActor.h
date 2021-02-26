@@ -17,9 +17,9 @@ class PROJECTBOSS_API AUpdateCosts_PyActor : public APyActor
 public:
 	AUpdateCosts_PyActor();
 
-	// Updates the GOAP controller's specific action to a new cost value
-	UFUNCTION()
-	void UpdateActionCost(int action, float newCost);
+	//// Updates the GOAP controller's specific action to a new cost value
+	//UFUNCTION()
+	//void UpdateActionCost(int action, float newCost);
 
 protected:
 	virtual void BeginPlay() override;

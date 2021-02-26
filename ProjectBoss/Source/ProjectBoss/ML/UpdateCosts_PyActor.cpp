@@ -23,8 +23,8 @@ void AUpdateCosts_PyActor::BeginPlay()
 	}
 
 	// start timer
-	float seconds = 5.00f;
-	GetWorldTimerManager().SetTimer(m_updateTimerHandle, this, &AUpdateCosts_PyActor::CallPython, seconds, true, seconds);
+	//float seconds = 5.00f;
+	//GetWorldTimerManager().SetTimer(m_updateTimerHandle, this, &AUpdateCosts_PyActor::CallPython, seconds, true, seconds);
 }
 
 void AUpdateCosts_PyActor::Tick(float deltaTime)
@@ -43,20 +43,20 @@ void AUpdateCosts_PyActor::CallPython()
 	UE_LOG(LogTemp, Log, TEXT("Returned Value = %f"), newCost);
 }
 
-void AUpdateCosts_PyActor::UpdateActionCost(int action, float newCost)
-{
-	// make sure boss is valid before executing
-	if (!IsValid(m_boss)) 
-	{
-		UE_LOG(LogTemp, Error, TEXT("No Boss reference set!"));
-		return;
-	}
-	
-	// Access GOAP AI controller of boss
-	AGOAPAIController* goapController = Cast<AGOAPAIController>(m_boss->GetController());
-	if (IsValid(goapController))
-	{
-		// Update action index with new cost
-		goapController->UpdateActionCost(action, newCost);
-	}
-}
+//void AUpdateCosts_PyActor::UpdateActionCost(int action, float newCost)
+//{
+//	// make sure boss is valid before executing
+//	if (!IsValid(m_boss)) 
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("No Boss reference set!"));
+//		return;
+//	}
+//	
+//	// Access GOAP AI controller of boss
+//	AGOAPAIController* goapController = Cast<AGOAPAIController>(m_boss->GetController());
+//	if (IsValid(goapController))
+//	{
+//		// Update action index with new cost
+//		goapController->UpdateActionCost(action, newCost);
+//	}
+//}

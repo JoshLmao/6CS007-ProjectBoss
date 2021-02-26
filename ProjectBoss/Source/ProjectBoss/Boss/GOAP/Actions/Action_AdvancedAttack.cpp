@@ -13,6 +13,8 @@ UAction_AdvancedAttack::UAction_AdvancedAttack()
 	targetsType = AProjectBossCharacter::StaticClass();
 
 	effects.Add(CreateAtom("damage-player", true));
+
+	BossAbilityIndex = EAbilities::Advanced;
 }
 
 bool UAction_AdvancedAttack::checkProceduralPrecondition(APawn* pawn)
@@ -59,6 +61,7 @@ bool UAction_AdvancedAttack::doAction(APawn* pawn)
 		if (!isPerforming)
 		{
 			// Only return true (action finished) once ability ended
+			Damage = boss->GetAdvancedAbilityDamage();
 			return true;
 		}
 	}

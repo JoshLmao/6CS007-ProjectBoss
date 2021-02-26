@@ -52,6 +52,8 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 	AProjectBossCharacter* player = Cast<AProjectBossCharacter>(targetActor);
 
+	Damage = boss->GetMeleeDamage();
+
 	if (boss)
 	{
 		// Constantly look at actor, regardless of in range

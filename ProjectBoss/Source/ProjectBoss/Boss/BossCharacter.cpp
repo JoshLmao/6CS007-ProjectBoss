@@ -544,6 +544,11 @@ float ABossCharacter::GetAdvancedAbilityCooldown()
 	return AdvAbilityCurrentCd;
 }
 
+float ABossCharacter::GetAdvancedAbilityDamage()
+{
+	return AdvAbilityDamage;
+}
+
 float ABossCharacter::GetAbilityOneCooldown()
 {
 	return AbilOneCurrentCd;
@@ -652,9 +657,19 @@ float ABossCharacter::GetUltimateCooldown()
 	return UltimateCurrentCd;
 }
 
+float ABossCharacter::GetUltimateDamage()
+{
+	return UltimateDamage;
+}
+
 float ABossCharacter::GetMeleeRadius()
 {
 	return MeleeRadius;
+}
+
+float ABossCharacter::GetMeleeDamage()
+{
+	return (MaxMeleeDamage + MinMeleeDamage) / 2;
 }
 
 bool ABossCharacter::IsAttacking()

@@ -17,6 +17,8 @@ UAction_Ultimate::UAction_Ultimate()
 	dmgEffect.name = "damage-player";
 	dmgEffect.value = true;
 	effects.Add(dmgEffect);
+
+	BossAbilityIndex = EAbilities::Ultimate;
 }
 
 bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
@@ -68,6 +70,7 @@ bool UAction_Ultimate::doAction(APawn* pawn)
 		if (!isPerforming)
 		{
 			//UE_LOG(LogGOAPAction, Log, TEXT("Completed Ultimate action!"));
+			Damage = boss->GetUltimateDamage();
 			return true;
 		}
 	}

@@ -6,6 +6,7 @@
 #include "GOAPController.h"
 #include "GOAPAIController.generated.h"
 
+
 /**
  * Overall GOAP AI controller that sets goals to get a plan for the boss to execute
  */
@@ -17,19 +18,29 @@ class PROJECTBOSS_API AGOAPAIController : public AGOAPController
 public:
 	AGOAPAIController();
 
-	virtual void BeginPlay() override;
+	/*
+	*	VARIABLES
+	*/
+private:
+	// Have we printed last failed plan to screen?
+	bool m_printedLastFailPlan;
+	// Reference to boss pawn
+	class ABossCharacter* m_bossPawn;
+	// Reference to player character
+	class AProjectBossCharacter* m_player;
+	// Array of all sequences executed in this play session
+	TArray<TArray<class UGOAPAction*>> m_planSequences;
 
-	// Update an action to a new cost
-	void UpdateActionCost(int action, float newCost);
+	/*
+	*	METHODS
+	*/
+	virtual void BeginPlay() override;
 
 protected:
 	virtual void Tick(float deltaTime) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	bool m_printedLastFailPlan;
-	class ABossCharacter* m_bossPawn;
-	class AProjectBossCharacter* m_player;
-	
 	// Creates and returns an Atom with the name and value
 	FAtom CreateAtom(FString name, bool val);
 
@@ -45,10 +56,11 @@ private:
 	// Checks if the world has a current atom in state
 	bool WorldContainsAtom(FString atomName, bool state);
 
-	// Check if the world state has reached it's target world state. Returns true if so
-	bool HasWorldReachedGoal();
-
 	// Gets the default world state
 	TArray<FAtom> GetDefaultWorldState();
 
+	// Saves data needed for ML
+	void SaveMLData(TArray<TArray<class UGOAPAction*>> actiallActionsons);
+	// Updates all GOAP actions with a new cost
+	void UpdateActionCostsFromML();
 };

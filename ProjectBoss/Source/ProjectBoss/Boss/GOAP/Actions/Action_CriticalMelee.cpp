@@ -15,6 +15,8 @@ UAction_CriticalMelee::UAction_CriticalMelee()
 
 	effects.Add(CreateAtom("is-invisible", false));
 	effects.Add(CreateAtom("damage-player", true));
+
+	BossAbilityIndex = EAbilities::Melee;
 }
 
 bool UAction_CriticalMelee::checkProceduralPrecondition(APawn* p)
@@ -33,8 +35,12 @@ bool UAction_CriticalMelee::doAction(APawn* p)
 	ABossCharacter* boss = Cast<ABossCharacter>(p);
 
 	// Set crit multiplier and perform melee
-	boss->SetMeleeCritMultiplier(boss->GetAbilityOneCritMultiplier());
+	float multiplier = boss->GetAbilityOneCritMultiplier();
+	boss->SetMeleeCritMultiplier(multiplier);
 	boss->PerformMeleeAttack();
+
+	// Set action damage
+	Damage = boss->GetMeleeDamage() * (multiplier / 100);
 
 	// Remove invis from boss
 	if (boss->GetIsInvisible())

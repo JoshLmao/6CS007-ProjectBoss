@@ -37,6 +37,30 @@ void UCombatStats::AddAbilitySuccess(int abilityIndex)
 	}
 }
 
+int UCombatStats::GetAbilityAttempts(int abilityIndex)
+{
+	if (m_abilityAttempt.Contains(abilityIndex))
+	{
+		return m_abilityAttempt[abilityIndex];
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+int UCombatStats::GetAbilitySuccessfulAttempts(int abilityIndex)
+{
+	if (m_abilitySuccess.Contains(abilityIndex))
+	{
+		return m_abilitySuccess[abilityIndex];
+	}
+	else 
+	{
+		return 0;
+	}
+}
+
 float UCombatStats::GetTotalAttacks()
 {
 	return m_totalAttacks;
@@ -59,17 +83,23 @@ FString UCombatStats::GetAllStatsString()
 	output += "Total/Successful Attacks: " + FString::SanitizeFloat(m_totalAttacks) + " / " + FString::SanitizeFloat(m_successfullAttacks);
 	output += "\n";
 
-	// Append abilities 
-	for (const TPair<int, int> pair : m_abilityAttempt)
+	if (m_abilityAttempt.Num() > 0)
 	{
-		output += "Ability '" + FString::SanitizeFloat(pair.Key) + "' attempted '" + FString::SanitizeFloat(pair.Value) + "' times";
-		output += "\n";
+		// Append abilities 
+		for (const TPair<int, int> pair : m_abilityAttempt)
+		{
+			output += "Ability '" + FString::SanitizeFloat(pair.Key) + "' attempted '" + FString::SanitizeFloat(pair.Value) + "' times";
+			output += "\n";
+		}
 	}
 
-	for (const TPair<int, int> successPair : m_abilitySuccess)
+	if (m_abilitySuccess.Num() > 0)
 	{
-		output += "Ability '" + FString::SanitizeFloat(successPair.Key) + "' succeessfully landed '" + FString::SanitizeFloat(successPair.Value) + "' times";
-		output += "\n";
+		for (const TPair<int, int> successPair : m_abilitySuccess)
+		{
+			output += "Ability '" + FString::SanitizeFloat(successPair.Key) + "' succeessfully landed '" + FString::SanitizeFloat(successPair.Value) + "' times";
+			output += "\n";
+		}
 	}
 
 	return output;

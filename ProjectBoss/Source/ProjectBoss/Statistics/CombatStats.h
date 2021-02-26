@@ -43,8 +43,14 @@ public:
 	void AddAbilityAttempt(int abilityIndex);
 	// Adds to the successful ability count
 	void AddAbilitySuccess(int abilityIndex);
+	// Gets the amount of attempts of this ability
+	int GetAbilityAttempts(int abilityIndex);
+	// Gets the amount of successful attempts of this ability
+	int GetAbilitySuccessfulAttempts(int abilityIndex);
 
+	// Gets the total number of attacks performed
 	float GetTotalAttacks();
+	// Gets the total number of successful attacks performed
 	float GetSuccessfulAttacks();
 	// Gets the total damage dealt
 	float GetTotalDamageDealt();
