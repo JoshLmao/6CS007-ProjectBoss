@@ -61,6 +61,7 @@ bool UAction_Ultimate::doAction(APawn* pawn)
 	Super::doAction(pawn);
 
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
+	SetActionInProgress(true);
 	if (boss)
 	{
 		AActor* targetActor = getTarget();
@@ -71,6 +72,7 @@ bool UAction_Ultimate::doAction(APawn* pawn)
 		{
 			//UE_LOG(LogGOAPAction, Log, TEXT("Completed Ultimate action!"));
 			Damage = boss->GetUltimateDamage();
+			SetActionInProgress(false);
 			return true;
 		}
 	}

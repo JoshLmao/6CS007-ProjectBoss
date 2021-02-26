@@ -34,7 +34,7 @@ private:
 	// Is the action in progress
 	bool m_isInProgress;
 	// List of all time to executes for the plan
-	TArray<float> allTimeToExecutes;
+	TArray<float> m_allTimeToExecutes;
 
 	/*
 	*	METHODS
@@ -54,7 +54,6 @@ protected:
 	// Override doAction called every frame to execute the action
 	virtual bool doAction(APawn* p) override;
 
-protected:
 	// Creates an Atom with the given name and value
 	FAtom CreateAtom(FString atmName, bool value);
 	// Tries to get the targetsType actor in the scene and sets it to the target

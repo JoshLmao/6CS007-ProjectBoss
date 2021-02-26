@@ -13,6 +13,7 @@ UAction_Follow::UAction_Follow()
 {
 	// Initialize action with name, cost and target class
 	name = "follow target";
+	BaseCost = 5.0f;
 	cost = 0.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
 
@@ -59,11 +60,14 @@ bool UAction_Follow::doAction(APawn* aiCharPawn)
 		return false;
 	}
 
+	SetActionInProgress(true);
+
 	// Move AI to player
 	bool reachedTarget = boss->MoveToLocation(targetActor->GetActorLocation());
 	if (reachedTarget)
 	{
 		//UE_LOG(LogTemp, Log, TEXT("Arrived at player's position!"));
+		SetActionInProgress(false);
 		return true;
 	}
 

@@ -59,8 +59,8 @@ private:
 	// Gets the default world state
 	TArray<FAtom> GetDefaultWorldState();
 
-	// Saves data needed for ML
-	void SaveMLData(TArray<TArray<class UGOAPAction*>> actiallActionsons);
+	// Saves data needed for ML to file name (Uses project base directory for file path)
+	void SaveMLData(TArray<TArray<class UGOAPAction*>> allPlanSequences, FString fileName);
 	// Updates all GOAP actions with a new cost
 	void UpdateActionCostsFromML();
 };

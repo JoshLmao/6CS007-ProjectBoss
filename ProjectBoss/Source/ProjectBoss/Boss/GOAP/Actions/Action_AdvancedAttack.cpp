@@ -5,6 +5,7 @@
 #include "../../../ProjectBossCharacter.h"
 #include "../../BossCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "../../../UtilityHelper.h"
 
 UAction_AdvancedAttack::UAction_AdvancedAttack()
 {
@@ -42,6 +43,15 @@ bool UAction_AdvancedAttack::checkProceduralPrecondition(APawn* pawn)
 		return false;
 	}
 
+	if (setTarget)
+	{
+		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
+		// Health Difference will be positive if boss has less health than Player, negative if boss has more health than Player
+		float healthDiff = UtilityHelper::GetHealthDifference(player->GetCurrentHealth(), player->GetTotalHealth(), boss->GetCurrentHealth(), boss->GetTotalHealth());
+		float smallIncrements = healthDiff / 100;
+		UpdateCost(BaseCost + smallIncrements);
+	}
+
 	// Check we have target and ultimate isn't on cooldown
 	return setTarget;
 }
@@ -52,6 +62,8 @@ bool UAction_AdvancedAttack::doAction(APawn* pawn)
 
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 	
+	SetActionInProgress(true);
+
 	if (boss)
 	{
 		AActor* targetActor = getTarget();
@@ -62,6 +74,7 @@ bool UAction_AdvancedAttack::doAction(APawn* pawn)
 		{
 			// Only return true (action finished) once ability ended
 			Damage = boss->GetAdvancedAbilityDamage();
+			SetActionInProgress(false);
 			return true;
 		}
 	}

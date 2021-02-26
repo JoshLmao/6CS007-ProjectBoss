@@ -69,7 +69,7 @@ void AGOAPAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	// Save ML data from GOAP system on exit
 	if (m_planSequences.Num() > 0)
 	{
-		SaveMLData(m_planSequences);
+		SaveMLData(m_planSequences, "project-boss-ml-data.csv");
 	}
 	else
 	{
@@ -267,7 +267,7 @@ TArray<FAtom> AGOAPAIController::GetDefaultWorldState()
 	return state;
 }
 
-void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences)
+void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences, FString fileName)
 {
 	// Check if all plans actually contain any
 	if (allPlanSequences.Num() <= 0)
@@ -296,16 +296,16 @@ void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences
 			if (pbAction)
 			{
 				FMLData actionData;
-
+				// Store the action name, helps for debug
 				actionData.ActionName = pbAction->getName();
 
+				// Get the base cost of the action
 				actionData.BaseCost = pbAction->GetBaseCost();
 
 				// Get the elapsed seconds on the action
 				actionData.AverageExecuteSeconds = pbAction->GetAverageExecuteTime();
 
-				UE_LOG(LogGOAP, Log, TEXT("Action: %s Average Execution: '%f's"), *pbAction->getName(), actionData.AverageExecuteSeconds);
-
+				// Get ability damage
 				actionData.Damage = pbAction->GetDamage();
 				
 				// gets ability attempts and successful attempts
@@ -313,6 +313,7 @@ void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences
 				actionData.SuccessfulAttempts = 0;
 				int abilityIndex = pbAction->GetAbilityIndex();
 				UCombatStats* stats = m_bossPawn->GetCombatStats();
+				// Check data is valid
 				if (stats != nullptr && abilityIndex > -1)
 				{
 					actionData.Attempts = stats->GetAbilityAttempts(abilityIndex);
@@ -330,13 +331,12 @@ void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences
 		}
 	}
 
-	// save to csv
+	// Save ML data to csv file
 	FString baseDir = UKismetSystemLibrary::GetProjectDirectory();
-	FString fileName = "testCSVFile.csv";
 	bool isSuccess = UCSVFileManager::AppendData(mlData, baseDir, fileName);
 	if (isSuccess)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Saved '%d' sequences with '%d' actions to '%s' + '%s'"), allPlanSequences.Num(), totalActions, *baseDir, *fileName);
+		UE_LOG(LogTemp, Log, TEXT("Saved '%d' sequences with '%d' actions to '%s%s'"), allPlanSequences.Num(), totalActions, *baseDir, *fileName);
 	}
 	else
 	{

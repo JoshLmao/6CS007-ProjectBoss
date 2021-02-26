@@ -71,15 +71,20 @@ void UPBGOAPAction::UpdateCost(float newCost)
 
 float UPBGOAPAction::GetAverageExecuteTime()
 {
+	// Check if data exists, return 0 if none
+	if (m_allTimeToExecutes.Num() <= 0) {
+		return 0.0f;
+	}
+
 	// Add up all execute times
 	float total = 0.0f;
-	for (float executeTime : allTimeToExecutes)
+	for (float executeTime : m_allTimeToExecutes)
 	{
 		total += executeTime;
 	}
 
 	// Divide by total for average
-	return total / allTimeToExecutes.Num();
+	return total / m_allTimeToExecutes.Num();
 }
 
 
@@ -89,7 +94,7 @@ void UPBGOAPAction::SetActionInProgress(bool inProgress)
 	if (m_isInProgress && !inProgress && m_timeToExecute > 0)
 	{
 		// ...save the last time to execute
-		allTimeToExecutes.Add(m_timeToExecute);
+		m_allTimeToExecutes.Add(m_timeToExecute);
 	}
 	// ...else if not in progress & will be in progress...
 	else if (!m_isInProgress && inProgress)

@@ -27,11 +27,18 @@ bool UAction_MeleeAttack::checkProceduralPrecondition(APawn* pawn)
 
 	bool set = TrySetTarget(pawn);
 
+	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
+
 	if (set)
 	{
 		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
 		if (player && player->GetCurrentHealth() <= 0)
 			return false;
+
+		// Health Difference will be positive if boss has less health than Player, negative if boss has more health than Player
+		float healthDiff = UtilityHelper::GetHealthDifference(player->GetCurrentHealth(), player->GetTotalHealth(), boss->GetCurrentHealth(), boss->GetTotalHealth());
+		float smallIncrements = healthDiff / 100;
+		UpdateCost(BaseCost + smallIncrements);
 	}
 
 	return set;
@@ -53,6 +60,7 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 	AProjectBossCharacter* player = Cast<AProjectBossCharacter>(targetActor);
 
 	Damage = boss->GetMeleeDamage();
+	SetActionInProgress(true);
 
 	if (boss)
 	{
@@ -66,6 +74,7 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 		if (dist > meleeDistRange)
 		{
 			// finished action. target too far away
+			SetActionInProgress(false);
 			return true;
 		}
 

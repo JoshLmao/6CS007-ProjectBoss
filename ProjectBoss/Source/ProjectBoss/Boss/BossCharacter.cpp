@@ -291,6 +291,13 @@ void ABossCharacter::SetInvisible(bool isInvis)
 	// Set is invisible bool
 	m_isInvisible = isInvis;
 
+	if (m_combatStats)
+	{
+		// Add attempt & success, will always be a success
+		m_combatStats->AddAbilityAttempt(EAbilities::One);
+		m_combatStats->AddAbilitySuccess(EAbilities::One);
+	}
+
 	// If original materials dynamic materials exist (have been created)
 	if (IsValid(GetMesh()) && m_originalMeshMaterials.Num() > 0)
 	{
@@ -409,7 +416,10 @@ void ABossCharacter::AdvAttackOnFinish()
 	m_isPerformingAnyAbility = false;
 
 	// Add attempt to stats
-	m_combatStats->AddAbilityAttempt(EAbilities::Advanced);
+	if (m_combatStats)
+	{
+		m_combatStats->AddAbilityAttempt(EAbilities::Advanced);
+	}
 
 	// On cooldown once ability finished performing
 	AdvAbilityCurrentCd = AdvAbilityTotalCooldown;

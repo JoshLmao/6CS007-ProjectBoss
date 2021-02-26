@@ -4,11 +4,13 @@
 #include "Action_Heal.h"
 #include "../../BossCharacter.h"
 #include "../../../ProjectBossCharacter.h"
+#include "../../../UtilityHelper.h"
 
 UAction_Heal::UAction_Heal()
 {
 	name = "heal";
-	BaseCost = cost = 5.0f;
+	BaseCost =  5.0f;
+	cost = 0.0f;
 
 	// Preconditions
 	preconditions.Add(CreateAtom("in-cover", true));
@@ -26,7 +28,7 @@ bool UAction_Heal::checkProceduralPrecondition(APawn* pawn)
 
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 	bool setTarget = TrySetTarget(pawn);
-	
+
 	if (boss)
 	{
 		if (boss->GetHealCooldown() > 0)
@@ -38,6 +40,15 @@ bool UAction_Heal::checkProceduralPrecondition(APawn* pawn)
 		{
 			return false;
 		}
+	}
+
+	if (setTarget)
+	{
+		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
+		// Health Difference will be positive if boss has less health than Player, negative if boss has more health than Player
+		float healthDiff = UtilityHelper::GetHealthDifference(player->GetCurrentHealth(), player->GetTotalHealth(), boss->GetCurrentHealth(), boss->GetTotalHealth());
+		float smallIncrements = healthDiff / 100;
+		UpdateCost(BaseCost + smallIncrements);
 	}
 
 	return setTarget;

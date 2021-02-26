@@ -37,65 +37,65 @@ bool UCSVFileManager::AppendData(TArray<FMLData> mlData, FString saveDirectory, 
 	if (fileExists)
 	{
 		// File exists, append like normal
-	}
-	else
-	{
-		// file doesnt exist, create new with given data
-
-		int dataIndex = 0;
-
-		// Iterate through each data
-		for (FMLData data : mlData)
+		bool result = FFileHelper::LoadFileToString(fileString, *fullPath);
+		if (!result)
 		{
-			// If not on first data entry, insert at the end of each line
-			if (dataIndex > 0)
-			{
-				int eolIndex = -1;
-				// INPUTS
-				eolIndex = AppendMLDataToEndOfLine(fileString, data.BaseCost, eolIndex);
-
-				eolIndex = AppendMLDataToEndOfLine(fileString, data.Attempts, eolIndex);
-
-				eolIndex = AppendMLDataToEndOfLine(fileString, data.SuccessfulAttempts, eolIndex);
-
-				eolIndex = AppendMLDataToEndOfLine(fileString, data.Damage, eolIndex);
-				
-				eolIndex = AppendMLDataToEndOfLine(fileString, data.AverageExecuteSeconds, eolIndex);
-					
-				// OUTPUTS
-				eolIndex = AppendMLDataToEndOfLine(fileString, data.FinalCost, eolIndex);
-
-			}
-			else
-			{
-				// First iteration, add values normally
-
-				// Inputs
-				fileString += FString::SanitizeFloat(data.BaseCost);
-				fileString += NEW_LINE;
-
-				fileString += FString::SanitizeFloat(data.Attempts);
-				fileString += NEW_LINE;
-
-				fileString += FString::SanitizeFloat(data.SuccessfulAttempts);
-				fileString += NEW_LINE;
-
-				fileString += FString::SanitizeFloat(data.Damage);
-				fileString += NEW_LINE;
-
-				fileString += FString::SanitizeFloat(data.AverageExecuteSeconds);
-				fileString += NEW_LINE;
-
-				// Output
-				fileString += FString::SanitizeFloat(data.FinalCost);
-				fileString += NEW_LINE;
-			}
-
-			// Increment index after each data entry
-			dataIndex++;
+			UE_LOG(LogTemp, Error, TEXT("Unable to load existing CSV data!"));
 		}
 	}
 
+	// Check that data exists inside the existing file
+	bool dataExists = !fileString.IsEmpty();
+
+	// Iterate through each data
+	for (FMLData data : mlData)
+	{
+		// If not on first data entry, insert at the end of each line
+		if (dataExists)
+		{
+			int eolIndex = -1;
+			// INPUTS
+			eolIndex = AppendMLDataToEndOfLine(fileString, data.BaseCost, eolIndex);
+
+			eolIndex = AppendMLDataToEndOfLine(fileString, data.Attempts, eolIndex);
+
+			eolIndex = AppendMLDataToEndOfLine(fileString, data.SuccessfulAttempts, eolIndex);
+
+			eolIndex = AppendMLDataToEndOfLine(fileString, data.Damage, eolIndex);
+				
+			eolIndex = AppendMLDataToEndOfLine(fileString, data.AverageExecuteSeconds, eolIndex);
+					
+			// OUTPUTS
+			eolIndex = AppendMLDataToEndOfLine(fileString, data.FinalCost, eolIndex);
+		}
+		else
+		{
+			// First iteration, add values normally
+
+			// Inputs
+			fileString += FString::SanitizeFloat(data.BaseCost);
+			fileString += NEW_LINE;
+
+			fileString += FString::SanitizeFloat(data.Attempts);
+			fileString += NEW_LINE;
+
+			fileString += FString::SanitizeFloat(data.SuccessfulAttempts);
+			fileString += NEW_LINE;
+
+			fileString += FString::SanitizeFloat(data.Damage);
+			fileString += NEW_LINE;
+
+			fileString += FString::SanitizeFloat(data.AverageExecuteSeconds);
+			fileString += NEW_LINE;
+
+			// Output
+			fileString += FString::SanitizeFloat(data.FinalCost);
+			fileString += NEW_LINE;
+
+			// Set flag to true to append
+			dataExists = true;
+		}
+	}
 
 	bool result = FFileHelper::SaveStringToFile(fileString, *fullPath);
 	return true;
