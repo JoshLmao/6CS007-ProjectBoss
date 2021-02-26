@@ -101,4 +101,7 @@ public:
 	// Returns the desired world state atoms.
 	UFUNCTION(BlueprintCallable, Category = GOAPController)
 	TArray<FAtom> getDesiredWorldStateAtoms();
+
+protected:
+	TArray<UGOAPAction*> GetAuxActions();
 };

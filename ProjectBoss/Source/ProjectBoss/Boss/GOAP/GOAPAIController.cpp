@@ -66,10 +66,12 @@ void AGOAPAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
-	// Save ML data from GOAP system on exit
-	if (m_planSequences.Num() > 0)
+	TArray<UGOAPAction*> bossActions = GetAuxActions();
+
+	// Save ML data on all actions
+	if (bossActions.Num() > 0)
 	{
-		SaveMLData(m_planSequences, "project-boss-ml-data.csv");
+		SaveMLData(bossActions, "project-boss-ml-data.csv");
 	}
 	else
 	{
@@ -94,33 +96,6 @@ void AGOAPAIController::Tick(float deltaTime)
 	
 	TArray<UGOAPAction*> currentPlan = getPlan();
 
-	// Check for difference in plans if they contain actions
-	if (lastPlan.Num() > 0 && currentPlan.Num() > 0)
-	{
-		// Check if different plan via different action names
-		if (lastPlan.Num() == currentPlan.Num())
-		{
-			for (int i = 0; i < lastPlan.Num(); i++)
-			{
-				// If names are different, actions are too
-				if (lastPlan[i]->getName() != currentPlan[i]->getName())
-				{
-					// Save last plan sequence
-					UE_LOG(LogTemp, Log, TEXT("lastPlan and currentPlan are different! Last Action '%s' isnt equal to current '%s' action "), *lastPlan[i]->getName(), *currentPlan[i]->getName());
-					m_planSequences.Add(lastPlan);
-				}
-			}
-		}
-		// else if lastPlan and currentPlan lengths are different, also changed
-		else if (lastPlan.Num() != currentPlan.Num())
-		{
-			UE_LOG(LogTemp, Log, TEXT("lastPlan and currentPlan are different! Different lengths"))
-			// Save last plan sequence
-			m_planSequences.Add(lastPlan);
-		}
-	}
-	
-
 	if (success)
 	{
 		// If success, print to screen
@@ -130,12 +105,6 @@ void AGOAPAIController::Tick(float deltaTime)
 	{
 		// Once plan is no longer a success... (finished executing last plan)
 		
-		// Save timings from previous actions when no current plan determined
-		if (lastPlan.Num() > 0)
-		{
-			m_planSequences.Add(lastPlan);
-		}
-
 		// Update all GOAP actions with new costs from Machine Learning
 		// Query python for new cost values
 		//UpdateActionCostsFromML();
@@ -267,67 +236,55 @@ TArray<FAtom> AGOAPAIController::GetDefaultWorldState()
 	return state;
 }
 
-void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences, FString fileName)
+void AGOAPAIController::SaveMLData(TArray<UGOAPAction*> goapActions, FString fileName)
 {
 	// Check if all plans actually contain any
-	if (allPlanSequences.Num() <= 0)
+	if (goapActions.Num() <= 0)
 	{
-		UE_LOG(LogGOAP, Error, TEXT("All Plans are empty!"));
+		UE_LOG(LogGOAP, Error, TEXT("All GOAP actions are empty!"));
 		return;
 	}
 
 	TArray<FMLData> mlData;
-	int totalActions = 0;
 
 	// Iterate over all plan sequences
-	for (TArray<UGOAPAction*> sequence : allPlanSequences)
+	// Iterate through all actions in current sequence...
+	for (UGOAPAction* goapAction : goapActions)
 	{
-		// Does this sequence contains any actions?
-		if (sequence.Num() <= 0)
+		UPBGOAPAction* pbAction = Cast<UPBGOAPAction>(goapAction);
+		if (pbAction)
 		{
-			UE_LOG(LogGOAP, Error, TEXT("Sequence contains no actions!"));
-			continue;
-		}
+			FMLData actionData;
+			// Store the action name, helps for debug
+			actionData.ActionName = pbAction->getName();
 
-		// Iterate through all actions in current sequence...
-		for (UGOAPAction* goapAction : sequence)
-		{
-			UPBGOAPAction* pbAction = Cast<UPBGOAPAction>(goapAction);
-			if (pbAction)
+			// Get the base cost of the action
+			actionData.BaseCost = pbAction->GetBaseCost();
+
+			// Get the elapsed seconds on the action
+			actionData.AverageExecuteSeconds = pbAction->GetAverageExecuteTime();
+
+			// Get ability damage
+			actionData.Damage = pbAction->GetDamage();
+
+			// Set ability attempts and successful attempts to default values
+			actionData.Attempts = 0;
+			actionData.SuccessfulAttempts = 0;
+
+			// Check data is valid and set to tracked values
+			int abilityIndex = pbAction->GetAbilityIndex();
+			UCombatStats* stats = m_bossPawn->GetCombatStats();
+			if (stats != nullptr && abilityIndex > -1)
 			{
-				FMLData actionData;
-				// Store the action name, helps for debug
-				actionData.ActionName = pbAction->getName();
-
-				// Get the base cost of the action
-				actionData.BaseCost = pbAction->GetBaseCost();
-
-				// Get the elapsed seconds on the action
-				actionData.AverageExecuteSeconds = pbAction->GetAverageExecuteTime();
-
-				// Get ability damage
-				actionData.Damage = pbAction->GetDamage();
-				
-				// gets ability attempts and successful attempts
-				actionData.Attempts = 0;
-				actionData.SuccessfulAttempts = 0;
-				int abilityIndex = pbAction->GetAbilityIndex();
-				UCombatStats* stats = m_bossPawn->GetCombatStats();
-				// Check data is valid
-				if (stats != nullptr && abilityIndex > -1)
-				{
-					actionData.Attempts = stats->GetAbilityAttempts(abilityIndex);
-					actionData.SuccessfulAttempts = stats->GetAbilitySuccessfulAttempts(abilityIndex);
-				}
-
-				// Set final ML data cost
-				actionData.FinalCost = pbAction->getCost();
-
-				// Add data to list
-				mlData.Add(actionData);
+				actionData.Attempts = stats->GetAbilityAttempts(abilityIndex);
+				actionData.SuccessfulAttempts = stats->GetAbilitySuccessfulAttempts(abilityIndex);
 			}
 
-			totalActions++;
+			// Set final ML data cost
+			actionData.FinalCost = pbAction->getCost();
+
+			// Add data to list
+			mlData.Add(actionData);
 		}
 	}
 
@@ -336,7 +293,7 @@ void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences
 	bool isSuccess = UCSVFileManager::AppendData(mlData, baseDir, fileName);
 	if (isSuccess)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Saved '%d' sequences with '%d' actions to '%s%s'"), allPlanSequences.Num(), totalActions, *baseDir, *fileName);
+		UE_LOG(LogTemp, Log, TEXT("Saved '%d' actions to CSV file '%s%s'"), goapActions.Num(), *baseDir, *fileName);
 	}
 	else
 	{

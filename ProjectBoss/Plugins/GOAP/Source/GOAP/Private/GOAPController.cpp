@@ -156,3 +156,8 @@ TArray<FAtom> AGOAPController::getDesiredWorldStateAtoms()
 
 	return worldStateAtoms;
 }
+
+TArray<UGOAPAction*> AGOAPController::GetAuxActions()
+{
+	return auxActions;
+}
