@@ -3,14 +3,15 @@
 
 #include "GOAPAIController.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 #include "../BossCharacter.h"
 #include "../../ProjectBoss.h"
 #include "../../ProjectBossCharacter.h"
 #include "PBGOAPAction.h"
 #include "../../Statistics/CombatStats.h"
 #include "../../Helpers/CSVFileManager.h"
-#include "Kismet/KismetSystemLibrary.h"
-
+#include "../../ML/UpdateCosts_PyActor.h"
 #pragma region include AllActions
 #include "Actions/Action_Follow.h"
 #include "Actions/Action_MeleeAttack.h"
@@ -47,19 +48,23 @@ void AGOAPAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Get references to boss and player
+	m_bossPawn = Cast<ABossCharacter>(GetPawn());
+	m_player = Cast<AProjectBossCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+
+	// Get reference to Python bridge actor
+	AActor* actor = UGameplayStatics::GetActorOfClass(GetWorld(), AUpdateCosts_PyActor::StaticClass());
+	m_pythonActor = Cast<AUpdateCosts_PyActor>(actor);
+
+
 	// Create desired world state on start
 	TArray<FAtom> goals;
 	goals.Add(CreateAtom("damage-player", true));
-	//goals.Add(CreateAtom("heal", true));
-
+	// Set initial goal
 	setGoal(goals);
 
 	// Set max depth of planner
 	maxDepth = 20.0f;
-
-	// Get references to boss and player
-	m_bossPawn = Cast<ABossCharacter>(GetPawn());
-	m_player = Cast<AProjectBossCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 }
 
 void AGOAPAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -107,7 +112,7 @@ void AGOAPAIController::Tick(float deltaTime)
 		
 		// Update all GOAP actions with new costs from Machine Learning
 		// Query python for new cost values
-		//UpdateActionCostsFromML();
+		UpdateActionCostsFromML();
 
 		// Determine new state for the GOAP system
 		TArray<FAtom> nextWorldState = DetermineNextWorldState();
@@ -268,17 +273,7 @@ void AGOAPAIController::SaveMLData(TArray<UGOAPAction*> goapActions, FString fil
 			actionData.Damage = pbAction->GetDamage();
 
 			// Set ability attempts and successful attempts to default values
-			actionData.Attempts = 0;
-			actionData.SuccessfulAttempts = 0;
-
-			// Check data is valid and set to tracked values
-			int abilityIndex = pbAction->GetAbilityIndex();
-			UCombatStats* stats = m_bossPawn->GetCombatStats();
-			if (stats != nullptr && abilityIndex > -1)
-			{
-				actionData.Attempts = stats->GetAbilityAttempts(abilityIndex);
-				actionData.SuccessfulAttempts = stats->GetAbilitySuccessfulAttempts(abilityIndex);
-			}
+			actionData.DidSucceed = pbAction->GetDidSucceed();
 
 			// Set final ML data cost
 			actionData.FinalCost = pbAction->getCost();
@@ -303,5 +298,15 @@ void AGOAPAIController::SaveMLData(TArray<UGOAPAction*> goapActions, FString fil
 
 void AGOAPAIController::UpdateActionCostsFromML()
 {
-
+	// Get all goap actions and iterate
+	TArray<UGOAPAction*> allGoapActions = GetAuxActions();
+	for (UGOAPAction* action : allGoapActions)
+	{
+		// Cast to PB GOAP action
+		UPBGOAPAction* pbAction = Cast<UPBGOAPAction>(action);
+		// Call Python Actor and python code to genereate new cost from ML'd data
+		float mlCost = m_pythonActor->GenerateCost(pbAction->GetBaseCost(), pbAction->GetDidSucceed(), pbAction->GetDamage(), pbAction->GetAverageExecuteTime());
+		// Set new cost of the action
+		pbAction->UpdateCost(mlCost);
+	}
 }

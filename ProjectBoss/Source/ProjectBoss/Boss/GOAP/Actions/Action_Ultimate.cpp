@@ -42,6 +42,13 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 	// Check ability action isn't on cooldown
 	if (boss->GetUltimateCooldown() > 0)
 	{
+		OnPreconditionExit(false);
+		return false;
+	}
+
+	if (boss->IsPerformingAbility(EAbilities::Melee) || boss->IsPerformingAbility(EAbilities::One) || boss->IsPerformingAbility(EAbilities::Advanced))
+	{
+		OnPreconditionExit(false);
 		return false;
 	}
 
@@ -49,6 +56,7 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 	float dist = FVector::Distance(boss->GetActorLocation(), getTarget()->GetActorLocation());
 	if (dist <= 750.0f)
 	{
+		OnPreconditionExit(false);
 		return false;
 	}
 
@@ -67,11 +75,17 @@ bool UAction_Ultimate::doAction(APawn* pawn)
 		AActor* targetActor = getTarget();
 		boss->PerformUltimate(targetActor);
 
+		// Update dmg if not set
+		float actionDmg = boss->GetUltimateDamage();
+		if (Damage != actionDmg)
+		{
+			Damage = actionDmg;
+		}
+
 		bool isPerforming = boss->IsPerformingAbility(EAbilities::Ultimate);
 		if (!isPerforming)
 		{
-			//UE_LOG(LogGOAPAction, Log, TEXT("Completed Ultimate action!"));
-			Damage = boss->GetUltimateDamage();
+			UE_LOG(LogTemp, Log, TEXT("Completed Ultimate action!"));
 			SetActionInProgress(false);
 			return true;
 		}

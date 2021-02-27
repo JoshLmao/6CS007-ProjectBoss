@@ -295,9 +295,9 @@ void ABossCharacter::SetInvisible(bool isInvis)
 	{
 		// Add attempt & success, will always be a success
 		m_combatStats->AddAbilityAttempt(EAbilities::One);
-		m_combatStats->AddAbilitySuccess(EAbilities::One);
 	}
 
+	bool succeeded = false;
 	// If original materials dynamic materials exist (have been created)
 	if (IsValid(GetMesh()) && m_originalMeshMaterials.Num() > 0)
 	{
@@ -308,6 +308,7 @@ void ABossCharacter::SetInvisible(bool isInvis)
 			{
 				// Set to invisible dynamic material
 				GetMesh()->SetMaterial(i, m_invisMatInst);
+				succeeded = true;
 			}
 			else
 			{
@@ -315,6 +316,7 @@ void ABossCharacter::SetInvisible(bool isInvis)
 				if (IsValid(m_originalMeshMaterials[i]))
 				{
 					GetMesh()->SetMaterial(i, m_originalMeshMaterials[i]);
+					succeeded = true;
 				}
 				else
 				{
@@ -322,6 +324,12 @@ void ABossCharacter::SetInvisible(bool isInvis)
 				}
 			}
 		}
+	}
+
+	// Run success code if executed
+	if (succeeded)
+	{
+		AbilitySucceessful(EAbilities::One);
 	}
 }
 
@@ -425,10 +433,10 @@ void ABossCharacter::AdvAttackOnFinish()
 	AdvAbilityCurrentCd = AdvAbilityTotalCooldown;
 }
 
-// On dagger collided with player
+// On (Advanced Ability) dagger collided with player
 void ABossCharacter::OnAdvAttackDealtDamage()
 {
-	m_combatStats->AddAbilitySuccess(EAbilities::Advanced);
+	AbilitySucceessful(EAbilities::Advanced);
 }
 
 void ABossCharacter::PerformUltimate(AActor* targetActor)
@@ -481,7 +489,7 @@ void ABossCharacter::OnFinishHeal()
 	
 	m_isPerformingAnyAbility = false;
 
-	m_combatStats->AddAbilitySuccess(EAbilities::Heal);
+	AbilitySucceessful(EAbilities::Heal);
 }
 
 bool ABossCharacter::CanHeal()
@@ -507,8 +515,10 @@ void ABossCharacter::UltimateTeleportTo()
 	AProjectBossCharacter* player = Cast<AProjectBossCharacter>(m_ultiTargetActor);
 	if (!player->IsEvading())
 	{
+		// Apply damage for successful ability
 		m_ultiTargetActor->TakeDamage(UltimateDamage, FDamageEvent(), GetController(), this);
-		m_combatStats->AddAbilitySuccess(EAbilities::Ultimate);
+
+		AbilitySucceessful(EAbilities::Ultimate);
 	}
 
 	// Play ultimate montage to attack player
@@ -815,5 +825,17 @@ void ABossCharacter::PlayCue(USoundBase* sound, float volumeMultiplier, float pi
 		// Set sound and play
 		m_bossAudioComponent->SetSound(sound);
 		m_bossAudioComponent->Play();
+	}
+}
+
+void ABossCharacter::AbilitySucceessful(int abilIndex)
+{
+	// Add successful ability land
+	m_combatStats->AddAbilitySuccess(abilIndex);
+
+	// Trigger event
+	if (OnAbilitySucceeded.IsBound())
+	{
+		OnAbilitySucceeded.Broadcast(abilIndex);
 	}
 }

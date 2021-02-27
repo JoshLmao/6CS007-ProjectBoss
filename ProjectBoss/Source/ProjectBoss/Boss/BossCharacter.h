@@ -6,8 +6,6 @@
 #include "GameFramework/Character.h"
 #include "BossCharacter.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBossDeathSignature);
-
 UENUM()
 enum EAbilities
 {
@@ -18,6 +16,9 @@ enum EAbilities
 	Ultimate = 3	UMETA(DisplayName = "Ultimate"),
 	Heal = 4		UMETA(DisplayName = "Heal"),
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBossDeathSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilitySucceedSignature, int, abilityIndex);
 
 UCLASS()
 class PROJECTBOSS_API ABossCharacter : public ACharacter
@@ -203,6 +204,10 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FBossDeathSignature OnCharacterDied;
 
+	// Event triggered when an ability succeeds
+	UPROPERTY(BlueprintAssignable)
+	FAbilitySucceedSignature OnAbilitySucceeded;
+
 	/**  Methods  **/
 public:	
 	// Called every frame
@@ -343,4 +348,6 @@ private:
 
 	// Plays a sound cue
 	void PlayCue(USoundBase* sound, float volumeMultiplier = 1.0f, float pitchMultiplier = 1.0f);
+	// When an ability succeeds, run relevant code (event, etc)
+	void AbilitySucceessful(int abilIndex);
 };

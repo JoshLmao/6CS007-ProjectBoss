@@ -79,5 +79,10 @@ Content/LandscapePackTwo/*
 Content/WaterPlane/*
 Content/ParagonKallari/*
 Content/ParagonSunWukong/*
-enc_temp_folder/*
 Plugins/UnrealEnginePython/*
+
+# UE4 encrypted temp folder
+enc_temp_folder/*
+
+# ignore compiled python
+*.pyc

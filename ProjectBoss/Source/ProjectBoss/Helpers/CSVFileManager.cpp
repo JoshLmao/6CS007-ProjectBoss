@@ -57,9 +57,7 @@ bool UCSVFileManager::AppendData(TArray<FMLData> mlData, FString saveDirectory, 
 			// INPUTS
 			eolIndex = AppendMLDataToEndOfLine(fileString, data.BaseCost, eolIndex);
 
-			eolIndex = AppendMLDataToEndOfLine(fileString, data.Attempts, eolIndex);
-
-			eolIndex = AppendMLDataToEndOfLine(fileString, data.SuccessfulAttempts, eolIndex);
+			eolIndex = AppendMLDataToEndOfLine(fileString, data.DidSucceed, eolIndex);
 
 			eolIndex = AppendMLDataToEndOfLine(fileString, data.Damage, eolIndex);
 				
@@ -76,10 +74,7 @@ bool UCSVFileManager::AppendData(TArray<FMLData> mlData, FString saveDirectory, 
 			fileString += FString::SanitizeFloat(data.BaseCost);
 			fileString += NEW_LINE;
 
-			fileString += FString::SanitizeFloat(data.Attempts);
-			fileString += NEW_LINE;
-
-			fileString += FString::SanitizeFloat(data.SuccessfulAttempts);
+			fileString += FString::SanitizeFloat(data.DidSucceed);
 			fileString += NEW_LINE;
 
 			fileString += FString::SanitizeFloat(data.Damage);

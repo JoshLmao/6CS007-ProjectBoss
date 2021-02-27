@@ -30,6 +30,8 @@ private:
 	class AProjectBossCharacter* m_player;
 	// Array of all sequences executed in this play session
 	TArray<TArray<class UGOAPAction*>> m_planSequences;
+	// Reference to Python bridge actor used for updating action costs
+	class AUpdateCosts_PyActor* m_pythonActor;
 
 	/*
 	*	METHODS

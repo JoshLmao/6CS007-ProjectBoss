@@ -30,7 +30,14 @@ private:
 
 	FTimerHandle m_updateTimerHandle;
 	
+	/*
+	*	METHODS
+	*/
+public:
+	// Generates a new cost for a GOAP Action from Machine Learning from it's inputs.
+	UFUNCTION()
+	float GenerateCost(float baseCost, bool wasSuccess, float damage, float averageSeconds);
+
 	UFUNCTION()
 	void CallPython();
-
 };

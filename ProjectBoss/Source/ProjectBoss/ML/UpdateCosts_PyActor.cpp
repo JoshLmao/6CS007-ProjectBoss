@@ -43,20 +43,8 @@ void AUpdateCosts_PyActor::CallPython()
 	UE_LOG(LogTemp, Log, TEXT("Returned Value = %f"), newCost);
 }
 
-//void AUpdateCosts_PyActor::UpdateActionCost(int action, float newCost)
-//{
-//	// make sure boss is valid before executing
-//	if (!IsValid(m_boss)) 
-//	{
-//		UE_LOG(LogTemp, Error, TEXT("No Boss reference set!"));
-//		return;
-//	}
-//	
-//	// Access GOAP AI controller of boss
-//	AGOAPAIController* goapController = Cast<AGOAPAIController>(m_boss->GetController());
-//	if (IsValid(goapController))
-//	{
-//		// Update action index with new cost
-//		goapController->UpdateActionCost(action, newCost);
-//	}
-//}
+float AUpdateCosts_PyActor::GenerateCost(float baseCost, bool wasSuccess, float damage, float averageSeconds)
+{
+
+	return 0.0f;
+}

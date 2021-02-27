@@ -4,6 +4,7 @@
 #include "Action_CriticalMelee.h"
 #include "../../BossCharacter.h"
 #include "../../../ProjectBossCharacter.h"
+#include "../../../ProjectBoss.h"
 
 UAction_CriticalMelee::UAction_CriticalMelee()
 {
@@ -32,6 +33,8 @@ bool UAction_CriticalMelee::doAction(APawn* p)
 {
 	Super::doAction(p);
 	
+	SetActionInProgress(true);
+
 	ABossCharacter* boss = Cast<ABossCharacter>(p);
 
 	// Set crit multiplier and perform melee
@@ -50,6 +53,8 @@ bool UAction_CriticalMelee::doAction(APawn* p)
 
 	// Begin cooldown
 	boss->BeginAbilityOneCooldown();
+
+	SetActionInProgress(false);
 
 	return true;
 }

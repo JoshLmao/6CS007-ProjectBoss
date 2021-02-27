@@ -41,6 +41,11 @@ bool UAction_MeleeAttack::checkProceduralPrecondition(APawn* pawn)
 		UpdateCost(BaseCost + smallIncrements);
 	}
 
+	if (boss->IsPerformingAbility())
+	{
+		return false;
+	}
+
 	return set;
 }
 

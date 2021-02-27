@@ -22,10 +22,8 @@ struct FMLData
 	*/
 	// Base cost of the action
 	float BaseCost;
-	// Amount of attempts the action has done
-	int Attempts;
-	// Amount of successful attempts the action has done
-	int SuccessfulAttempts;
+	// Did the action succeed in it's aim
+	bool DidSucceed;
 	// Amount of damage the action deals
 	float Damage;
 	// Average time in seconds it took to execute the action
