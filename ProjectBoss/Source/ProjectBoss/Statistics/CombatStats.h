@@ -6,6 +6,26 @@
 #include "UObject/NoExportTypes.h"
 #include "CombatStats.generated.h"
 
+USTRUCT()
+struct FAbilityCount
+{
+	GENERATED_BODY()
+	// Ability index
+	int Ability;
+	// Count for the ability
+	int Count;
+
+	// Default counstrctor
+	FAbilityCount() { }
+
+	// Constructor for variables
+	FAbilityCount(int abil, int count) 
+	{
+		Ability = abil;
+		Count = count;
+	}
+};
+
 /**
  * 
  */
@@ -25,10 +45,10 @@ private:
 
 	// Dictionary of ability index and attempts to perform the ability
 	UPROPERTY()
-	TMap<int, int> m_abilityAttempt;
+	TArray<FAbilityCount> m_abilityAttempt;
 	// Dictionary of ability index and success count
 	UPROPERTY()
-	TMap<int, int> m_abilitySuccess;
+	TArray<FAbilityCount> m_abilitySuccess;
 
 	/*
 	*	METHODS
@@ -57,4 +77,8 @@ public:
 
 	// Builds a string of all of the current stats
 	FString GetAllStatsString();
+
+private:
+	// Checks if ability is 
+	int ContainsAbility(TArray<FAbilityCount> arr, int abilIndex);
 };
