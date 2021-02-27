@@ -12,6 +12,7 @@ UPBGOAPAction::UPBGOAPAction()
 	m_isInProgress = false;
 	BossAbilityIndex = EAbilities::Any;		// Set to -1 on init, default value
 	m_didSucceed = false;
+	m_eventBound = false;
 }
 
 bool UPBGOAPAction::checkProceduralPrecondition(APawn* pawn)
@@ -36,9 +37,10 @@ bool UPBGOAPAction::doAction(APawn* p)
 
 	ABossCharacter* boss = Cast<ABossCharacter>(p);
 	// Listen to ability success event on Boss
-	if (!boss->OnAbilitySucceeded.IsBound())
+	if (!m_eventBound)
 	{
 		boss->OnAbilitySucceeded.AddDynamic(this, &UPBGOAPAction::OnAbilitySucceeded);
+		m_eventBound = true;
 	}
 
 	return result;
@@ -130,10 +132,11 @@ void UPBGOAPAction::SetActionInProgress(bool inProgress)
 	if (m_isInProgress && !inProgress && m_timeToExecute > 0)
 	{
 		/// Action End
-		UE_LOG(LogGOAP, Log, TEXT("Completed '%s' ability"), *getName());
-
 		// ...save action's performance
 		m_performanceHistory.Add(FActionPerformance(m_didSucceed, m_timeToExecute));
+
+		// print in log for debug
+		UE_LOG(LogGOAP, Log, TEXT("Completed '%s' ability. Stats: didSucceed='%s' timeToExecute='%f'"), *getName(), (m_didSucceed ? TEXT("true") : TEXT("false")), m_timeToExecute);
 	}
 	// ...else if not in progress & will be in progress...
 	else if (!m_isInProgress && inProgress)
@@ -143,6 +146,9 @@ void UPBGOAPAction::SetActionInProgress(bool inProgress)
 		// Set tracking vars to default values
 		m_timeToExecute = 0.0f;
 		m_didSucceed = false;
+
+		// Log begin for debug
+		UE_LOG(LogGOAP, Log, TEXT("Action '%s' beginning"), *getName());
 	}
 
 	// Set flag
@@ -196,7 +202,7 @@ bool UPBGOAPAction::GetDidSucceed()
 	}
 	else
 	{
-		return false;
+		return m_didSucceed;
 	}
 }
 

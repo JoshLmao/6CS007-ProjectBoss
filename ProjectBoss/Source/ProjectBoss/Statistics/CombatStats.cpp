@@ -86,6 +86,12 @@ float UCombatStats::GetTotalDamageDealt()
 
 FString UCombatStats::GetAllStatsString()
 {
+	if (&m_abilityAttempt == nullptr || &m_abilitySuccess == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Attempt or Success is not valid!"));
+		return "";
+	}
+
 	FString output;
 	// Add total and successful attacks
 	output += "Total/Successful Attacks: " + FString::SanitizeFloat(m_totalAttacks) + " / " + FString::SanitizeFloat(m_successfullAttacks);

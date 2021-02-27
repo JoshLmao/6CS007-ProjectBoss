@@ -51,13 +51,18 @@ protected:
 
 private:
 	// Current time elapsed to execute this action
+	UPROPERTY()
 	float m_timeToExecute;
 	// Is the action in progress
+	UPROPERTY()
 	bool m_isInProgress;
 	// Did the action succeed in it's aim?
+	UPROPERTY()
 	bool m_didSucceed;
 	// List of history of performance for this action
 	TArray<FActionPerformance> m_performanceHistory;
+	// Is this class instance bound to listen to AbilitySuccess event
+	bool m_eventBound;
 
 	/*
 	*	METHODS
