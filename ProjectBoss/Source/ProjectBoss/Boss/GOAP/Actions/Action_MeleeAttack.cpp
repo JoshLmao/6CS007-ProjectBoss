@@ -8,6 +8,8 @@
 
 UAction_MeleeAttack::UAction_MeleeAttack()
 {
+	m_eventBound = false;
+
 	name = "attack melee";
 	BaseCost = cost = 50.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
@@ -64,6 +66,12 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 	AProjectBossCharacter* player = Cast<AProjectBossCharacter>(targetActor);
 
+	if (!m_eventBound)
+	{
+		boss->OnMeleeSucceeded.AddDynamic(this, &UAction_MeleeAttack::MeleeSuccess);
+		m_eventBound = true;
+	}
+
 	Damage = boss->GetMeleeDamage();
 	SetActionInProgress(true);
 
@@ -97,4 +105,18 @@ bool UAction_MeleeAttack::doAction(APawn* pawn)
 
 	// Never complete this action, dont return true
 	return false;
+}
+
+
+void UAction_MeleeAttack::MeleeSuccess()
+{
+	// If not in progress, set last as success
+	if (!GetIsInProgress())
+	{
+		SetLastPerformanceDidSucceed(true);
+	}
+
+	// Set succeed flag to true
+	SetDidSucceed(true);
+
 }

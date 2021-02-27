@@ -19,6 +19,7 @@ enum EAbilities
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBossDeathSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilitySucceedSignature, int, abilityIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMeleeSucceedSignature);
 
 UCLASS()
 class PROJECTBOSS_API ABossCharacter : public ACharacter
@@ -207,6 +208,10 @@ public:
 	// Event triggered when an ability succeeds
 	UPROPERTY(BlueprintAssignable)
 	FAbilitySucceedSignature OnAbilitySucceeded;
+
+	// Triggered when a melee is successful
+	UPROPERTY(BlueprintAssignable)
+	FMeleeSucceedSignature OnMeleeSucceeded;
 
 	/**  Methods  **/
 public:	

@@ -22,4 +22,10 @@ public:
 
 	// Override doAction from GOAPAction to perform melee attack
 	bool doAction(APawn* pawn) override;
+
+private:
+	bool m_eventBound;
+
+	UFUNCTION()
+	void MeleeSuccess();
 };

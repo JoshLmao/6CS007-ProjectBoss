@@ -624,6 +624,12 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 		OtherActor->TakeDamage(dmgAmount, dmgEvent, GetController(), this);
 		m_dmgThisAttack = true;
 
+		// Broadcast event for successful melee
+		if (OnMeleeSucceeded.IsBound())
+		{
+			OnMeleeSucceeded.Broadcast();
+		}
+
 		// Add successful attack to stats
 		m_combatStats->AddSuccessfulAttack();
 

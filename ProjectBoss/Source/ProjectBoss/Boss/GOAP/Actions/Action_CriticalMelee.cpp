@@ -8,6 +8,8 @@
 
 UAction_CriticalMelee::UAction_CriticalMelee()
 {
+	m_eventBound = false;
+
 	name = "critical melee";
 	BaseCost = cost = 10.0f;
 	targetsType = AProjectBossCharacter::StaticClass();
@@ -36,6 +38,12 @@ bool UAction_CriticalMelee::doAction(APawn* p)
 	SetActionInProgress(true);
 
 	ABossCharacter* boss = Cast<ABossCharacter>(p);
+	
+	if (!m_eventBound)
+	{
+		boss->OnMeleeSucceeded.AddDynamic(this, &UAction_CriticalMelee::MeleeSuccess);
+		m_eventBound = true;
+	}
 
 	// Set crit multiplier and perform melee
 	float multiplier = boss->GetAbilityOneCritMultiplier();
@@ -57,4 +65,16 @@ bool UAction_CriticalMelee::doAction(APawn* p)
 	SetActionInProgress(false);
 
 	return true;
+}
+
+void UAction_CriticalMelee::MeleeSuccess()
+{
+	// If not in progress, set last as success
+	if (!GetIsInProgress())
+	{
+		SetLastPerformanceDidSucceed(true);
+	}
+
+	// Set succeed flag to true
+	SetDidSucceed(true);
 }

@@ -19,4 +19,10 @@ public:
 
 	bool checkProceduralPrecondition(APawn* p) override;
 	bool doAction(APawn* p) override;
+
+private:
+	bool m_eventBound;
+
+	UFUNCTION()
+	void MeleeSuccess();
 };
