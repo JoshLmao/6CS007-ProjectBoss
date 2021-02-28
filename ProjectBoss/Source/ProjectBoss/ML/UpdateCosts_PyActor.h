@@ -17,19 +17,26 @@ class PROJECTBOSS_API AUpdateCosts_PyActor : public APyActor
 public:
 	AUpdateCosts_PyActor();
 
-	//// Updates the GOAP controller's specific action to a new cost value
-	//UFUNCTION()
-	//void UpdateActionCost(int action, float newCost);
-
-protected:
-	virtual void BeginPlay() override;
-	virtual void Tick(float deltaTime) override;
+	/*
+	*	VARIABLES
+	*/
+public:
+	// Multiplier to multiply the ML prediction by
+	UPROPERTY(EditAnywhere)
+	float PredictionMultiplier;
 
 private:
+	// Reference to boss character
 	class ABossCharacter* m_boss;
-
-	FTimerHandle m_updateTimerHandle;
 	
+	// Python method name to initialize machine learning
+	const FString INIT_ML = "init_ml";
+	// Python method name for predicting a new cost. 
+	// Method returns a float of the cost
+	const FString PREDICT_COST = "predict_cost";
+	// Pythong method name for setting a prediction multiplier
+	const FString SET_MULTIPLIER = "set_predict_multiplier";
+
 	/*
 	*	METHODS
 	*/
@@ -38,6 +45,12 @@ public:
 	UFUNCTION()
 	float GenerateCost(float baseCost, bool wasSuccess, float damage, float averageSeconds);
 
+protected:
+	virtual void BeginPlay() override;
+	virtual void Tick(float deltaTime) override;
+
+private:
 	UFUNCTION()
-	void CallPython();
+	void CallPythonExample();
+
 };

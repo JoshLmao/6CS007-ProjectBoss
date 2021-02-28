@@ -13,7 +13,7 @@ class PBUpdateCosts:
     # CSV data loaded from file
     CSV_Data = None
     # Trained theta_best from ML data
-    ThetaBeta = None
+    ThetaBest = None
     # Prediction multiplier
     PredictMultiplier = 1
 
@@ -69,21 +69,29 @@ class PBUpdateCosts:
             mean_err = np.mean(sq_err)
 
         # set best theta to determined theta
-        self.ThetaBeta = theta
+        self.ThetaBest = theta
         ue.log("Determined ThetaBest! Now able to predict")
 
 
     # Called through UE4 C++. Generates a new
-    def predict_cost(self, baseCost, wasSuccess, damage, averageExecuteSeconds):
-        if self.ThetaBeta == None:
+    def predict_cost(self, args):
+        # Make sure we have a ThetaBest
+        if np.any(self.ThetaBest) == False:
             ue.error("No theta_best has been determined!")
             return None
+        # Check for blank args
+        if args == None:
+            ue.error("No arguments passed to predict_cost!");
+            return None
+
+        # Parse arguments into variables
+        baseCost, wasSuccess, damage, averageExecuteSeconds = args.split(" ")
 
         ue.log("Predicting action's cost...")
         ue.log("baseCost:'{0}' success:'{1}' damage:'{2}' avgExecuteSecs:'{3}'".format(baseCost, wasSuccess, damage, averageExecuteSeconds))
         
         # Construct array and normalize with given values
-        input_vals =  [ [ baseCost, wasSuccess, damage, averageExecuteSeconds ] ]
+        input_vals =  [ [ float(baseCost), float(wasSuccess), float(damage), float(averageExecuteSeconds) ] ]
         input_vals = normalize(input_vals, norm='l2')
         
         # Transpose and insert bias into correct place
@@ -106,18 +114,20 @@ class PBUpdateCosts:
 
     # Sets the prediction multiplier to the given value
     def set_predict_multiplier(self, multiplier):
+        # Convert to float
+        multi = float(multiplier)
         # Only set multiplier if valid, more than 1
-        if multiplier <= 1:
+        if multi <= 1:
             self.PredictMultiplier = 1
         else:
-            self.PredictMultiplier = multiplier
+            self.PredictMultiplier = multi
 
 
 #
 # private
 #
     # Check if a path is valid and file exists
-    def checkPath(path):
+    def checkPath(self, path):
         if path is None:
             # No CSV path given, error and return
             print("CSV Path is blank!")
@@ -129,7 +139,7 @@ class PBUpdateCosts:
         return True
     
     # Insert's a bias of 1's to the data
-    def insert_bias(data):
+    def insert_bias(self, data):
         ones = np.ones((1, data.shape[1]))
         return np.append(ones, data, axis=0)
 		

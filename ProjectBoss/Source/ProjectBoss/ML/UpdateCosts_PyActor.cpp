@@ -8,7 +8,10 @@
 
 AUpdateCosts_PyActor::AUpdateCosts_PyActor()
 {
+	PredictionMultiplier = 1;
 
+	PythonModule = "update_costs";
+	PythonClass = "PBUpdateCosts";
 }
 
 void AUpdateCosts_PyActor::BeginPlay()
@@ -22,9 +25,19 @@ void AUpdateCosts_PyActor::BeginPlay()
 		m_boss = Cast<ABossCharacter>(bossActor);
 	}
 
-	// start timer
-	//float seconds = 5.00f;
-	//GetWorldTimerManager().SetTimer(m_updateTimerHandle, this, &AUpdateCosts_PyActor::CallPython, seconds, true, seconds);
+	// Set prediction multiplier if one given
+	if (PredictionMultiplier > 0)
+	{
+		CallPythonActorMethod(SET_MULTIPLIER, FString::SanitizeFloat(PredictionMultiplier));
+	}
+
+	// Init ML in Python
+	FString csvPath = UKismetSystemLibrary::GetProjectDirectory() + "project-boss-ml-data.csv";
+	CallPythonActorMethod(INIT_ML, csvPath);
+
+	/// Test to get a cost
+	//float cost = GenerateCost(20.0f, true, 45.0f, 2.5436);
+	//UE_LOG(LogTemp, Log, TEXT("C++ got cost at '%f'"), cost);
 }
 
 void AUpdateCosts_PyActor::Tick(float deltaTime)
@@ -33,7 +46,8 @@ void AUpdateCosts_PyActor::Tick(float deltaTime)
 
 }
 
-void AUpdateCosts_PyActor::CallPython()
+// Example on how to call and return value in python
+void AUpdateCosts_PyActor::CallPythonExample()
 {
 	UE_LOG(LogTemp, Log, TEXT("Calling python!"));
 
@@ -45,6 +59,28 @@ void AUpdateCosts_PyActor::CallPython()
 
 float AUpdateCosts_PyActor::GenerateCost(float baseCost, bool wasSuccess, float damage, float averageSeconds)
 {
+	if (baseCost < 0 || damage < 0 || averageSeconds < 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid values given to GenerateCost!"));
+		return 0;
+	}
 
-	return 0.0f;
+	// Convert success bool into float
+	float successVal = wasSuccess ? 1.0f : 0.0;
+
+	// Compile input values as arguments for format
+	TArray<FStringFormatArg> args;
+	args.Add(FString::SanitizeFloat(baseCost));
+	args.Add(FString::SanitizeFloat(successVal));
+	args.Add(FString::SanitizeFloat(damage));
+	args.Add(FString::SanitizeFloat(averageSeconds));
+	// Format args into string
+	FString arguments = FString::Format(TEXT("{0} {1} {2} {3}"), FStringFormatOrderedArguments(args));
+
+	// Call python method to create prediction and store return value
+	FString predictionValue = CallPythonActorMethodString(PREDICT_COST, arguments);
+	// Parse returned value into float
+	float prediction = FCString::Atof(*predictionValue);
+
+	return prediction;
 }
