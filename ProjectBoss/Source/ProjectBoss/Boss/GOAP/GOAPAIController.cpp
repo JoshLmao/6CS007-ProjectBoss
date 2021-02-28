@@ -71,17 +71,19 @@ void AGOAPAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
-	FString fileName = "project-boss-ml-data.csv";
+	FString fileDir = UCSVFileManager::GetDirectory();
+	FString fileName = UCSVFileManager::GetFileName();
+
 	//TArray<UGOAPAction*> allBossActions = GetAuxActions();
 	//// Save ML data on all actions
 	//if (allBossActions.Num() > 0)
 	//{
-	//	SaveMLData(bossActions, "project-boss-ml-data.csv");
+	//	SaveMLData(bossActions, fileDir, fileName);
 	//}
 	
 	if (m_planSequences.Num() > 0)
 	{
-		SaveMLData(m_planSequences, fileName);
+		SaveMLData(m_planSequences, fileDir, fileName);
 	}
 	else
 	{
@@ -278,7 +280,7 @@ TArray<FAtom> AGOAPAIController::GetDefaultWorldState()
 	return state;
 }
 
-void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences, FString fileName)
+void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences, FString fileDirectory, FString fileName)
 {
 	// Check if all plans actually contain any
 	if (allPlanSequences.Num() <= 0)
@@ -324,8 +326,7 @@ void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences
 	}
 
 	// Save ML data to csv file
-	FString baseDir = UKismetSystemLibrary::GetProjectDirectory();
-	bool isSuccess = UCSVFileManager::AppendData(mlData, baseDir, fileName);
+	bool isSuccess = UCSVFileManager::AppendData(mlData, fileDirectory, fileName);
 	if (isSuccess)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Saved '%d' sequences and '%f' actions to CSV file '%s%s'"), allPlanSequences.Num(), mlData.Num(), *baseDir, *fileName);

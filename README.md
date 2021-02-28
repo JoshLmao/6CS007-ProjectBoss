@@ -15,4 +15,4 @@ To use machine learning, python is used with UnrealEnginePython.
 You can specify which Python is used by changing the ```pythonHome``` variable inside ```/ProjectBoss/Plugins/UnrealEnginePython/Source/UnrealEnginePython/UnrealEnginePython.Build.cs```
 
 #### Requirements
-Install the requirements needed with the [install-py-requirements.bat](./ProjectBoss/install-py-requirements.bat) file.
+Install the requirements needed by running the [install-py-requirements.bat](./ProjectBoss/install-py-requirements.bat) file. To view what requirements are needed, click to view [py-requirements.txt](./ProjectBoss/py-requirements.txt)

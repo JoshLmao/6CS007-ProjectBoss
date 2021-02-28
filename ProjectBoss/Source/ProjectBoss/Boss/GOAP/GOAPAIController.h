@@ -63,7 +63,7 @@ private:
 
 	// Saves data needed for ML to file name (Uses project base directory for file path)
 	// Requires a TArray of all sequences (another TArray of all UGOAPAction's)
-	void SaveMLData(TArray<TArray<class UGOAPAction*>> allPlanSequences, FString fileName);
+	void SaveMLData(TArray<TArray<class UGOAPAction*>> allPlanSequences, FString fileDirectory, FString fileName);
 	// Updates all GOAP actions with a new cost
 	void UpdateActionCostsFromML();
 };

@@ -43,6 +43,9 @@ class PROJECTBOSS_API UCSVFileManager : public UObject
 {
 	GENERATED_BODY()
 
+private:
+	static const FString FILE_NAME;
+
 	/*
 	*	METHODS
 	*/
@@ -50,6 +53,12 @@ public:
 	// Appends the ML Data to the end of each row in the CSV file.
 	// Returns if function executed successfully or not
 	static bool AppendData(TArray<FMLData> mlData, FString saveDirection, FString fileName);
+	// Gets the full file path to the CSV file used to store ML data
+	static FString GetFullFilePath();
+	// Gets only the file name of the CSV file
+	static FString GetFileName();
+	// Gets the directory of where the CSV file will be
+	static FString GetDirectory();
 
 private:
 	// Appends one ML Data value to the end of a line and edits the data string, from the lastNewLineCharIndex.

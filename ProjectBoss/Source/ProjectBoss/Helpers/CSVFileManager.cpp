@@ -4,6 +4,23 @@
 #include "CSVFileManager.h"
 #include "Misc/FileHelper.h"
 #include "HAL/PlatformFileManager.h"
+#include "Kismet/GameplayStatics.h"
+
+FString UCSVFileManager::GetFullFilePath()
+{
+	// Return both directory and file name for the full path
+	return GetDirectory() + GetFileName();
+}
+
+FString UCSVFileManager::GetFileName()
+{
+	return "project-boss-ml-data.csv";
+}
+
+FString UCSVFileManager::GetDirectory()
+{
+	return UKismetSystemLibrary::GetProjectDirectory();
+}
 
 /*
 * CSV Data Order:

@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "../Boss/BossCharacter.h"
 #include "../Boss/GOAP/GOAPAIController.h"
+#include "../Helpers/CSVFileManager.h"
 
 AUpdateCosts_PyActor::AUpdateCosts_PyActor()
 {
@@ -32,7 +33,7 @@ void AUpdateCosts_PyActor::BeginPlay()
 	}
 
 	// Init ML in Python
-	FString csvPath = UKismetSystemLibrary::GetProjectDirectory() + "project-boss-ml-data.csv";
+	FString csvPath = UCSVFileManager::GetFullFilePath();
 	CallPythonActorMethod(INIT_ML, csvPath);
 
 	/// Test to get a cost
