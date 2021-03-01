@@ -58,7 +58,7 @@ void AUpdateCosts_PyActor::CallPythonExample()
 	UE_LOG(LogTemp, Log, TEXT("Returned Value = %f"), newCost);
 }
 
-float AUpdateCosts_PyActor::GenerateCost(float baseCost, bool wasSuccess, float damage, float averageSeconds)
+float AUpdateCosts_PyActor::GenerateCost(FString actionName, float baseCost, bool wasSuccess, float damage, float averageSeconds)
 {
 	if (baseCost < 0 || damage < 0 || averageSeconds < 0)
 	{
@@ -71,12 +71,13 @@ float AUpdateCosts_PyActor::GenerateCost(float baseCost, bool wasSuccess, float 
 
 	// Compile input values as arguments for format
 	TArray<FStringFormatArg> args;
+	args.Add(actionName);
 	args.Add(FString::SanitizeFloat(baseCost));
 	args.Add(FString::SanitizeFloat(successVal));
 	args.Add(FString::SanitizeFloat(damage));
 	args.Add(FString::SanitizeFloat(averageSeconds));
 	// Format args into string
-	FString arguments = FString::Format(TEXT("{0} {1} {2} {3}"), FStringFormatOrderedArguments(args));
+	FString arguments = FString::Format(TEXT("{0},{1},{2},{3},{4}"), FStringFormatOrderedArguments(args));
 
 	// Call python method to create prediction and store return value
 	FString predictionValue = CallPythonActorMethodString(PREDICT_COST, arguments);

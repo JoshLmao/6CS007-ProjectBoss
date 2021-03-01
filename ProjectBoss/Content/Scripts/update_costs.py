@@ -77,18 +77,25 @@ class PBUpdateCosts:
     def predict_cost(self, args):
         # Make sure we have a ThetaBest
         if np.any(self.ThetaBest) == False:
-            ue.error("No theta_best has been determined!")
+            ue.log_error("No theta_best has been determined!")
             return None
         # Check for blank args
         if args == None:
-            ue.error("No arguments passed to predict_cost!");
+            ue.log_error("No arguments passed to predict_cost!");
+            return None
+
+        # Validate args length is as expected
+        splitChar = ','
+        split = args.split(splitChar)
+        if len(split) != 5:
+            ue.log_error("predict_cost recieved incorrect argument count! Should be 5, is {0}".format(len(split)))
             return None
 
         # Parse arguments into variables
-        baseCost, wasSuccess, damage, averageExecuteSeconds = args.split(" ")
+        actionName, baseCost, wasSuccess, damage, averageExecuteSeconds = args.split(splitChar)
 
         ue.log("Predicting action's cost...")
-        ue.log("baseCost:'{0}' success:'{1}' damage:'{2}' avgExecuteSecs:'{3}'".format(baseCost, wasSuccess, damage, averageExecuteSeconds))
+        ue.log("actionName:'{0}' baseCost:'{1}' success:'{2}' damage:'{3}' avgExecuteSecs:'{4}'".format(actionName, baseCost, wasSuccess, damage, averageExecuteSeconds))
         
         # Construct array and normalize with given values
         input_vals =  [ [ float(baseCost), float(wasSuccess), float(damage), float(averageExecuteSeconds) ] ]
@@ -130,11 +137,11 @@ class PBUpdateCosts:
     def checkPath(self, path):
         if path is None:
             # No CSV path given, error and return
-            print("CSV Path is blank!")
+            ue.log_error("CSV Path is blank!")
             return False
         if os.path.exists(path) == False:
             # No file at path location, error and return
-            print("CSV file doesn't exist!")
+            ue.log_error("CSV file '{file}' doesn't exist!".format(file=path))
             return False
         return True
     

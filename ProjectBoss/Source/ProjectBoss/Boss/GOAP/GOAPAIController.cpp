@@ -26,6 +26,7 @@
 AGOAPAIController::AGOAPAIController()
 {
 	m_printedLastFailPlan = false;
+	m_saveMLData = false;
 
 	// Create current world state
 	setCurrentWorld(GetDefaultWorldState());
@@ -53,9 +54,12 @@ void AGOAPAIController::BeginPlay()
 	m_player = Cast<AProjectBossCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 
 	// Get reference to Python bridge actor
-	AActor* actor = UGameplayStatics::GetActorOfClass(GetWorld(), AUpdateCosts_PyActor::StaticClass());
-	m_pythonActor = Cast<AUpdateCosts_PyActor>(actor);
+	AUpdateCosts_PyActor* actor = GetWorld()->SpawnActor<AUpdateCosts_PyActor>(AUpdateCosts_PyActor::StaticClass(), m_bossPawn->GetActorLocation(), m_bossPawn->GetActorRotation()); //UGameplayStatics::GetActorOfClass(GetWorld(), AUpdateCosts_PyActor::StaticClass());
+	m_pythonActor = actor;
 
+#ifdef SAVE_MACHINE_LEARNING_DATA
+	m_saveMLData = true;
+#endif
 
 	// Create desired world state on start
 	TArray<FAtom> goals;
@@ -81,7 +85,7 @@ void AGOAPAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	//	SaveMLData(bossActions, fileDir, fileName);
 	//}
 	
-	if (m_planSequences.Num() > 0)
+	if (m_saveMLData && m_planSequences.Num() > 0)
 	{
 		SaveMLData(m_planSequences, fileDir, fileName);
 	}
@@ -120,7 +124,7 @@ void AGOAPAIController::Tick(float deltaTime)
 				if (lastPlan[i]->getName() != currentPlan[i]->getName())
 				{
 					// Save last plan sequence
-					UE_LOG(LogTemp, Log, TEXT("lastPlan and currentPlan are different! Last Action '%s' isnt equal to current '%s' action "), *lastPlan[i]->getName(), *currentPlan[i]->getName());
+					//UE_LOG(LogTemp, Log, TEXT("lastPlan and currentPlan are different! Last Action '%s' isnt equal to current '%s' action "), *lastPlan[i]->getName(), *currentPlan[i]->getName());
 					m_planSequences.Add(lastPlan);
 				}
 			}
@@ -128,9 +132,9 @@ void AGOAPAIController::Tick(float deltaTime)
 		// else if lastPlan and currentPlan lengths are different, also changed
 		else if (lastPlan.Num() != currentPlan.Num())
 		{
-			UE_LOG(LogTemp, Log, TEXT("lastPlan and currentPlan are different! Different lengths"))
-				// Save last plan sequence
-				m_planSequences.Add(lastPlan);
+			// Save last plan sequence
+			//UE_LOG(LogTemp, Log, TEXT("lastPlan and currentPlan are different! Different lengths"))
+			m_planSequences.Add(lastPlan);
 		}
 	}
 
@@ -329,7 +333,7 @@ void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences
 	bool isSuccess = UCSVFileManager::AppendData(mlData, fileDirectory, fileName);
 	if (isSuccess)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Saved '%d' sequences and '%f' actions to CSV file '%s%s'"), allPlanSequences.Num(), mlData.Num(), *baseDir, *fileName);
+		UE_LOG(LogTemp, Log, TEXT("Saved '%d' sequences and '%f' actions to CSV file '%s%s'"), allPlanSequences.Num(), mlData.Num(), *fileDirectory, *fileName);
 	}
 	else
 	{
@@ -346,8 +350,10 @@ void AGOAPAIController::UpdateActionCostsFromML()
 		// Cast to PB GOAP action
 		UPBGOAPAction* pbAction = Cast<UPBGOAPAction>(action);
 		// Call Python Actor and python code to genereate new cost from ML'd data
-		float mlCost = m_pythonActor->GenerateCost(pbAction->GetBaseCost(), pbAction->GetDidSucceed(), pbAction->GetDamage(), pbAction->GetAverageExecuteTime());
+		float mlCost = m_pythonActor->GenerateCost(pbAction->getName(), pbAction->GetBaseCost(), pbAction->GetDidSucceed(), pbAction->GetDamage(), pbAction->GetAverageExecuteTime());
 		// Set new cost of the action
 		pbAction->UpdateCost(mlCost);
+
+		UE_LOG(LogML, Log, TEXT("Updated '%s' with new cost of '%f' (ML Change: %f)"), *pbAction->getName(), pbAction->getCost(), mlCost);
 	}
 }

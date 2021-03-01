@@ -43,7 +43,7 @@ private:
 public:
 	// Generates a new cost for a GOAP Action from Machine Learning from it's inputs.
 	UFUNCTION()
-	float GenerateCost(float baseCost, bool wasSuccess, float damage, float averageSeconds);
+	float GenerateCost(FString actionName, float baseCost, bool wasSuccess, float damage, float averageSeconds);
 
 protected:
 	virtual void BeginPlay() override;

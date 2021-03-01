@@ -32,6 +32,9 @@ private:
 	TArray<TArray<class UGOAPAction*>> m_planSequences;
 	// Reference to Python bridge actor used for updating action costs
 	class AUpdateCosts_PyActor* m_pythonActor;
+	
+	// Should this session's action sequences be saved to a csv file?
+	bool m_saveMLData;
 
 	/*
 	*	METHODS
