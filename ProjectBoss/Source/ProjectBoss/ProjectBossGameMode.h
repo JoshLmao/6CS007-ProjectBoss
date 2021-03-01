@@ -15,15 +15,20 @@ public:
 	AProjectBossGameMode();
 
 public:
+	// HUD class to use for this game mode
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AHUD> BP_HUD;
 
+	// Current player actor
 	AActor* Player;
+	// Reference to boss actor
 	AActor* Boss;
+
+	// Current session stats actor
+	class ASessionStats* m_sessionStats;
 
 protected:
 	virtual void BeginPlay() override;
-
 
 };
 

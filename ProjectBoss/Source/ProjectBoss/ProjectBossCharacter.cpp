@@ -202,6 +202,8 @@ void AProjectBossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	// Log out end statistics for the character
 	FString statsStr = m_combatStats->GetAllStatsString();
 	UE_LOG(LogBoss, Log, TEXT("---\nPlayer End Play Statistics:\n%s\n---"), *statsStr);
+	// Print character's final health
+	UE_LOG(LogBoss, Log, TEXT("Player Health (Current/Total): %f/%f"), GetCurrentHealth(), GetTotalHealth());
 }
 
 void AProjectBossCharacter::TurnAtRate(float Rate)
@@ -833,6 +835,9 @@ void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedCo
 			FDamageEvent dmgEvent;
 			OtherActor->TakeDamage(stanceMeleeDmg, dmgEvent, GetController(), this);
 
+			// Add amount to damage dealt
+			m_combatStats->AddDamageDealt(stanceMeleeDmg);
+
 			// Add hit marker to UI
 			HUDAddHitMarker();
 
@@ -896,6 +901,9 @@ float AProjectBossCharacter::TakeDamage(float damageAmount, struct FDamageEvent 
 	
 	// Reduce current health with damage amount
 	CurrentHealth -= damage;
+
+	// Adds dmg amount to stats
+	m_combatStats->AddDamageRecieved(damage);
 
 	UE_LOG(LogPlayer, Log, TEXT("Player takes '%f' damage from '%s' (Total Health: '%f')"), damageAmount, *damageCauser->GetName(), CurrentHealth);
 

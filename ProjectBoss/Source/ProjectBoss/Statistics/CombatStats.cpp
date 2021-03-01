@@ -79,9 +79,34 @@ float UCombatStats::GetSuccessfulAttacks()
 	return m_successfullAttacks;
 }
 
+void UCombatStats::AddDamageDealt(float amount)
+{
+	m_totalDealtDamage += amount;
+}
+
 float UCombatStats::GetTotalDamageDealt()
 {
 	return m_totalDealtDamage;
+}
+
+void UCombatStats::AddDamageRecieved(float amount)
+{
+	m_totalDamageRecieved += amount;
+}
+
+float UCombatStats::GetTotalDamageRecieved()
+{
+	return m_totalDamageRecieved;
+}
+
+void UCombatStats::AddHealthHealed(float amount)
+{
+	m_totalHealthHealed += amount;
+}
+
+float UCombatStats::GetTotalHealthHealed()
+{
+	return m_totalHealthHealed;
 }
 
 FString UCombatStats::GetAllStatsString()
@@ -92,10 +117,20 @@ FString UCombatStats::GetAllStatsString()
 		return "";
 	}
 
+	char NEW_LINE = '\n';
+
 	FString output;
 	// Add total and successful attacks
-	output += "Total/Successful Attacks: " + FString::SanitizeFloat(m_totalAttacks) + " / " + FString::SanitizeFloat(m_successfullAttacks);
-	output += "\n";
+	output += "Total/Successful Attacks: " + FString::SanitizeFloat(GetTotalAttacks()) + " / " + FString::SanitizeFloat(GetSuccessfulAttacks());
+	output += NEW_LINE;
+
+	// Append dealt/recieved damage
+	output += "Total Damage Dealt/Recieved: " + FString::SanitizeFloat(GetTotalDamageDealt()) + " / " + FString::SanitizeFloat(GetTotalDamageRecieved());
+	output += NEW_LINE;
+
+	// Add total health healed
+	output += "Total Health healed: " + FString::SanitizeFloat(GetTotalHealthHealed());
+	output += NEW_LINE;
 
 	if (m_abilityAttempt.Num() > 0)
 	{

@@ -122,6 +122,7 @@ void ABossCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
+	// Set AI controller once possessed
 	m_aiController = Cast<AAIController>(NewController);
 }
 
@@ -130,6 +131,8 @@ void ABossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	// Log out end statistics for the character
 	FString statsStr = m_combatStats->GetAllStatsString();
 	UE_LOG(LogBoss, Log, TEXT("---\nBoss End Play Statistics:\n%s\n---"), *statsStr);
+	// Print character's final health
+	UE_LOG(LogBoss, Log, TEXT("Boss' Health (Current/Total): %f/%f"), GetCurrentHealth(), GetTotalHealth());
 }
 
 // Called every frame
@@ -160,33 +163,8 @@ void ABossCharacter::Tick(float deltaTime)
 			LookAtActor(m_ultiTargetActor->GetActorLocation());
 		}
 
-		// Heal: Heal ability if time still remaining
-		if (m_healTimeRemaining > 0)
-		{
-			// Decrement time remaining
-			m_healTimeRemaining -= deltaTime;
-
-			// Determine amount to heal this tick
-			float totalHealAmount = GetTotalHealth() * HealPercent;
-			float oneSec = totalHealAmount / HealDuration;
-			float healAmount = oneSec * deltaTime;
-			CurrentHealth += healAmount;
-
-			// If current health is full, stop heal
-			if (CurrentHealth >= TotalHealth)
-			{
-				CurrentHealth = TotalHealth;
-				m_healTimeRemaining = 0;
-			}
-			
-			// Stop Heal montage once heal over
-			if (m_healTimeRemaining <= 0)
-			{
-				this->StopAnimMontage(HealMontage);
-
-				OnFinishHeal();
-			}
-		}
+		// Perform heal relevant code
+		DoHeal(deltaTime);
 	}
 }
 
@@ -201,15 +179,21 @@ float ABossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& 
 {
 	float damage = Super::TakeDamage(damageAmount, damageEvent, eventInstigator, damageCauser);
 
+	// Minus the damage amount from health
 	CurrentHealth -= damage;
+
+	// Adds amount to recieved
+	m_combatStats->AddDamageRecieved(damage);
 
 	UE_LOG(LogBoss, Log, TEXT("Boss takes '%f' damage from '%s' (Total Health: '%f')"), damage, *damageCauser->GetName(), CurrentHealth);
 
+	// If character is below 0, has died
 	if (CurrentHealth <= 0)
 	{
 		UE_LOG(LogBoss, Log, TEXT("Boss has died!"));
 		CurrentHealth = 0;
 
+		// perform on death action
 		OnDeath();
 	}
 
@@ -480,6 +464,38 @@ void ABossCharacter::PerformHeal()
 	m_combatStats->AddAbilityAttempt(EAbilities::Heal);
 }
 
+void ABossCharacter::DoHeal(float deltaTime)
+{
+	// Heal: Heal ability if time still remaining
+	if (m_healTimeRemaining > 0)
+	{
+		// Decrement time remaining
+		m_healTimeRemaining -= deltaTime;
+
+		// Determine amount to heal this tick
+		float totalHealAmount = GetTotalHealth() * HealPercent;
+		float oneSec = totalHealAmount / HealDuration;
+		float healAmount = oneSec * deltaTime;
+		CurrentHealth += healAmount;
+
+		// If current health is full, stop heal
+		if (CurrentHealth >= TotalHealth)
+		{
+			CurrentHealth = TotalHealth;
+			m_healTimeRemaining = 0;
+		}
+
+		// Stop Heal montage once heal over
+		if (m_healTimeRemaining <= 0)
+		{
+			this->StopAnimMontage(HealMontage);
+
+			// Perform cleanup for heal
+			OnFinishHeal();
+		}
+	}
+}
+
 void ABossCharacter::OnFinishHeal()
 {
 	UE_LOG(LogBoss, Log, TEXT("Finished Heal ability to '%f' health. Cooldown for '%f' seconds"), CurrentHealth, HealTotalCooldown);
@@ -517,6 +533,9 @@ void ABossCharacter::UltimateTeleportTo()
 	{
 		// Apply damage for successful ability
 		m_ultiTargetActor->TakeDamage(UltimateDamage, FDamageEvent(), GetController(), this);
+
+		// Add dmg amount to dealt damage
+		m_combatStats->AddDamageDealt(UltimateDamage);
 
 		AbilitySucceessful(EAbilities::Ultimate);
 	}
@@ -622,7 +641,11 @@ void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 		// Apply damage to other actor
 		FDamageEvent dmgEvent;
 		OtherActor->TakeDamage(dmgAmount, dmgEvent, GetController(), this);
+		// Set damage flag to only deal once on this swing
 		m_dmgThisAttack = true;
+
+		// Adds dmg amount to stats
+		m_combatStats->AddDamageDealt(dmgAmount);
 
 		// Broadcast event for successful melee
 		if (OnMeleeSucceeded.IsBound())
@@ -725,10 +748,14 @@ bool ABossCharacter::GetIsInvisible()
 
 void ABossCharacter::ApplyStun(float duration)
 {
-	// Play the stun montage
+	// Play the stun montage if set
 	if (StunnedMontage)
 	{
 		this->PlayAnimMontage(StunnedMontage);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("No stun montage set! Stunned but no visual animation"));
 	}
 
 	// Set IsStunned
@@ -749,6 +776,12 @@ void ABossCharacter::ApplyStun(float duration)
 	{
 		// Set cooldown
 		UltimateOnFinish();
+	}
+
+	// Cancel heal if in progress
+	if (IsPerformingAbility(EAbilities::Heal))
+	{
+		OnFinishHeal();
 	}
 }
 
@@ -845,3 +878,4 @@ void ABossCharacter::AbilitySucceessful(int abilIndex)
 		OnAbilitySucceeded.Broadcast(abilIndex);
 	}
 }
+

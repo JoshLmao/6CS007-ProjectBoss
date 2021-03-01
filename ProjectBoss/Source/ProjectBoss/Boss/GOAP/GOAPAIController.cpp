@@ -85,13 +85,18 @@ void AGOAPAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	//	SaveMLData(bossActions, fileDir, fileName);
 	//}
 	
-	if (m_saveMLData && m_planSequences.Num() > 0)
+	// Only save if macro flag to save data is set
+	if (m_saveMLData)
 	{
-		SaveMLData(m_planSequences, fileDir, fileName);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("No sequences saved, not saving any ML data"));
+		// Is there any sequences in to save?
+		if (m_planSequences.Num() > 0)
+		{
+			SaveMLData(m_planSequences, fileDir, fileName);
+		}
+		else
+		{
+			UE_LOG(LogML, Log, TEXT("No sequences saved, not saving any ML data"));
+		}
 	}
 }
 

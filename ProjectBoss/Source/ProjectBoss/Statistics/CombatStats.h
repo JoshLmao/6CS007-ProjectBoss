@@ -38,10 +38,16 @@ public:
 	UCombatStats();
 
 private:
+	// Amount of attacks that landed
 	int m_successfullAttacks;
+	// Amount of melee attacks attemped. Includes attacks that may not have landed
 	int m_totalAttacks;
-	
+	// Amount of damage dealt to another actor
 	float m_totalDealtDamage;
+	// Amount of damage recieved
+	float m_totalDamageRecieved;
+	// Amount of health recovered through healing
+	float m_totalHealthHealed;
 
 	// Dictionary of ability index and attempts to perform the ability
 	UPROPERTY()
@@ -56,24 +62,38 @@ private:
 public:
 	// Adds an attack to the count
 	void AddAttack();
+	// Gets the total number of attacks performed
+	float GetTotalAttacks();
+
 	// Adds a successful attack 
 	void AddSuccessfulAttack();
-	
+	// Gets the total number of successful attacks performed
+	float GetSuccessfulAttacks();
+
 	// Adds to the attemp
 	void AddAbilityAttempt(int abilityIndex);
-	// Adds to the successful ability count
-	void AddAbilitySuccess(int abilityIndex);
 	// Gets the amount of attempts of this ability
 	int GetAbilityAttempts(int abilityIndex);
+
+	// Adds to the successful ability count
+	void AddAbilitySuccess(int abilityIndex);
 	// Gets the amount of successful attempts of this ability
 	int GetAbilitySuccessfulAttempts(int abilityIndex);
 
-	// Gets the total number of attacks performed
-	float GetTotalAttacks();
-	// Gets the total number of successful attacks performed
-	float GetSuccessfulAttacks();
+	// Adds an amount to the damage dealt to enemies
+	void AddDamageDealt(float amount);
 	// Gets the total damage dealt
 	float GetTotalDamageDealt();
+
+	// Adds an amount to the damage amount recieved
+	void AddDamageRecieved(float amount);
+	// Gets the total damage recieved
+	float GetTotalDamageRecieved();
+	
+	// Adds an amount to the current health healed
+	void AddHealthHealed(float amount);
+	// Gets the amount of health healed
+	float GetTotalHealthHealed();
 
 	// Builds a string of all of the current stats
 	FString GetAllStatsString();

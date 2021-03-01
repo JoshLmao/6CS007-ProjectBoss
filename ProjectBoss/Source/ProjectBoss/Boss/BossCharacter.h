@@ -355,4 +355,6 @@ private:
 	void PlayCue(USoundBase* sound, float volumeMultiplier = 1.0f, float pitchMultiplier = 1.0f);
 	// When an ability succeeds, run relevant code (event, etc)
 	void AbilitySucceessful(int abilIndex);
+
+	void DoHeal(float deltaTime);
 };
