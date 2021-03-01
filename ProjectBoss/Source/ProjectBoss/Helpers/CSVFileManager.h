@@ -61,7 +61,10 @@ public:
 	static FString GetDirectory();
 
 private:
-	// Appends one ML Data value to the end of a line and edits the data string, from the lastNewLineCharIndex.
-	// Returns the current line's '\n' index + 1.
-	static int AppendMLDataToEndOfLine(FString& dataString, float value, int lastNewLineCharIndex = -1);
+	// Appends a "comma value" to the end of a FString, on the line number given.
+	// "line=0" is reserved for header
+	static void AppendMLDataToEndOfLine(TArray<FString>& dataStrings, float value, int line);
+
+	// Gets array of headers for the ML data
+	static FString GetHeader();
 };

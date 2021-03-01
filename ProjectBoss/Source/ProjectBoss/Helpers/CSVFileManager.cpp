@@ -47,14 +47,14 @@ bool UCSVFileManager::AppendData(TArray<FMLData> mlData, FString saveDirectory, 
 		return false;
 	}
 
-	FString fileString = ""; //"420,69,420\n1,2,3\n";
+	TArray<FString> fileStrings;
 	char NEW_LINE = '\n';
 
 	bool fileExists = FPlatformFileManager::Get().GetPlatformFile().FileExists(*fullPath);
 	if (fileExists)
 	{
 		// File exists, append like normal
-		bool result = FFileHelper::LoadFileToString(fileString, *fullPath);
+		bool result = FFileHelper::LoadFileToStringArray(fileStrings, *fullPath);
 		if (!result)
 		{
 			UE_LOG(LogTemp, Error, TEXT("Unable to load existing CSV data!"));
@@ -62,7 +62,7 @@ bool UCSVFileManager::AppendData(TArray<FMLData> mlData, FString saveDirectory, 
 	}
 
 	// Check that data exists inside the existing file
-	bool dataExists = !fileString.IsEmpty();
+	bool dataExists = fileStrings.Num() > 0;
 
 	// Iterate through each data
 	for (FMLData data : mlData)
@@ -70,77 +70,78 @@ bool UCSVFileManager::AppendData(TArray<FMLData> mlData, FString saveDirectory, 
 		// If not on first data entry, insert at the end of each line
 		if (dataExists)
 		{
-			int eolIndex = -1;
-			// INPUTS
-			eolIndex = AppendMLDataToEndOfLine(fileString, data.BaseCost, eolIndex);
-
-			eolIndex = AppendMLDataToEndOfLine(fileString, data.DidSucceed, eolIndex);
-
-			eolIndex = AppendMLDataToEndOfLine(fileString, data.Damage, eolIndex);
-				
-			eolIndex = AppendMLDataToEndOfLine(fileString, data.AverageExecuteSeconds, eolIndex);
-					
-			// OUTPUTS
-			eolIndex = AppendMLDataToEndOfLine(fileString, data.FinalCost, eolIndex);
+			// Inputs
+			AppendMLDataToEndOfLine(fileStrings, data.BaseCost, 1);
+			AppendMLDataToEndOfLine(fileStrings, data.DidSucceed, 2);
+			AppendMLDataToEndOfLine(fileStrings, data.Damage, 3);
+			AppendMLDataToEndOfLine(fileStrings, data.AverageExecuteSeconds, 4);
+			
+			// Outputs
+			AppendMLDataToEndOfLine(fileStrings, data.FinalCost, 5);
 		}
 		else
 		{
 			// First iteration, add values normally
 
+			// Add headers to file
+			FString headers = GetHeader();
+			fileStrings.Add(headers);
+
 			// Inputs
-			fileString += FString::SanitizeFloat(data.BaseCost);
-			fileString += NEW_LINE;
-
-			fileString += FString::SanitizeFloat(data.DidSucceed);
-			fileString += NEW_LINE;
-
-			fileString += FString::SanitizeFloat(data.Damage);
-			fileString += NEW_LINE;
-
-			fileString += FString::SanitizeFloat(data.AverageExecuteSeconds);
-			fileString += NEW_LINE;
+			fileStrings.Add(FString::SanitizeFloat(data.BaseCost));
+			fileStrings.Add(FString::SanitizeFloat(data.DidSucceed));
+			fileStrings.Add(FString::SanitizeFloat(data.Damage));
+			fileStrings.Add(FString::SanitizeFloat(data.AverageExecuteSeconds));
 
 			// Output
-			fileString += FString::SanitizeFloat(data.FinalCost);
-			fileString += NEW_LINE;
+			fileStrings.Add(FString::SanitizeFloat(data.FinalCost));
 
 			// Set flag to true to append
 			dataExists = true;
 		}
 	}
 
-	bool result = FFileHelper::SaveStringToFile(fileString, *fullPath);
+	bool result = FFileHelper::SaveStringArrayToFile(fileStrings, *fullPath);
 	return true;
 }
 
-int UCSVFileManager::AppendMLDataToEndOfLine(FString& dataString, float value, int lastNewLineCharIndex)
+void UCSVFileManager::AppendMLDataToEndOfLine(TArray<FString>& dataStrings, float value, int line)
 {
-	// If last new line char index has been passed, start from that index
-	int givenIndex = -1;
-	if (lastNewLineCharIndex >= 0)
+	// Check line isn't header line or less than 0 (invalid)
+	if (line == 0 || line < 0)
 	{
-		givenIndex = lastNewLineCharIndex;
+		return;
 	}
-	
-	// Find the next \n char from the given index
-	int eolIndex = dataString.Find("\n", ESearchCase::Type::IgnoreCase, ESearchDir::Type::FromStart, givenIndex);
-	
-	// Move index to one behind \n char
-	eolIndex--;
-	
-	// Store current value at index
-	FString charAtIndex = "";
-	charAtIndex += dataString[eolIndex];
-	// Combine old index value with comma and new value
-	FString insert = charAtIndex + "," + FString::SanitizeFloat(value);
-	// Insert into string
-	dataString.InsertAt(eolIndex, insert);
 
-	// Again, find the \n char that is after the newly inserted comma and value
-	eolIndex = dataString.Find("\n", ESearchCase::Type::IgnoreCase, ESearchDir::Type::FromStart, eolIndex);
-	
-	// Move index past that \n char and return
-	eolIndex++;
+	// Set if line is within array bounds
+	if (line < dataStrings.Num())
+	{
+		dataStrings[line] += "," + FString::SanitizeFloat(value);
+	}
+}
 
-	return eolIndex;
+FString UCSVFileManager::GetHeader()
+{
+	// Create list of all headers
+	TArray<FString> headersArr;
+	// Inputs
+	headersArr.Add("baseCost");
+	headersArr.Add("didSucceed");
+	headersArr.Add("damage");
+	headersArr.Add("averageExecuteSeconds");
+	// Output
+	headersArr.Add("finalCost");
+
+	// Add all together, separated with commas
+	FString output = "";
+	for (int i = 0; i < headersArr.Num(); i++)
+	{
+		output += headersArr[i];
+		if (i < headersArr.Num() - 1)
+		{
+			output += ",";
+		}
+	}
+
+	return output;
 }

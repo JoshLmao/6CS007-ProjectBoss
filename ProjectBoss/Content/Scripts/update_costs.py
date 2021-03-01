@@ -29,7 +29,7 @@ class PBUpdateCosts:
             return None # Return if problem with CSV path
 
         # Read CSV data and normalize to be between 0 and 1
-        CSV_Data = pd.read_csv(csv_path, header=None)       # Ignore header, data starts on 0th row
+        CSV_Data = pd.read_csv(csv_path, header=0)
         CSV_Data = CSV_Data.to_numpy()
         CSV_Data = normalize(CSV_Data, norm='l2')
 
