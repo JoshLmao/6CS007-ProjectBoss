@@ -54,10 +54,13 @@ public:
 	// Returns if function executed successfully or not
 	static bool AppendData(TArray<FMLData> mlData, FString saveDirection, FString fileName);
 	// Gets the full file path to the CSV file used to store ML data
+	UFUNCTION(BlueprintCallable)
 	static FString GetFullFilePath();
 	// Gets only the file name of the CSV file
+	UFUNCTION(BlueprintCallable)
 	static FString GetFileName();
 	// Gets the directory of where the CSV file will be
+	UFUNCTION(BlueprintCallable)
 	static FString GetDirectory();
 
 private:

@@ -12,6 +12,7 @@
 #include "../../Statistics/CombatStats.h"
 #include "../../Helpers/CSVFileManager.h"
 #include "../../ML/UpdateCosts_PyActor.h"
+#include "../../SaveData/ProjectBossSaveGame.h"
 #pragma region include AllActions
 #include "Actions/Action_Follow.h"
 #include "Actions/Action_MeleeAttack.h"
@@ -49,17 +50,21 @@ void AGOAPAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Get references to boss and player
-	m_bossPawn = Cast<ABossCharacter>(GetPawn());
+	// Get references to player
 	m_player = Cast<AProjectBossCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 
-	// Get reference to Python bridge actor
-	AUpdateCosts_PyActor* actor = GetWorld()->SpawnActor<AUpdateCosts_PyActor>(AUpdateCosts_PyActor::StaticClass(), m_bossPawn->GetActorLocation(), m_bossPawn->GetActorRotation()); //UGameplayStatics::GetActorOfClass(GetWorld(), AUpdateCosts_PyActor::StaticClass());
-	m_pythonActor = actor;
+	// Crteate Python bridge actor for interfacing with Python
+	m_pythonActor = GetWorld()->SpawnActor<AUpdateCosts_PyActor>(AUpdateCosts_PyActor::StaticClass(), FVector(), FRotator());
 
-#ifdef SAVE_MACHINE_LEARNING_DATA
-	m_saveMLData = true;
-#endif
+	// Load save game to see if user enabled participation
+	USaveGame* save = UGameplayStatics::LoadGameFromSlot("save", 0);
+	if (save)
+	{
+		UProjectBossSaveGame* saveGame = Cast<UProjectBossSaveGame>(save);
+		m_saveMLData = saveGame->MLParticipation;
+
+		UE_LOG(LogTemp, Log, TEXT("User ML participation is '%s'"), m_saveMLData ? TEXT("enabled") : TEXT("disabled"));
+	}
 
 	// Create desired world state on start
 	TArray<FAtom> goals;
@@ -79,7 +84,7 @@ void AGOAPAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	FString fileName = UCSVFileManager::GetFileName();
 
 	//TArray<UGOAPAction*> allBossActions = GetAuxActions();
-	//// Save ML data on all actions
+	//// Save ML data on all actions. Use AuxActions which are single instance of each GOAPAction
 	//if (allBossActions.Num() > 0)
 	//{
 	//	SaveMLData(bossActions, fileDir, fileName);
@@ -193,6 +198,14 @@ void AGOAPAIController::Tick(float deltaTime)
 			SetNewWorldTargets(nextWorldState);
 		}
 	}
+}
+
+void AGOAPAIController::SetPawn(APawn* pawn)
+{
+	Super::SetPawn(pawn);
+
+	// Set boss reference on pawn
+	m_bossPawn = Cast<ABossCharacter>(pawn);
 }
 
 FAtom AGOAPAIController::CreateAtom(FString name, bool val)

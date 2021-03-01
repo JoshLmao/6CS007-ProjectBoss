@@ -76,10 +76,10 @@ bool UAction_InvisibleRelocate::doAction(APawn* p)
 		// Move to relocate location first
 		if (!m_movedToRndLoc)
 		{
-			// Find random location around player to relocate and attack from if not been set before
+			// Find random location around self to relocate and attack from if not been set before
 			if (m_rndLoc == FVector::ZeroVector)
 			{
-				m_rndLoc = UNavigationSystemV1::GetRandomReachablePointInRadius(p->GetWorld(), getTarget()->GetActorLocation(), 750.0f);
+				m_rndLoc = UNavigationSystemV1::GetRandomReachablePointInRadius(p->GetWorld(), p->GetActorLocation(), 750.0f);
 			}
 
 			// Move towards relocate location and set to true once reached
