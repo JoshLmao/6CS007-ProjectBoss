@@ -7,7 +7,7 @@
 This project was made using the follow plugins:
 
 * [GOAP NPC Plugin for Unreal Engine](https://github.com/Narratech/TFGRomeroSanchezSierra/)
-	* (This project contains edits to this plugin. Check [```ProjectBoss/Plugins/GOAP```](./ProjectBoss\Plugins\GOAP) for source)
+	* (This project contains edits to this plugin. Check [```/ProjectBoss/Plugins/GOAP/```](./ProjectBoss/Plugins/GOAP/) for source)
 * [UnrealEnginePython](https://github.com/20tab/UnrealEnginePython)
 	* (Using [davidjo](https://github.com/davidjo)'s '[Building4.25](https://github.com/20tab/UnrealEnginePython/pull/850)' branch)
 
