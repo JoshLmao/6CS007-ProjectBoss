@@ -2,6 +2,15 @@
 
 6CS007 year-long project artefact for implementing goal-oriented action planning (GOAP) inside UE4, where the agent is able to adapt to the enemy player's skill level. Created using Unreal Engine 4.25.4
 
+## Plugins
+
+This project was made using the follow plugins:
+
+* [GOAP NPC Plugin for Unreal Engine](https://github.com/Narratech/TFGRomeroSanchezSierra/)
+	* (This project contains edits to this plugin. Check [```ProjectBoss/Plugins/GOAP```](./ProjectBoss\Plugins\GOAP) for source)
+* [UnrealEnginePython](https://github.com/20tab/UnrealEnginePython)
+	* (Using [davidjo](https://github.com/davidjo)'s '[Building4.25](https://github.com/20tab/UnrealEnginePython/pull/850)' branch)
+
 ## Project Install Instructions
 
 ### Asset Prerequisites
