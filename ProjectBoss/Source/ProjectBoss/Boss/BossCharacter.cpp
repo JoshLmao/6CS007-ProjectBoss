@@ -18,12 +18,17 @@
 #include "DrawDebugHelpers.h"
 #include "../Statistics/CombatStats.h"
 #include "UObject/UObjectGlobals.h"
+#include "GOAP/GOAPAIController.h"
 
 // Sets default values
 ABossCharacter::ABossCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	// Set AI controller class & auto possess
+	AIControllerClass = AGOAPAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	m_isPerformingAnyAbility = false;
 	// General
@@ -66,7 +71,7 @@ ABossCharacter::ABossCharacter()
 	LeftBladeCollider->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 	LeftBladeCollider->SetGenerateOverlapEvents(true);
 	LeftBladeCollider->OnComponentBeginOverlap.AddDynamic(this, &ABossCharacter::OnBladeBeginOverlap);
-	LeftBladeCollider->SetHiddenInGame(false);
+	//LeftBladeCollider->SetHiddenInGame(false);
 
 	RightBladeCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("RightBladeCollider"));
 	RightBladeCollider->SetupAttachment(GetMesh());
@@ -74,7 +79,7 @@ ABossCharacter::ABossCharacter()
 	RightBladeCollider->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 	RightBladeCollider->SetGenerateOverlapEvents(true);
 	RightBladeCollider->OnComponentBeginOverlap.AddDynamic(this, &ABossCharacter::OnBladeBeginOverlap);
-	RightBladeCollider->SetHiddenInGame(false);
+	//RightBladeCollider->SetHiddenInGame(false);
 
 	m_bossAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 	m_bossAudioComponent->bAutoActivate = false;
@@ -93,6 +98,7 @@ void ABossCharacter::BeginPlay()
 	SetActorLabel("Kallari");
 	CurrentHealth = TotalHealth;
 
+	// Set left and right blade colliders
 	if (LeftBladeCollider)
 	{
 		LeftBladeCollider->AttachTo(GetMesh(), "sword_handle_l", EAttachLocation::SnapToTarget, false);
@@ -115,7 +121,14 @@ void ABossCharacter::BeginPlay()
 		m_originalMeshMaterials.Add(GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(i, GetMesh()->GetMaterial(i)));
 	}
 
+	// Create dynamic invis material
 	m_invisMatInst = GetMesh()->CreateDynamicMaterialInstance(0, InvisibleMatInst);
+
+	// If no controller has spawned on boss, create the default one
+	if (!GetController())
+	{
+		SpawnDefaultController();
+	}
 }
 
 void ABossCharacter::PossessedBy(AController* NewController)
@@ -597,9 +610,6 @@ void ABossCharacter::OnDeath()
 {
 	UE_LOG(LogBoss, Log, TEXT("BossCharacter has died!"));
 
-	if (OnCharacterDied.IsBound())
-		OnCharacterDied.Broadcast();
-
 	PlayCue(DeathCue);
 
 	DetachFromControllerPendingDestroy();
@@ -621,6 +631,10 @@ void ABossCharacter::OnDeath()
 		CharacterComp->DisableMovement();
 		CharacterComp->SetComponentTickEnabled(false);
 	}
+
+	// Broadcast Boss death event
+	if (OnCharacterDied.IsBound())
+		OnCharacterDied.Broadcast();
 }
 
 void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
