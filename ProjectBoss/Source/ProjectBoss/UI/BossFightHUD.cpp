@@ -109,8 +109,11 @@ void ABossFightHUD::DisplayWidgetsOnViewport(TArray<UUserWidget*> widgets, bool 
 	// Iterate through all widgets
 	for (UUserWidget* widget : widgets)
 	{
+		if (!IsValid(widget))
+			continue;
+
 		// If want to be in viewport but isn't already
-		if (isOnViewport && !widget->IsInViewport()) 
+		if (isOnViewport && !widget->IsInViewport())
 		{
 			widget->AddToViewport();
 		}
