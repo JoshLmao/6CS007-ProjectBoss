@@ -52,13 +52,12 @@ void ABossSpawnTrigger::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponen
 		}
 
 		// Is player
-		AActor* boss = GetWorld()->SpawnActor<ABossCharacter>(BossActor);
+		FVector spawnLoc = IsValid(SpawnLocation) ? SpawnLocation->GetActorLocation() : FVector::ZeroVector;
+		AActor* boss = GetWorld()->SpawnActor<AActor>(BossActor, spawnLoc, FRotator(), FActorSpawnParameters());
 		if (boss)
 		{
-			boss->SetActorLocation(SpawnLocation->GetActorLocation());
+			UE_LOG(LogTemp, Log, TEXT("Spawned boss character at '%s'"), *boss->GetActorLocation().ToString());
+			m_hasSpawnedBoss = true;
 		}
-		
-		UE_LOG(LogTemp, Log, TEXT("Spawned boss character at '%s'"), *SpawnLocation->GetActorLocation().ToString());
-		m_hasSpawnedBoss = true;
 	}
 }

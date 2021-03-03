@@ -236,7 +236,9 @@ public:
 	// E ability
 	void PerformAbilityTwo();
 
+	UFUNCTION(BlueprintCallable)
 	float GetCurrentHealth();
+	UFUNCTION(BlueprintCallable)
 	float GetTotalHealth();
 	
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
@@ -265,6 +267,10 @@ public:
 	int GetAbilityAttempts(EPlayerAbilities ability);
 	// Gets the amount of successful attempts the ability has be performed
 	int GetAbilitySuccesses(EPlayerAbilities ability);
+
+	// gets the combat stats of this character
+	UFUNCTION(BlueprintCallable)
+	class UCombatStats* GetCombatStats();
 
 protected:
 	// Called when the game starts or when spawned

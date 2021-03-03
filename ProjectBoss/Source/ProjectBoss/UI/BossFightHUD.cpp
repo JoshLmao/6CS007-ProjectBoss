@@ -13,16 +13,11 @@ void ABossFightHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (AllUIWidgets.Num() > 0)
-	{
-		for (TSubclassOf<UUserWidget> widget : AllUIWidgets)
-		{
-			UUserWidget* createdWidget = CreateWidget<UUserWidget>(GetWorld(), widget);
-			createdWidget->AddToViewport();
+	// Create all widgets and add gameplay ones to viewport
+	m_createdGameplayWidgets = CreateWidgets(GameplayUIWidgets);
+	m_createdEndPlayWidgets = CreateWidgets(EndPlayWidgets);
 
-			m_createdWidgets.Add(createdWidget);
-		}
-	}
+	SetHUDState(EHUDState::Gameplay);
 }
 
 void ABossFightHUD::DrawHUD()
@@ -53,10 +48,81 @@ void ABossFightHUD::AddHitMarker()
 	}
 }
 
+void ABossFightHUD::SetHUDState(EHUDState state)
+{
+	m_currentState = state;
+
+	switch (m_currentState)
+	{
+		case EHUDState::Gameplay:
+		{
+			DisplayWidgetsOnViewport(m_createdGameplayWidgets, true);
+			DisplayWidgetsOnViewport(m_createdEndPlayWidgets, false);
+			break;
+		}
+		case EHUDState::EndPlay:
+		{
+			DisplayWidgetsOnViewport(m_createdGameplayWidgets, false);
+			DisplayWidgetsOnViewport(m_createdEndPlayWidgets, true);
+			break;
+		}
+		default:
+			UE_LOG(LogTemp, Error, TEXT("Unexpected HUD state"));
+	}
+}
+
 void ABossFightHUD::OnHitMarkerDelay()
 {
 	// Remove from viewport after delay
 	m_activeHitMarker->RemoveFromViewport();
 
 	GetWorldTimerManager().ClearTimer(m_hitMarkerDelay);
+}
+
+TArray<UUserWidget*> ABossFightHUD::CreateWidgets(TArray<TSubclassOf<UUserWidget>> widgets)
+{
+	TArray<UUserWidget*> createdWidgets;
+	// Create gameplay widgets 
+	if (widgets.Num() > 0)
+	{
+		for (TSubclassOf<UUserWidget> widget : widgets)
+		{
+			// Create and add to array
+			UUserWidget* createdWidget = CreateWidget<UUserWidget>(GetWorld(), widget);
+			if (IsValid(createdWidget))
+			{
+				createdWidgets.Add(createdWidget);
+			}
+		}
+	}
+
+	return createdWidgets;
+}
+
+void ABossFightHUD::DisplayWidgetsOnViewport(TArray<UUserWidget*> widgets, bool isOnViewport)
+{
+	if (widgets.Num() <= 0)
+	{
+		return;
+	}
+
+	// Iterate through all widgets
+	for (UUserWidget* widget : widgets)
+	{
+		// If want to be in viewport but isn't already
+		if (isOnViewport && !widget->IsInViewport()) 
+		{
+			widget->AddToViewport();
+		}
+		// If is in viewport and don't want to be in viewport
+		else if (widget->IsInViewport() && !isOnViewport)
+		{
+			widget->RemoveFromViewport();
+		}
+	}
+}
+
+void ABossFightHUD::SetFreeCursor(APlayerController* pc, bool isFree)
+{
+	pc->bShowMouseCursor = isFree;
 }

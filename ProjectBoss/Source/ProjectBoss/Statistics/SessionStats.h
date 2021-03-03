@@ -28,6 +28,7 @@ private:
 	*/
 public:
 	// Get the total time in seconds this session has been played for
+	UFUNCTION(BlueprintCallable, Category = "Session Stats")
 	float GetSessionTime();
 
 protected:

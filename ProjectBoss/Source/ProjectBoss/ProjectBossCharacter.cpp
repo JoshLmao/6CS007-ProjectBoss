@@ -661,6 +661,11 @@ int AProjectBossCharacter::GetAbilitySuccesses(EPlayerAbilities ability)
 	return m_combatStats->GetAbilitySuccessfulAttempts(ability);
 }
 
+UCombatStats* AProjectBossCharacter::GetCombatStats()
+{
+	return m_combatStats;
+}
+
 void AProjectBossCharacter::AbilityOneEvasiveCloudwalk()
 {
 	/*

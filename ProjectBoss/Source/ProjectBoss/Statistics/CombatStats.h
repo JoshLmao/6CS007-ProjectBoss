@@ -63,39 +63,47 @@ public:
 	// Adds an attack to the count
 	void AddAttack();
 	// Gets the total number of attacks performed
+	UFUNCTION(BlueprintCallable, Category = "Combat Statistics")
 	float GetTotalAttacks();
 
 	// Adds a successful attack 
 	void AddSuccessfulAttack();
 	// Gets the total number of successful attacks performed
+	UFUNCTION(BlueprintCallable, Category = "Combat Statistics")
 	float GetSuccessfulAttacks();
 
 	// Adds to the attemp
 	void AddAbilityAttempt(int abilityIndex);
 	// Gets the amount of attempts of this ability
+	UFUNCTION(BlueprintCallable, Category = "Combat Statistics")
 	int GetAbilityAttempts(int abilityIndex);
 
 	// Adds to the successful ability count
 	void AddAbilitySuccess(int abilityIndex);
 	// Gets the amount of successful attempts of this ability
+	UFUNCTION(BlueprintCallable, Category = "Combat Statistics")
 	int GetAbilitySuccessfulAttempts(int abilityIndex);
 
 	// Adds an amount to the damage dealt to enemies
 	void AddDamageDealt(float amount);
 	// Gets the total damage dealt
+	UFUNCTION(BlueprintCallable, Category = "Combat Statistics")
 	float GetTotalDamageDealt();
 
 	// Adds an amount to the damage amount recieved
 	void AddDamageRecieved(float amount);
 	// Gets the total damage recieved
+	UFUNCTION(BlueprintCallable, Category = "Combat Statistics")
 	float GetTotalDamageRecieved();
 	
 	// Adds an amount to the current health healed
 	void AddHealthHealed(float amount);
 	// Gets the amount of health healed
+	UFUNCTION(BlueprintCallable, Category = "Combat Statistics")
 	float GetTotalHealthHealed();
 
 	// Builds a string of all of the current stats
+	UFUNCTION(BlueprintCallable, Category = "Combat Statistics")
 	FString GetAllStatsString();
 
 private:

@@ -20,15 +20,33 @@ public:
 	TSubclassOf<class AHUD> BP_HUD;
 
 	// Current player actor
-	AActor* Player;
+	class AProjectBossCharacter* Player;
 	// Reference to boss actor
-	AActor* Boss;
+	class ABossCharacter* Boss;
 
 	// Current session stats actor
-	class ASessionStats* m_sessionStats;
+	UPROPERTY(EditAnywhere)
+	class ASessionStats* SessionStats;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	class ASessionStats* GetSessionStats();
 
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION()
+	void OnPlayerDeath();
+
+	UFUNCTION()
+	void OnBossDeath();
+
+	UFUNCTION()
+	void OnBossSpawned(AActor* bossActor);
+
+	// Gets the current HUD reference from the Player Controller
+	class ABossFightHUD* GetHUD();
 
 };
 

@@ -54,6 +54,7 @@ ABossCharacter::ABossCharacter()
 	AbilOneTotalCooldown = 10.0f;
 	AdvAbilityCurrentCd = 0.0f;
 	m_isInvisible = false;
+	MeleeCritMultiplier = 1.35f;
 	// Ability Ultimate
 	UltimateDamage = 150.0f;
 	UltimateTotalCooldown = 50.0f;
@@ -64,6 +65,14 @@ ABossCharacter::ABossCharacter()
 	HealPercent = 0.17;
 	HealTotalCooldown = 30.0f;
 	PerformHealThreshold = 0.35f;
+
+	// Set mesh
+	if (auto mesh = GetMesh())
+	{
+		// Set location and rotation for Kallari
+		mesh->SetRelativeLocation(FVector(0, 0, -90));
+		//mesh->SetRelativeRotation(FRotator(0, -90, 0));
+	}
 
 	LeftBladeCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("LeftBladeCollider"));
 	LeftBladeCollider->SetupAttachment(GetMesh());
@@ -117,12 +126,23 @@ void ABossCharacter::BeginPlay()
 	}
 
 	//m_originalMeshMaterials = GetMesh()->GetMaterials();
-	for (int i = 0; i < GetMesh()->GetNumMaterials(); i++) {
-		m_originalMeshMaterials.Add(GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(i, GetMesh()->GetMaterial(i)));
-	}
+	if (GetMesh()) 
+	{
+		if (GetMesh()->GetNumMaterials() > 0)
+		{
+			// Iterate through all materials and make dynamic instance
+			for (int i = 0; i < GetMesh()->GetNumMaterials(); i++)
+			{
+				m_originalMeshMaterials.Add(GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(i, GetMesh()->GetMaterial(i)));
+			}
+		}
 
-	// Create dynamic invis material
-	m_invisMatInst = GetMesh()->CreateDynamicMaterialInstance(0, InvisibleMatInst);
+		if (IsValid(InvisibleMatInst))
+		{
+			// Create dynamic invis material
+			m_invisMatInst = GetMesh()->CreateDynamicMaterialInstance(0, InvisibleMatInst);
+		}
+	}
 
 	// If no controller has spawned on boss, create the default one
 	if (!GetController())
