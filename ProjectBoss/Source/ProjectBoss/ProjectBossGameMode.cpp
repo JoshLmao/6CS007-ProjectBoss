@@ -10,6 +10,8 @@
 #include "ProjectBossCharacter.h"
 #include "Boss/BossCharacter.h"
 #include "World/BossSpawnTrigger.h"
+#include "SaveData/ProjectBossSaveGame.h"
+#include "Helpers/ProjectVersionBlueprint.h"
 
 AProjectBossGameMode::AProjectBossGameMode()
 {
@@ -56,12 +58,12 @@ void AProjectBossGameMode::BeginPlay()
 
 void AProjectBossGameMode::OnPlayerDeath()
 {
-	OnGameOver();
+	OnGameOver(false);
 }
 
 void AProjectBossGameMode::OnBossDeath()
 {
-	OnGameOver();
+	OnGameOver(true);
 }
 
 void AProjectBossGameMode::OnBossSpawned(AActor* bossActor)
@@ -75,7 +77,7 @@ void AProjectBossGameMode::OnBossSpawned(AActor* bossActor)
 	}
 }
 
-void AProjectBossGameMode::OnGameOver()
+void AProjectBossGameMode::OnGameOver(bool didPlayerWin)
 {
 	if (IsValid(Player) && Player->GetController())
 	{
@@ -87,6 +89,21 @@ void AProjectBossGameMode::OnGameOver()
 			hud->SetHUDState(EHUDState::EndPlay);
 			hud->SetFreeCursor(pc, true);
 		}
+	}	
+
+	// Load save game and increment total games
+	UProjectBossSaveGame* saveGame = UProjectVersionBlueprint::LoadSaveGame();
+	saveGame->TotalGames += 1;
+
+	// Increment if player did win
+	if (didPlayerWin)
+	{
+		saveGame->PlayerWins += 1;
 	}
-	
+	// Finally, save game once done
+	bool success = UProjectVersionBlueprint::SaveGame(saveGame);
+	if (!success)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Error when saving game!"));
+	}
 }

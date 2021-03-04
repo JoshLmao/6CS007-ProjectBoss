@@ -45,7 +45,7 @@ private:
 	UFUNCTION()
 	void OnBossSpawned(AActor* bossActor);
 
-	void OnGameOver();
+	void OnGameOver(bool didPlayerWin);
 };
 
 

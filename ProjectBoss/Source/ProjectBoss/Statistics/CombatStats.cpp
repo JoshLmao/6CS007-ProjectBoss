@@ -162,6 +162,11 @@ FString UCombatStats::GetAllStatsString()
 
 int UCombatStats::ContainsAbility(TArray<FAbilityCount> arr, int abilIndex)
 {
+	if (arr.Num() <= 0)
+	{
+		return -1;
+	}
+
 	for (int i = 0; i < arr.Num(); i++) 
 	{
 		FAbilityCount abilCount = arr[i];

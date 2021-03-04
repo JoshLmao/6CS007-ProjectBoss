@@ -13,6 +13,7 @@
 #include "../../Helpers/CSVFileManager.h"
 #include "../../ML/UpdateCosts_PyActor.h"
 #include "../../SaveData/ProjectBossSaveGame.h"
+#include "../../Helpers/ProjectVersionBlueprint.h"
 #pragma region include AllActions
 #include "Actions/Action_Follow.h"
 #include "Actions/Action_MeleeAttack.h"
@@ -57,13 +58,11 @@ void AGOAPAIController::BeginPlay()
 	m_pythonActor = GetWorld()->SpawnActor<AUpdateCosts_PyActor>(AUpdateCosts_PyActor::StaticClass(), FVector(), FRotator());
 
 	// Load save game to see if user enabled participation
-	USaveGame* save = UGameplayStatics::LoadGameFromSlot("save", 0);
-	if (save)
+	UProjectBossSaveGame* saveGame = UProjectVersionBlueprint::LoadSaveGame();
+	if (saveGame)
 	{
-		UProjectBossSaveGame* saveGame = Cast<UProjectBossSaveGame>(save);
 		m_saveMLData = saveGame->MLParticipation;
-
-		UE_LOG(LogTemp, Log, TEXT("User ML participation is '%s'"), m_saveMLData ? TEXT("enabled") : TEXT("disabled"));
+		UE_LOG(LogML, Log, TEXT("ML Participation is enabled!"));
 	}
 
 	// Create desired world state on start

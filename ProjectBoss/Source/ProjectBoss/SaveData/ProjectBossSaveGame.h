@@ -19,6 +19,12 @@ public:
 	UProjectBossSaveGame();
 
 	// If the user wishes to enable ML participation
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Project Boss Save Game")
 	bool MLParticipation;
+	// Total amount of games played by the player
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Project Boss Save Game")
+	int TotalGames;
+	// Amount of wins by the player
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Project Boss Save Game")
+	int PlayerWins;
 };

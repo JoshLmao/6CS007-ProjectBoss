@@ -14,6 +14,15 @@ class PROJECTBOSS_API UProjectVersionBlueprint : public UBlueprintFunctionLibrar
 {
 	GENERATED_BODY()
 
+public:
 	UFUNCTION(BlueprintPure)
 	static FString GetProjectVersion();
+
+	// Loads the Project Boss Save Game
+	UFUNCTION(BlueprintCallable)
+	static class UProjectBossSaveGame* LoadSaveGame();
+
+	// Saves the passed game and returns if it was successfull
+	UFUNCTION(BlueprintCallable)
+	static bool SaveGame(class UProjectBossSaveGame* game);
 };
