@@ -31,16 +31,21 @@ bool UAction_MeleeAttack::checkProceduralPrecondition(APawn* pawn)
 
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 
+#ifdef GOAP_COSTS_TO_HEALTH_DIFF
+	if (set)
+	{
+		// Health Difference will be positive if boss has less health than Player, negative if boss has more health than Player
+		float healthDiff = UtilityHelper::GetHealthDifference(player->GetCurrentHealth(), player->GetTotalHealth(), boss->GetCurrentHealth(), boss->GetTotalHealth());
+		float smallIncrements = healthDiff / 100;
+		UpdateCost(BaseCost + smallIncrements);
+	}
+#endif
+
 	if (set)
 	{
 		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
 		if (player && player->GetCurrentHealth() <= 0)
 			return false;
-
-		// Health Difference will be positive if boss has less health than Player, negative if boss has more health than Player
-		float healthDiff = UtilityHelper::GetHealthDifference(player->GetCurrentHealth(), player->GetTotalHealth(), boss->GetCurrentHealth(), boss->GetTotalHealth());
-		float smallIncrements = healthDiff / 100;
-		UpdateCost(BaseCost + smallIncrements);
 	}
 
 	if (boss->IsPerformingAbility())

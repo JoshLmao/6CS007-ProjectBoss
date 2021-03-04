@@ -29,6 +29,7 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 	bool setTarget = TrySetTarget(pawn);
 
+#ifdef GOAP_COSTS_TO_HEALTH_DIFF
 	if (setTarget)
 	{
 		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
@@ -38,6 +39,7 @@ bool UAction_Ultimate::checkProceduralPrecondition(APawn* pawn)
 		float smallIncrements = healthDiff / 100;
 		UpdateCost(BaseCost + smallIncrements);
 	}
+#endif
 
 	// Check ability action isn't on cooldown
 	if (boss->GetUltimateCooldown() > 0)

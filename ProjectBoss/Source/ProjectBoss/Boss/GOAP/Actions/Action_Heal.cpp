@@ -42,6 +42,7 @@ bool UAction_Heal::checkProceduralPrecondition(APawn* pawn)
 		}
 	}
 
+#ifdef GOAP_COSTS_TO_HEALTH_DIFF
 	if (setTarget)
 	{
 		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
@@ -50,6 +51,7 @@ bool UAction_Heal::checkProceduralPrecondition(APawn* pawn)
 		float smallIncrements = healthDiff / 100;
 		UpdateCost(BaseCost + smallIncrements);
 	}
+#endif
 
 	return setTarget;
 }
