@@ -493,7 +493,7 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 	dmgCollider->SetActorRotation(capsuleSpawnRot);
 
 	// Draw additional debug capsule for debug
-	DrawDebugCapsule(GetWorld(), capsuleSpawnLoc, aoeHalfHeight, 50.0f, capsuleSpawnRot.Quaternion(), FColor::Green, false, 1.0f, 0, 2.0f);
+	//DrawDebugCapsule(GetWorld(), capsuleSpawnLoc, aoeHalfHeight, 50.0f, capsuleSpawnRot.Quaternion(), FColor::Green, false, 1.0f, 0, 2.0f);
 
 	// Reset performing flag
 	m_isPerformingAbility = false;
@@ -638,7 +638,7 @@ void AProjectBossCharacter::AbilityOneLandDamage()
 	aoeCapsuleCollider->SetLifeSpan(0.25f);
 
 	// Draw additional debug capsule for debug
-	DrawDebugSphere(GetWorld(), colliderLocation, AbilityOneRadius, 20.0f, FColor::Green, false, 1.0f, 0, 2.0f);
+	//DrawDebugSphere(GetWorld(), colliderLocation, AbilityOneRadius, 20.0f, FColor::Green, false, 1.0f, 0, 2.0f);
 
 	// Disable ability one falling flag
 	m_offAbilOneIsFalling = false;

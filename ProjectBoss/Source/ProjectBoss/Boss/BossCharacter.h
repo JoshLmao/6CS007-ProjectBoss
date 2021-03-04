@@ -156,28 +156,37 @@ protected:
 	TArray<class UAnimMontage*> TauntMontages;
 
 private:
+	// Audio Component to use to broadcast audio from this character
 	class UAudioComponent* m_bossAudioComponent;
+	// AI controller class controlling this character
 	class AAIController* m_aiController;
 
+	// Is the character performing any ability?
 	bool m_isPerformingAnyAbility;
 
-	// Melee Attack
+	// Is the character currently attacking?
 	bool m_isAttacking;
+	// Should the next attack be saved?
 	bool m_saveAttack;
+	// Current index to use when selecting an attack montage
 	int m_attackCount;
+	// Did damage get dealt this attack swing?
 	bool m_dmgThisAttack;
 	// Value from zero to one that influences where between the Min and Max attack rate to set the attack rate
 	float m_attackRateDifficulty;
 
-	// Advanced Attack
+	//	The actor to aim at when performing the RMB ability
 	UPROPERTY()
 	AActor* m_rmbTarget;
+	// RMB ability's delay timer handle
 	FTimerHandle m_rmbDelayHandle;
+	// Is the character currently aiming at the player?
 	bool m_rmbAimAtPlayer;
 
-	// Ability one
+	// Material instances of the original mesh's mats
 	UPROPERTY()
 	TArray<class UMaterialInstanceDynamic*> m_originalMeshMaterials;
+	// Material instance to apply to make character invisible
 	UPROPERTY()
 	class UMaterialInstanceDynamic* m_invisMatInst;
 
@@ -188,6 +197,7 @@ private:
 
 	// Ability Ultimate
 	AActor* m_ultiTargetActor;
+	// is the ultimate ability being channeled?
 	bool m_ultiIsChanneling;
 
 	// Ability Heal
@@ -199,6 +209,7 @@ private:
 
 	// Taunt timer handle for when taunts are finished
 	FTimerHandle m_tauntHandle;
+	// is the character currently taunting?
 	bool m_isTaunting;
 
 	/**  Events  **/
