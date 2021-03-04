@@ -630,7 +630,11 @@ void ABossCharacter::OnDeath()
 {
 	UE_LOG(LogBoss, Log, TEXT("BossCharacter has died!"));
 
-	PlayCue(DeathCue);
+	// Play death cue for character
+	if (DeathCue)
+	{
+		PlayCue(DeathCue);
+	}
 
 	DetachFromControllerPendingDestroy();
 
@@ -728,11 +732,49 @@ void ABossCharacter::LookAtActor(FVector location)
 	// Set Actor to look at target actor
 	FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), location);
 	FRotator actorRotation = this->GetActorRotation();
-	actorRotation.Yaw = lookAt.Yaw + -90.0f;
+	actorRotation.Yaw = lookAt.Yaw + -90.0f;			// Add Yaw offset
+	actorRotation.Roll = actorRotation.Pitch = 0.0f;	// Enforce other axis' to 0
+
 	this->SetActorRotation(actorRotation);
 
 	// Also set Controller's look rotation
 	m_aiController->SetControlRotation(actorRotation);
+}
+
+void ABossCharacter::PerformTaunt()
+{
+	// Check if taunts are valid
+	if (TauntMontages.Num() <= 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No Taunt montages set!"));
+		return;
+	}
+
+	// If montage in progress, wait
+	if (GetWorldTimerManager().IsTimerPending(m_tauntHandle) || m_isTaunting)
+	{
+		return;
+	}
+
+	// Get rnd taunt index and play montage
+	int rndTauntIndex = FMath::RandRange(0, TauntMontages.Num() - 1);
+	float playDuration = this->PlayAnimMontage(TauntMontages[rndTauntIndex]);
+
+	// Start timer to wait for montage length plus a little cooldown
+	float cooldownPeriod = 5.0f;
+	float totalDuration = playDuration + cooldownPeriod;
+	GetWorldTimerManager().SetTimer(m_tauntHandle, this, &ABossCharacter::OnTauntComplete, totalDuration, false);
+
+	// Log and set taunt flag
+	UE_LOG(LogBoss, Log, TEXT("Taunting using '%s' for duration '%f'"), *TauntMontages[rndTauntIndex]->GetName(), totalDuration);
+	m_isTaunting = true;
+}
+
+void ABossCharacter::OnTauntComplete()
+{
+	// Taunt is complete, set taunt flag
+	UE_LOG(LogBoss, Log, TEXT("Taunt complete"));
+	m_isTaunting = false;
 }
 
 float ABossCharacter::GetUltimateCooldown()

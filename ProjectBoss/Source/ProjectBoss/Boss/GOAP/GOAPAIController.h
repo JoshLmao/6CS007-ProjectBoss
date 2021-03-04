@@ -44,7 +44,8 @@ private:
 protected:
 	virtual void Tick(float deltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	virtual void SetPawn(APawn* pawn) override;
+	virtual void OnPossess(APawn* pawn) override;
+	virtual void OnUnPossess() override;
 
 private:
 	// Creates and returns an Atom with the name and value

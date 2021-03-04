@@ -41,8 +41,10 @@ private:
 	TSubclassOf<class UUserWidget> HitMarkerWidget;
 
 	// List of created widgets used during gameplay
+	UPROPERTY()
 	TArray<class UUserWidget*> m_createdGameplayWidgets;
 	// List of created end play widgets
+	UPROPERTY()
 	TArray<class UUserWidget*> m_createdEndPlayWidgets;
 	// Active hit marker user widget
 	UPROPERTY()

@@ -45,9 +45,7 @@ private:
 	UFUNCTION()
 	void OnBossSpawned(AActor* bossActor);
 
-	// Gets the current HUD reference from the Player Controller
-	class ABossFightHUD* GetHUD();
-
+	void OnGameOver();
 };
 
 

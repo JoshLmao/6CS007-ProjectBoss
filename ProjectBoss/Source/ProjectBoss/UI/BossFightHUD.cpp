@@ -127,5 +127,8 @@ void ABossFightHUD::DisplayWidgetsOnViewport(TArray<UUserWidget*> widgets, bool 
 
 void ABossFightHUD::SetFreeCursor(APlayerController* pc, bool isFree)
 {
-	pc->bShowMouseCursor = isFree;
+	if (IsValid(pc))
+	{
+		pc->bShowMouseCursor = isFree;
+	}
 }

@@ -151,6 +151,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Montages")
 	class UAnimMontage* StunnedMontage;
 
+	// All taunt montages for the character
+	UPROPERTY(EditAnywhere, Category = "Montages")
+	TArray<class UAnimMontage*> TauntMontages;
+
 private:
 	class UAudioComponent* m_bossAudioComponent;
 	class AAIController* m_aiController;
@@ -192,6 +196,10 @@ private:
 	FTimerHandle m_stunHandle;
 	// Combat statistics tracking for the boss character
 	class UCombatStats* m_combatStats;
+
+	// Taunt timer handle for when taunts are finished
+	FTimerHandle m_tauntHandle;
+	bool m_isTaunting;
 
 	/**  Events  **/
 public:
@@ -243,6 +251,9 @@ public:
 	void CancelMoveToLocation();
 	// Rotates actor to look at location
 	void LookAtActor(FVector location);
+
+	// Performs a random taunt
+	void PerformTaunt();
 
 	UFUNCTION(BlueprintCallable, Category = "Project Boss")
 	void AdvAttackFinishedPrepare();
@@ -357,4 +368,6 @@ private:
 	void AbilitySucceessful(int abilIndex);
 
 	void DoHeal(float deltaTime);
+
+	void OnTauntComplete();
 };

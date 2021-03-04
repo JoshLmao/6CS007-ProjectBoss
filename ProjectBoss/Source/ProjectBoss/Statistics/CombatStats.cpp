@@ -5,6 +5,11 @@
 
 UCombatStats::UCombatStats()
 {
+	m_totalAttacks = 0;
+	m_successfullAttacks = 0;
+	m_totalDealtDamage = 0.0f;
+	m_totalDamageRecieved = 0.0f;
+	m_totalHealthHealed = 0.0f;
 }
 
 void UCombatStats::AddAttack()

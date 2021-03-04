@@ -56,28 +56,12 @@ void AProjectBossGameMode::BeginPlay()
 
 void AProjectBossGameMode::OnPlayerDeath()
 {
-	// Get HUD and set to EndPlay
-	ABossFightHUD* hud = GetHUD();
-	if (hud)
-	{
-		hud->SetHUDState(EHUDState::EndPlay);
-
-		APlayerController* pc = Cast<APlayerController>(Player->GetController());
-		hud->SetFreeCursor(pc, true);
-	}
+	OnGameOver();
 }
 
 void AProjectBossGameMode::OnBossDeath()
 {
-	// Get HUD and set state to EndPlay
-	ABossFightHUD* hud = GetHUD();
-	if (hud)
-	{
-		hud->SetHUDState(EHUDState::EndPlay);
-
-		APlayerController* pc = Cast<APlayerController>(Player->GetController());
-		hud->SetFreeCursor(pc, true);
-	}
+	OnGameOver();
 }
 
 void AProjectBossGameMode::OnBossSpawned(AActor* bossActor)
@@ -91,9 +75,18 @@ void AProjectBossGameMode::OnBossSpawned(AActor* bossActor)
 	}
 }
 
-ABossFightHUD* AProjectBossGameMode::GetHUD()
+void AProjectBossGameMode::OnGameOver()
 {
-	APlayerController* pc = Cast<APlayerController>(Player->GetController());
-	ABossFightHUD* hud = Cast<ABossFightHUD>(pc->GetHUD());
-	return hud;
+	if (IsValid(Player) && Player->GetController())
+	{
+		// Get HUD and set state to EndPlay
+		APlayerController* pc = Cast<APlayerController>(Player->GetController());
+		ABossFightHUD* hud = Cast<ABossFightHUD>(pc->GetHUD());
+		if (hud)
+		{
+			hud->SetHUDState(EHUDState::EndPlay);
+			hud->SetFreeCursor(pc, true);
+		}
+	}
+	
 }

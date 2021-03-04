@@ -66,6 +66,11 @@ float AUpdateCosts_PyActor::GenerateCost(FString actionName, float baseCost, boo
 		return 0;
 	}
 
+	if (!IsValid(this))
+	{
+		return 0;
+	}
+
 	// Convert success bool into float
 	float successVal = wasSuccess ? 1.0f : 0.0;
 

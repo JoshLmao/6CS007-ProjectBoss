@@ -347,6 +347,12 @@ void AProjectBossCharacter::ComboAttackSave()
 
 void AProjectBossCharacter::DoMelee()
 {
+	if (AttackAnimMontages.Num() <= 0)
+	{
+		UE_LOG(LogPlayer, Error, TEXT("DoMelee: No Attack Montages set on player!"));
+		return;
+	}
+
 	// Set cooldown of melee
 	// SAVE_ATTACK_TIME = time in seconds of save attack mark in Montage
 	MeleeAtkCurrentCd = SAVE_ATTACK_TIME * m_attackRate;
@@ -873,6 +879,12 @@ void AProjectBossCharacter::OnDeath()
 {
 	UE_LOG(LogPlayer, Log, TEXT("Player has died!"));
 
+	// Play death cue for character
+	if (DeathSoundCue)
+	{
+		PlayCue(DeathSoundCue, true);
+	}
+
 	// Broadcast died event to any listeners
 	if (OnCharacterDied.IsBound())
 		OnCharacterDied.Broadcast();
@@ -898,6 +910,9 @@ void AProjectBossCharacter::OnDeath()
 		m_charMovementComponent->DisableMovement();
 		m_charMovementComponent->SetComponentTickEnabled(false);
 	}
+
+	// Disable pole capsule collision
+	PoleColliderComponent->SetCollisionProfileName(TEXT("NoCollision"));
 }
 
 float AProjectBossCharacter::TakeDamage(float damageAmount, struct FDamageEvent const& damageEvent, class AController* eventInstigator, AActor* damageCauser)

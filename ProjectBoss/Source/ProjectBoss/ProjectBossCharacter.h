@@ -179,6 +179,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Sounds")
 	class USoundCue* JumpGruntSoundCue;
 
+	// Sound cue to use when character dies
+	UPROPERTY(EditAnywhere, Category = "Sounds")
+	class USoundCue* DeathSoundCue;
+
 private:
 	// Time in seconds to save the attack when performing melee montage
 	const float SAVE_ATTACK_TIME = 0.59f;

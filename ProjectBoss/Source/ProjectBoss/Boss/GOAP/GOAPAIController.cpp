@@ -112,6 +112,7 @@ void AGOAPAIController::Tick(float deltaTime)
 	// If the player is valid and is dead, stop executing GOAP
 	if (m_player && m_player->GetCurrentHealth() <= 0)
 	{
+		m_bossPawn->PerformTaunt();
 		return;
 	}
 
@@ -200,12 +201,20 @@ void AGOAPAIController::Tick(float deltaTime)
 	}
 }
 
-void AGOAPAIController::SetPawn(APawn* pawn)
+void AGOAPAIController::OnPossess(APawn* pawn)
 {
-	Super::SetPawn(pawn);
+	Super::OnPossess(pawn);
 
 	// Set boss reference on pawn
 	m_bossPawn = Cast<ABossCharacter>(pawn);
+}
+
+void AGOAPAIController::OnUnPossess()
+{
+	Super::OnUnPossess();
+
+	// Set boss reference on pawn
+	m_bossPawn = nullptr;
 }
 
 FAtom AGOAPAIController::CreateAtom(FString name, bool val)
