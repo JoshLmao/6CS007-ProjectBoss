@@ -156,7 +156,9 @@ void AProjectBossCharacter::BeginPlay()
 	// Init pole arm collider used to track melee damage
 	if (PoleColliderComponent)
 	{
-		PoleColliderComponent->AttachTo(GetMesh(), "weapon_r", EAttachLocation::SnapToTarget, true);
+		// Attach pole collider to weapon_r bone on mesh
+		FAttachmentTransformRules rules(EAttachmentRule::SnapToTarget, true);
+		PoleColliderComponent->AttachToComponent(GetMesh(), rules, "weapon_r");
 		PoleColliderComponent->AddLocalRotation(FRotator(0, 0, 90.0f));
 
 		PS_PoleStance->AddLocalRotation(FRotator(90.0f, 0, 0));

@@ -27,4 +27,8 @@ public:
 	// Amount of wins by the player
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Project Boss Save Game")
 	int PlayerWins;
+
+	// Builds a FString of all the properties of the passed save game
+	UFUNCTION(BlueprintCallable)
+	static FString BuildSaveGameLogString(UProjectBossSaveGame* saveGame);
 };

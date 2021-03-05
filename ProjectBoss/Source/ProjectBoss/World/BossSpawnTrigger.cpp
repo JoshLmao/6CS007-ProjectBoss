@@ -17,12 +17,8 @@ ABossSpawnTrigger::ABossSpawnTrigger()
 	SpawnTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Spawn Trigger"));
 	RootComponent = SpawnTrigger;
 	SpawnTrigger->OnComponentBeginOverlap.AddDynamic(this, &ABossSpawnTrigger::OnTriggerOverlap);
-	SpawnTrigger->bHiddenInGame = false;
-}
+	//SpawnTrigger->bHiddenInGame = false;
 
-void ABossSpawnTrigger::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	// Set extent on change
 	SpawnTrigger->SetBoxExtent(BoxExtent);
 }
 
@@ -31,6 +27,7 @@ void ABossSpawnTrigger::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	SpawnTrigger->SetBoxExtent(BoxExtent);
 }
 
 // Called every frame

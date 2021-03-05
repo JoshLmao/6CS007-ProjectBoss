@@ -106,4 +106,9 @@ void AProjectBossGameMode::OnGameOver(bool didPlayerWin)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Error when saving game!"));
 	}
+	else
+	{
+		FString outputStr = UProjectBossSaveGame::BuildSaveGameLogString(saveGame);
+		UE_LOG(LogTemp, Log, TEXT("---\nSave Game Stats:\n%s\n---\n"), *outputStr);
+	}
 }

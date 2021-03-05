@@ -103,14 +103,17 @@ void ABossCharacter::BeginPlay()
 	// Init combat stats class
 	m_combatStats = NewObject<UCombatStats>();
 
-	// Set actor label & start health
-	SetActorLabel("Kallari");
+	// Set actor name
+	FString name = "Kallari";
+	Rename(*name);
+	// Set start health to total on start
 	CurrentHealth = TotalHealth;
 
+	FAttachmentTransformRules rules(EAttachmentRule::SnapToTarget, false);
 	// Set left and right blade colliders
 	if (LeftBladeCollider)
 	{
-		LeftBladeCollider->AttachTo(GetMesh(), "sword_handle_l", EAttachLocation::SnapToTarget, false);
+		LeftBladeCollider->AttachToComponent(GetMesh(), rules, "sword_handle_l");
 		LeftBladeCollider->SetCapsuleHalfHeight(40.0f);
 		LeftBladeCollider->SetCapsuleRadius(10.0f);
 		LeftBladeCollider->AddLocalRotation(FRotator(90.0f, 0, 0));
@@ -118,7 +121,7 @@ void ABossCharacter::BeginPlay()
 	}
 	if (RightBladeCollider)
 	{
-		RightBladeCollider->AttachTo(GetMesh(), "sword_handle_r", EAttachLocation::SnapToTarget, false);
+		RightBladeCollider->AttachToComponent(GetMesh(), rules, "sword_handle_r");
 		RightBladeCollider->SetCapsuleHalfHeight(40.0f);
 		RightBladeCollider->SetCapsuleRadius(10.0f);
 		RightBladeCollider->AddLocalRotation(FRotator(90.0f, 0, 0));

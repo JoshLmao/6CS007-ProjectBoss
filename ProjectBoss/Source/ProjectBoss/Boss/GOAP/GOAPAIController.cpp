@@ -73,6 +73,9 @@ void AGOAPAIController::BeginPlay()
 
 	// Set max depth of planner
 	maxDepth = 20.0f;
+
+	// Update all GOAP actions on start
+	UpdateActionCostsFromML();
 }
 
 void AGOAPAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -236,7 +239,7 @@ void AGOAPAIController::PrintCurrentGOAPPlan()
 	FString planString = "GOAP Plan: ";
 	for (int i = goapPlan.Num() - 1; i >= 0; i--)
 	{
-		planString += "'" + goapPlan[i]->name + "'";
+		planString += "'" + goapPlan[i]->name + "' " + "(" + FString::SanitizeFloat(goapPlan[i]->getCost()) + ")";
 		if (i >= 1)
 			planString += "->";
 	}
@@ -369,6 +372,8 @@ void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences
 
 void AGOAPAIController::UpdateActionCostsFromML()
 {
+	UE_LOG(LogML, Log, TEXT("---\nUpdating all GOAP Actions with new ML costs..."));
+
 	// Get all goap actions and iterate
 	TArray<UGOAPAction*> allGoapActions = GetAuxActions();
 	for (UGOAPAction* action : allGoapActions)
@@ -380,6 +385,8 @@ void AGOAPAIController::UpdateActionCostsFromML()
 		// Set new cost of the action
 		pbAction->UpdateCost(mlCost);
 
-		UE_LOG(LogML, Log, TEXT("Updated '%s' with new cost of '%f' (ML Change: %f)"), *pbAction->getName(), pbAction->getCost(), mlCost);
+		UE_LOG(LogML, Log, TEXT("Action: '%s' Total Cost: '%f' (ML Change: %f)"), *pbAction->getName(), pbAction->getCost(), mlCost);
 	}
+
+	UE_LOG(LogML, Log, TEXT("Completed updating GOAP actions\n---"));
 }
