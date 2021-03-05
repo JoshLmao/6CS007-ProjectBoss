@@ -10,11 +10,5 @@ public class ProjectBossTarget : TargetRules
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 		ExtraModuleNames.Add("ProjectBoss");
-
-		if (Configuration == UnrealTargetConfiguration.Shipping)
-		{
-			// Enable logging in shipping build
-			bUseLoggingInShipping = true;
-		}
 	}
 }
