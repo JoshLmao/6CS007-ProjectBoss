@@ -6,6 +6,7 @@
 #include "../Boss/BossCharacter.h"
 #include "../Boss/GOAP/GOAPAIController.h"
 #include "../Helpers/CSVFileManager.h"
+#include "../ProjectBoss.h"
 
 AUpdateCosts_PyActor::AUpdateCosts_PyActor()
 {
@@ -34,6 +35,8 @@ void AUpdateCosts_PyActor::BeginPlay()
 
 	// Init ML in Python
 	FString csvPath = UCSVFileManager::GetFullFilePath();
+	UE_LOG(LogML, Log, TEXT("Using ML CSV at path '%s'"), *csvPath);
+
 	CallPythonActorMethod(INIT_ML, csvPath);
 
 	/// Test to get a cost
@@ -62,7 +65,7 @@ float AUpdateCosts_PyActor::GenerateCost(FString actionName, float baseCost, boo
 {
 	if (baseCost < 0 || damage < 0 || averageSeconds < 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid values given to GenerateCost!"));
+		UE_LOG(LogML, Error, TEXT("Invalid values given to GenerateCost!"));
 		return 0;
 	}
 

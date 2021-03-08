@@ -360,10 +360,16 @@ void AProjectBossCharacter::DoMelee()
 	MeleeAtkCurrentCd = SAVE_ATTACK_TIME * m_attackRate;
 
 	// Play attack montage on actor
-	this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
+	if (AttackAnimMontages.Num() > 0)
+	{
+		this->PlayAnimMontage(AttackAnimMontages[m_attackCount], m_attackRate);
+	}
 
 	// Add attempted attack to stats
-	m_combatStats->AddAttack();
+	if (IsValid(m_combatStats))
+	{
+		m_combatStats->AddAttack();
+	}
 
 	// Increment attack count and wrap number back to 0 if reached end
 	m_attackCount++;

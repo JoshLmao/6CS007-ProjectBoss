@@ -289,7 +289,10 @@ void ABossCharacter::DoMelee()
 	}
 
 	// Add attack statistic
-	m_combatStats->AddAttack();
+	if (IsValid(m_combatStats))
+	{
+		m_combatStats->AddAttack();
+	}
 }
 
 void ABossCharacter::PerformAdvancedAttack(AActor* target)

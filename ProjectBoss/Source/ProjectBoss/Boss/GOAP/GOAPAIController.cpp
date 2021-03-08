@@ -56,6 +56,10 @@ void AGOAPAIController::BeginPlay()
 
 	// Crteate Python bridge actor for interfacing with Python
 	m_pythonActor = GetWorld()->SpawnActor<AUpdateCosts_PyActor>(AUpdateCosts_PyActor::StaticClass(), FVector(), FRotator());
+	if (!IsValid(m_pythonActor))
+	{
+		UE_LOG(LogGOAP, Error, TEXT("Unable to find PythonActor in scene. Unable to execute any Python"))
+	}
 
 	// Load save game to see if user enabled participation
 	UProjectBossSaveGame* saveGame = UProjectVersionBlueprint::LoadSaveGame();
@@ -372,6 +376,12 @@ void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences
 
 void AGOAPAIController::UpdateActionCostsFromML()
 {
+	if (!IsValid(m_pythonActor))
+	{
+		UE_LOG(LogGOAP, Error, TEXT("No reference to PythonActor"));
+		return;
+	}
+
 	UE_LOG(LogML, Log, TEXT("---\nUpdating all GOAP Actions with new ML costs..."));
 
 	// Get all goap actions and iterate

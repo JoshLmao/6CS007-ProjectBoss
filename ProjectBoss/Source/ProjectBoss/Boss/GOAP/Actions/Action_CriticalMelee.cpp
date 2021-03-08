@@ -39,7 +39,7 @@ bool UAction_CriticalMelee::doAction(APawn* p)
 
 	ABossCharacter* boss = Cast<ABossCharacter>(p);
 	
-	if (!m_eventBound)
+	if (!m_eventBound && boss)
 	{
 		boss->OnMeleeSucceeded.AddDynamic(this, &UAction_CriticalMelee::MeleeSuccess);
 		m_eventBound = true;
