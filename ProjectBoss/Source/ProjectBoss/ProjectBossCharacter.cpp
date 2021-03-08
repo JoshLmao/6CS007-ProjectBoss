@@ -1003,3 +1003,13 @@ void AProjectBossCharacter::OnJump()
 		Jump();
 	}
 }
+
+void AProjectBossCharacter::FellOutOfWorld(const UDamageType& dmgType)
+{
+	// Kill player with all their health on falling out of world
+	FDamageEvent dmgEvent;
+	this->TakeDamage(TotalHealth, dmgEvent, this->GetController(), this);
+
+	// Perform super last, destroy actor and controller
+	Super::FellOutOfWorld(dmgType);
+}

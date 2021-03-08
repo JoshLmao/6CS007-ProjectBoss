@@ -283,6 +283,8 @@ protected:
 	virtual float TakeDamage(float damageAmount, struct FDamageEvent const& damageEvent, class AController* eventInstigator, AActor* damageCauser) override;
 	// Called when level has finished play
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	// Called when character has fell out of world
+	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);

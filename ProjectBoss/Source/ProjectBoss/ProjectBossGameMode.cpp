@@ -79,10 +79,11 @@ void AProjectBossGameMode::OnBossSpawned(AActor* bossActor)
 
 void AProjectBossGameMode::OnGameOver(bool didPlayerWin)
 {
-	if (IsValid(Player) && Player->GetController())
+	AController* aCon = Player->GetController();
+	if (IsValid(Player) && IsValid(aCon))
 	{
 		// Get HUD and set state to EndPlay
-		APlayerController* pc = Cast<APlayerController>(Player->GetController());
+		APlayerController* pc = Cast<APlayerController>(aCon);
 		ABossFightHUD* hud = Cast<ABossFightHUD>(pc->GetHUD());
 		if (hud)
 		{
