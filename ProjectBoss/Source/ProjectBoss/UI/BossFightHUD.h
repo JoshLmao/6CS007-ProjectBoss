@@ -11,6 +11,7 @@ enum EHUDState
 {
 	Gameplay = 0	UMETA(DisplayName = "Gameplay"),
 	EndPlay = 1		UMETA(DisplayName = "EndPlay"),
+	PauseMenu = 2	UMETA(DisplayName = "PauseMenu"),
 };
 
 /**
@@ -32,6 +33,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<class UUserWidget>> GameplayUIWidgets;
 
+	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<class UUserWidget>> PauseMenuWidgets;
+
 	// All UI widgets used to use when boss or player dies (Play ended)
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<class UUserWidget>> EndPlayWidgets;
@@ -46,6 +50,9 @@ private:
 	// List of created end play widgets
 	UPROPERTY()
 	TArray<class UUserWidget*> m_createdEndPlayWidgets;
+	// All widgets used in the pause menu
+	UPROPERTY()
+	TArray<class UUserWidget*> m_createdPauseWidgets;
 	// Active hit marker user widget
 	UPROPERTY()
 	class UUserWidget* m_activeHitMarker;

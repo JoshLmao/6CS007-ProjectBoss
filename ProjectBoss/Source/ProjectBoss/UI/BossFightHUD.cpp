@@ -16,6 +16,7 @@ void ABossFightHUD::BeginPlay()
 	// Create all widgets and add gameplay ones to viewport
 	m_createdGameplayWidgets = CreateWidgets(GameplayUIWidgets);
 	m_createdEndPlayWidgets = CreateWidgets(EndPlayWidgets);
+	m_createdPauseWidgets = CreateWidgets(PauseMenuWidgets);
 
 	SetHUDState(EHUDState::Gameplay);
 }
@@ -58,12 +59,21 @@ void ABossFightHUD::SetHUDState(EHUDState state)
 		{
 			DisplayWidgetsOnViewport(m_createdGameplayWidgets, true);
 			DisplayWidgetsOnViewport(m_createdEndPlayWidgets, false);
+			DisplayWidgetsOnViewport(m_createdPauseWidgets, false);
 			break;
 		}
 		case EHUDState::EndPlay:
 		{
 			DisplayWidgetsOnViewport(m_createdGameplayWidgets, false);
 			DisplayWidgetsOnViewport(m_createdEndPlayWidgets, true);
+			DisplayWidgetsOnViewport(m_createdPauseWidgets, false);
+			break;
+		}
+		case EHUDState::PauseMenu:
+		{
+			DisplayWidgetsOnViewport(m_createdGameplayWidgets, false);
+			DisplayWidgetsOnViewport(m_createdEndPlayWidgets, false);
+			DisplayWidgetsOnViewport(m_createdPauseWidgets, true);
 			break;
 		}
 		default:

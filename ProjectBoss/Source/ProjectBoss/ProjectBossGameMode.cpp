@@ -12,6 +12,7 @@
 #include "World/BossSpawnTrigger.h"
 #include "SaveData/ProjectBossSaveGame.h"
 #include "Helpers/ProjectVersionBlueprint.h"
+#include "Player/WukongPlayerController.h"
 
 AProjectBossGameMode::AProjectBossGameMode()
 {
@@ -23,6 +24,7 @@ AProjectBossGameMode::AProjectBossGameMode()
 	}
 
 	HUDClass = BP_HUD;
+	PlayerControllerClass = AWukongPlayerController::StaticClass();
 }
 
 ASessionStats* AProjectBossGameMode::GetSessionStats()
