@@ -169,6 +169,11 @@ void ABossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	UE_LOG(LogBoss, Log, TEXT("---\nBoss End Play Statistics:\n%s\n---"), *statsStr);
 	// Print character's final health
 	UE_LOG(LogBoss, Log, TEXT("Boss' Health (Current/Total): %f/%f"), GetCurrentHealth(), GetTotalHealth());
+
+	if (m_combatStats)
+	{
+		delete m_combatStats;
+	}
 }
 
 // Called every frame
@@ -864,6 +869,12 @@ void ABossCharacter::ApplyStun(float duration)
 	if (IsPerformingAbility(EAbilities::Heal))
 	{
 		OnFinishHeal();
+	}
+
+	// Cancel melee if boss is in process
+	if (IsPerformingAbility(EAbilities::Melee))
+	{
+		ResetCombo();
 	}
 }
 

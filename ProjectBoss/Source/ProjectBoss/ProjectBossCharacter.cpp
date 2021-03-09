@@ -200,12 +200,13 @@ void AProjectBossCharacter::Tick(float deltaTime)
 void AProjectBossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+	
+	PrintPlayerStats();
 
-	// Log out end statistics for the character
-	FString statsStr = m_combatStats->GetAllStatsString();
-	UE_LOG(LogBoss, Log, TEXT("---\nPlayer End Play Statistics:\n%s\n---"), *statsStr);
-	// Print character's final health
-	UE_LOG(LogBoss, Log, TEXT("Player Health (Current/Total): %f/%f"), GetCurrentHealth(), GetTotalHealth());
+	if (m_combatStats)
+	{
+		delete m_combatStats;
+	}
 }
 
 void AProjectBossCharacter::TurnAtRate(float Rate)
@@ -422,8 +423,11 @@ void AProjectBossCharacter::PerformAdvancedAttack()
 			UE_LOG(LogPlayer, Log, TEXT("Using Offensive advanced ability"));
 
 			// Add offensive advanced ability attempt
-			m_combatStats->AddAbilityAttempt(EPlayerAbilities::Offensive_AdvAbility);
-
+			if (IsValid(m_combatStats))
+			{
+				m_combatStats->AddAbilityAttempt(EPlayerAbilities::Offensive_AdvAbility);
+			}
+			
 			// Set advanced ability on cooldown and play montage
 			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
 			float playDuration = this->PlayAnimMontage(AdvancedAttackMontage);
@@ -452,9 +456,11 @@ void AProjectBossCharacter::PerformAdvancedAttack()
 			UE_LOG(LogPlayer, Log, TEXT("Using Evasive advanced ability"));
 
 			// Add evasive advanced ability attempt and success. Will always be success since no dmg is dealt
-			m_combatStats->AddAbilityAttempt(EPlayerAbilities::Evasive_AdvAbility);
-			m_combatStats->AddAbilitySuccess(EPlayerAbilities::Evasive_AdvAbility);
-
+			if (IsValid(m_combatStats))
+			{
+				m_combatStats->AddAbilityAttempt(EPlayerAbilities::Evasive_AdvAbility);
+				m_combatStats->AddAbilitySuccess(EPlayerAbilities::Evasive_AdvAbility);
+			}
 			// Set ability on cooldown and play montage
 			AdvAttackCurrentCd = AdvAttackOffensiveTotalCooldown;
 			this->PlayAnimMontage(AdvancedEvadeMontage);
@@ -541,8 +547,10 @@ void AProjectBossCharacter::PerformAbilityOne()
 			UE_LOG(LogPlayer, Log, TEXT("Using AbilityOne Offensive"));
 
 			// Add evasive ability one attempt
-			m_combatStats->AddAbilityAttempt(EPlayerAbilities::Offensive_AbilityOne);
-
+			if (IsValid(m_combatStats))
+			{
+				m_combatStats->AddAbilityAttempt(EPlayerAbilities::Offensive_AbilityOne);
+			}
 			// Set ability on cooldown and set flags
 			AbilOneCurrentCd = AbilityOneTotalCooldown;
 			m_disableLocomotionMovement = true;
@@ -581,7 +589,10 @@ void AProjectBossCharacter::PerformAbilityOne()
 			UE_LOG(LogPlayer, Log, TEXT("Using AbilityOne Evasive Cloudwalk"));
 
 			// Add evasive ability one attempt
-			m_combatStats->AddAbilityAttempt(EPlayerAbilities::Evasive_AbilityOne);
+			if (IsValid(m_combatStats))
+			{
+				m_combatStats->AddAbilityAttempt(EPlayerAbilities::Evasive_AbilityOne);
+			}
 
 			// Put ability one on cooldown
 			AbilOneCurrentCd = AbilityOneTotalCooldown;
@@ -667,12 +678,21 @@ bool AProjectBossCharacter::IsEvading()
 
 int AProjectBossCharacter::GetAbilityAttempts(EPlayerAbilities ability)
 {
-	return m_combatStats->GetAbilityAttempts(ability);
+	// Add successful attack to stats
+	if (IsValid(m_combatStats))
+	{
+		m_combatStats->AddSuccessfulAttack();
+	}
+	return 0;
 }
 
 int AProjectBossCharacter::GetAbilitySuccesses(EPlayerAbilities ability)
 {
-	return m_combatStats->GetAbilitySuccessfulAttempts(ability);
+	if (IsValid(m_combatStats))
+	{
+		return m_combatStats->GetAbilitySuccessfulAttempts(ability);
+	}
+	return 0;
 }
 
 UCombatStats* AProjectBossCharacter::GetCombatStats()
@@ -715,7 +735,10 @@ void AProjectBossCharacter::CloudwalkDisable()
 
 	// Evasive ability success end once all clouds destroyed
 	// Should always success since evasive deals no dmg
-	m_combatStats->AddAbilitySuccess(EPlayerAbilities::Evasive_AbilityOne);
+	if (IsValid(m_combatStats))
+	{
+		m_combatStats->AddAbilitySuccess(EPlayerAbilities::Evasive_AbilityOne);
+	}
 
 	// Set performing flag
 	m_isPerformingAbility = false;
@@ -861,7 +884,10 @@ void AProjectBossCharacter::OnPoleBeginOverlap(UPrimitiveComponent* OverlappedCo
 			HUDAddHitMarker();
 
 			// Add successful attack to stats
-			m_combatStats->AddSuccessfulAttack();
+			if (IsValid(m_combatStats))
+			{
+				m_combatStats->AddSuccessfulAttack();
+			}
 
 			// Play melee impact sound
 			if (AttackImpactSounds.Num() > 0)
@@ -953,7 +979,10 @@ void AProjectBossCharacter::AdvAbilityDealtDamage()
 	HUDAddHitMarker();
 
 	// Add success to combat stats
-	m_combatStats->AddAbilitySuccess(EPlayerAbilities::Offensive_AdvAbility);
+	if (IsValid(m_combatStats))
+	{
+		m_combatStats->AddAbilitySuccess(EPlayerAbilities::Offensive_AdvAbility);
+	}
 }
 
 void AProjectBossCharacter::AbilOneDealtDamage()
@@ -962,7 +991,10 @@ void AProjectBossCharacter::AbilOneDealtDamage()
 	HUDAddHitMarker();
 
 	// Add success to combat stats
-	m_combatStats->AddAbilitySuccess(EPlayerAbilities::Offensive_AbilityOne);
+	if (IsValid(m_combatStats))
+	{
+		m_combatStats->AddAbilitySuccess(EPlayerAbilities::Offensive_AbilityOne);
+	}
 }
 
 void AProjectBossCharacter::HUDAddHitMarker()
@@ -1012,4 +1044,23 @@ void AProjectBossCharacter::FellOutOfWorld(const UDamageType& dmgType)
 
 	// Perform super last, destroy actor and controller
 	Super::FellOutOfWorld(dmgType);
+}
+
+void AProjectBossCharacter::PrintPlayerStats()
+{
+	UE_LOG(LogPlayer, Log, TEXT("---\nPlayer End Play Statistics:\n"));
+	if (IsValid(m_combatStats))
+	{
+		// Log out end statistics for the character
+		FString statsStr = m_combatStats->GetAllStatsString();
+		UE_LOG(LogPlayer, Log, TEXT("%s"), *statsStr)
+	}
+	else
+	{
+		UE_LOG(LogPlayer, Error, TEXT("Unable to print end play statistics. CombatStats is not valid!"));
+	}
+
+	// Print character's final health
+	UE_LOG(LogPlayer, Log, TEXT("Player Health (Current/Total): %f/%f"), GetCurrentHealth(), GetTotalHealth());
+	UE_LOG(LogPlayer, Log, TEXT("\n---"));
 }

@@ -9,7 +9,6 @@ AWukongPlayerController::AWukongPlayerController()
 
 }
 
-
 void AWukongPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -36,7 +35,6 @@ void AWukongPlayerController::OnPerformPause()
 void AWukongPlayerController::SetIsPaused(bool isPaused)
 {
 	m_isPaused = isPaused;
-
 
 	ABossFightHUD* bossHUD = Cast<ABossFightHUD>(GetHUD());
 	// Transition to...

@@ -205,6 +205,7 @@ private:
 	// Stun timer handle
 	FTimerHandle m_stunHandle;
 	// Combat statistics tracking for the boss character
+	UPROPERTY()
 	class UCombatStats* m_combatStats;
 
 	// Taunt timer handle for when taunts are finished

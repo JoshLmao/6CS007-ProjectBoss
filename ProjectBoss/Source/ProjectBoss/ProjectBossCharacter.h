@@ -31,6 +31,7 @@ class AProjectBossCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+	// Constructor
 	AProjectBossCharacter();
 
 	/*
@@ -193,6 +194,7 @@ private:
 	class UCharacterMovementComponent* m_charMovementComponent;
 
 	// Track combat stats
+	UPROPERTY()
 	class UCombatStats* m_combatStats;
 
 	// Attacking boolean flags
@@ -352,6 +354,8 @@ private:
 
 	// Core functionality to perform a melee
 	void DoMelee();
+	// Prints all player stats, such as health and combat stats
+	void PrintPlayerStats();
 
 public:
 	/** Returns CameraBoom subobject **/
