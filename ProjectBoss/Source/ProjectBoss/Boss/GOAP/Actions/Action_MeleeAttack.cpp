@@ -47,7 +47,7 @@ bool UAction_MeleeAttack::checkProceduralPrecondition(APawn* pawn)
 #endif
 	}
 
-	if (boss->IsPerformingAbility())
+	if (IsValid(boss) && boss->IsPerformingAbility())
 	{
 		return false;
 	}

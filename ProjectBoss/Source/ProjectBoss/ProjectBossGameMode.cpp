@@ -92,6 +92,10 @@ void AProjectBossGameMode::OnGameOver(bool didPlayerWin)
 			hud->SetHUDState(EHUDState::EndPlay);
 			hud->SetFreeCursor(pc, true);
 		}
+
+		// Disable input from player
+		Player->SetDisableLocomotion(true);
+		aCon->DisableInput(pc);
 	}	
 
 	// Load save game and increment total games

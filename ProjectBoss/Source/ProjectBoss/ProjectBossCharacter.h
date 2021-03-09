@@ -277,6 +277,10 @@ public:
 	// gets the combat stats of this character
 	UFUNCTION(BlueprintCallable)
 	class UCombatStats* GetCombatStats();
+	// Set if locomotion is disabled
+	void SetDisableLocomotion(bool disabled);
+	// Gets if locomotion is currently disabled
+	bool GetLocomotionIsDisabled();
 
 protected:
 	// Called when the game starts or when spawned

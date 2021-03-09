@@ -55,6 +55,12 @@ void ABossSpawnTrigger::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponen
 		{
 			UE_LOG(LogTemp, Log, TEXT("Spawned boss character at '%s'"), *boss->GetActorLocation().ToString());
 			m_hasSpawnedBoss = true;
+
+			// Trigger spawn event
+			if (OnSpawnedBoss.IsBound())
+			{
+				OnSpawnedBoss.Broadcast(boss);
+			}
 		}
 	}
 }

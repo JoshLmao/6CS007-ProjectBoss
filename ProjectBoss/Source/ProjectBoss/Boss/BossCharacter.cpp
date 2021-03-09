@@ -169,11 +169,6 @@ void ABossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	UE_LOG(LogBoss, Log, TEXT("---\nBoss End Play Statistics:\n%s\n---"), *statsStr);
 	// Print character's final health
 	UE_LOG(LogBoss, Log, TEXT("Boss' Health (Current/Total): %f/%f"), GetCurrentHealth(), GetTotalHealth());
-
-	if (m_combatStats)
-	{
-		delete m_combatStats;
-	}
 }
 
 // Called every frame
@@ -669,7 +664,9 @@ void ABossCharacter::OnDeath()
 
 	// Broadcast Boss death event
 	if (OnCharacterDied.IsBound())
+	{
 		OnCharacterDied.Broadcast();
+	}
 }
 
 void ABossCharacter::OnBladeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

@@ -45,8 +45,8 @@ AProjectBossCharacter::AProjectBossCharacter()
 	AbilTwoCurrentCd = 0.0f;
 	Evasive_AttackRate = 0.75f;
 	Evasive_MaxMS = 700.0f;
-	Evasive_MeleeDamageAmount = 30.0f;
-	Offensive_MeleeDamageAmount = 50.0f;
+	Evasive_MeleeDamageAmount = 45.0f;
+	Offensive_MeleeDamageAmount = 85.0f;
 	Offensive_AttackRate = 1.25f;
 	Offensive_MaxMS = 600.0f;
 
@@ -202,11 +202,6 @@ void AProjectBossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 	
 	PrintPlayerStats();
-
-	if (m_combatStats)
-	{
-		delete m_combatStats;
-	}
 }
 
 void AProjectBossCharacter::TurnAtRate(float Rate)
@@ -223,8 +218,10 @@ void AProjectBossCharacter::LookUpAtRate(float Rate)
 
 void AProjectBossCharacter::MoveForward(float Value)
 {
-	if (m_disableLocomotionMovement)
+	if (GetLocomotionIsDisabled())
+	{
 		return;
+	}
 
 	if ((Controller != NULL) && (Value != 0.0f))
 	{
@@ -240,8 +237,10 @@ void AProjectBossCharacter::MoveForward(float Value)
 
 void AProjectBossCharacter::MoveRight(float Value)
 {
-	if (m_disableLocomotionMovement)
+	if (GetLocomotionIsDisabled())
+	{
 		return;
+	}
 
 	if ( (Controller != NULL) && (Value != 0.0f) )
 	{
@@ -553,7 +552,7 @@ void AProjectBossCharacter::PerformAbilityOne()
 			}
 			// Set ability on cooldown and set flags
 			AbilOneCurrentCd = AbilityOneTotalCooldown;
-			m_disableLocomotionMovement = true;
+			SetDisableLocomotion(true);
 
 			// Play montage and check it's playing
 			float playDuration = this->PlayAnimMontage(AbilityOneMontages[0]);
@@ -667,7 +666,7 @@ void AProjectBossCharacter::FinishAbilityOne()
 {
 	// Once ability has finished animation
 	UE_LOG(LogPlayer, Log, TEXT("Finished AbilityOne"));
-	m_disableLocomotionMovement = false;
+	SetDisableLocomotion(false);
 	m_isPerformingAbility = false;
 }
 
@@ -1064,3 +1063,14 @@ void AProjectBossCharacter::PrintPlayerStats()
 	UE_LOG(LogPlayer, Log, TEXT("Player Health (Current/Total): %f/%f"), GetCurrentHealth(), GetTotalHealth());
 	UE_LOG(LogPlayer, Log, TEXT("\n---"));
 }
+
+void AProjectBossCharacter::SetDisableLocomotion(bool disabled)
+{
+	m_disableLocomotionMovement = disabled;
+}
+
+bool AProjectBossCharacter::GetLocomotionIsDisabled()
+{
+	return m_disableLocomotionMovement;
+}
+
