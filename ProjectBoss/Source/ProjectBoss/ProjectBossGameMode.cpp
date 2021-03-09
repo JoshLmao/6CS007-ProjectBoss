@@ -100,22 +100,36 @@ void AProjectBossGameMode::OnGameOver(bool didPlayerWin)
 
 	// Load save game and increment total games
 	UProjectBossSaveGame* saveGame = UProjectVersionBlueprint::LoadSaveGame();
-	saveGame->TotalGames += 1;
-
-	// Increment if player did win
-	if (didPlayerWin)
+	if (!saveGame)
 	{
-		saveGame->PlayerWins += 1;
+		// If save doesn't exist, create new file
+		saveGame = NewObject<UProjectBossSaveGame>();
 	}
-	// Finally, save game once done
-	bool success = UProjectVersionBlueprint::SaveGame(saveGame);
-	if (!success)
+
+	if (saveGame)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Error when saving game!"));
+		saveGame->TotalGames += 1;
+
+		// Increment if player did win
+		if (didPlayerWin)
+		{
+			saveGame->PlayerWins += 1;
+		}
+
+		// Finally, save game once done
+		bool success = UProjectVersionBlueprint::SaveGame(saveGame);
+		if (success)
+		{
+			FString outputStr = UProjectBossSaveGame::BuildSaveGameLogString(saveGame);
+			UE_LOG(LogTemp, Log, TEXT("---\nSave Game Stats:\n%s\n---\n"), *outputStr);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Error when saving game!"));
+		}
 	}
 	else
 	{
-		FString outputStr = UProjectBossSaveGame::BuildSaveGameLogString(saveGame);
-		UE_LOG(LogTemp, Log, TEXT("---\nSave Game Stats:\n%s\n---\n"), *outputStr);
+		UE_LOG(LogTemp, Error, TEXT("Unable to increment game. Can't read save file"));
 	}
 }

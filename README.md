@@ -18,10 +18,18 @@ Make sure you install the ["Prerequisite Content"](./Prerequisites.md) for the p
 
 ### Machine Learning & Python
 
-To use machine learning, python is used with UnrealEnginePython. 
+To use machine learning, python is used with [UnrealEnginePython](https://github.com/20tab/UnrealEnginePython). 
 
 #### Python Directory
 You can specify which Python is used by changing the ```pythonHome``` variable inside ```/ProjectBoss/Plugins/UnrealEnginePython/Source/UnrealEnginePython/UnrealEnginePython.Build.cs```
 
 #### Requirements
 Install the requirements needed by running the [install-py-requirements.bat](./ProjectBoss/install-py-requirements.bat) file. To view what requirements are needed, click to view [py-requirements.txt](./ProjectBoss/py-requirements.txt)
+
+## Packaging
+
+Check out the [package guide](./Packaging.md) for more information on deploy/packaging/shipping the game
+
+## Questionnaire
+
+Once users have played at least 5 games of Project Boss, they are asked to complete [this questionnaire form](https://form.questionscout.com/604213e1c441eb9aa5882081) for feedback. The questions are relevant to their experience and also gives the users a chance to provide feedback on the game.
