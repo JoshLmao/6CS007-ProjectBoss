@@ -549,7 +549,8 @@ void ABossCharacter::OnFinishHeal()
 
 bool ABossCharacter::CanHeal()
 {
-	return CurrentHealth < (TotalHealth * PerformHealThreshold) && HealCurrentCooldown <= 0;
+	bool isInHealthThreshold = CurrentHealth < (TotalHealth* PerformHealThreshold);
+	return isInHealthThreshold && HealCurrentCooldown <= 0;
 }
 
 void ABossCharacter::UltimateTeleportTo()

@@ -510,6 +510,8 @@ void AProjectBossCharacter::AdvancedAttackLandDamage()
 
 	// Reset performing flag
 	m_isPerformingAbility = false;
+
+	UE_LOG(LogPlayer, Log, TEXT("Completed Offensive Advanced Ability"));
 }
 
 void AProjectBossCharacter::PerformAbilityOne()

@@ -66,7 +66,14 @@ void AGOAPAIController::BeginPlay()
 	if (saveGame)
 	{
 		m_saveMLData = saveGame->MLParticipation;
-		UE_LOG(LogML, Log, TEXT("ML Participation is enabled!"));
+		if (saveGame->MLParticipation)
+		{
+			UE_LOG(LogML, Log, TEXT("ML Participation is enabled!"));
+		}
+		else 
+		{
+			UE_LOG(LogML, Error, TEXT("ML Participation is disabled!"));
+		}
 	}
 
 	// Create desired world state on start
@@ -118,6 +125,7 @@ void AGOAPAIController::Tick(float deltaTime)
 	// If the player is valid and is dead, stop executing GOAP
 	if (m_player && m_player->GetCurrentHealth() <= 0)
 	{
+		// Perform taunt constantly
 		m_bossPawn->PerformTaunt();
 		return;
 	}
@@ -277,15 +285,6 @@ TArray<FAtom> AGOAPAIController::DetermineNextWorldState()
 		return targets;
 	}
 	
-	// Make boss endlessly aim to damage player if current world state isn't that already
-	/*TArray<FAtom> world = getCurrentWorldStateAtoms();
-	for (int i = 0; i < world.Num(); i++) {
-		if (world[i].name == "damage-player" && world[i].value)
-		{
-			
-		}
-	}*/
-
 	// If player is valid and has enough health
 	targets.Add(CreateAtom("damage-player", true));
 
@@ -294,13 +293,24 @@ TArray<FAtom> AGOAPAIController::DetermineNextWorldState()
 
 bool AGOAPAIController::WorldContainsAtom(FString atomName, bool state)
 {
-	for (FAtom atom : currentWorld)
+	// if the target atom is false (asking if atom isn't in world) and world has no atoms, then its true
+	if (!state && currentWorld.Num() <= 0)
 	{
-		if (atom.name == atomName && atom.value == state)
+		return true;
+	}
+
+	// Iterate only if world has states
+	if (currentWorld.Num() > 0)
+	{
+		for (FAtom atom : currentWorld)
 		{
-			return true;
+			if (atom.name == atomName && atom.value == state)
+			{
+				return true;
+			}
 		}
 	}
+
 	return false;
 }
 

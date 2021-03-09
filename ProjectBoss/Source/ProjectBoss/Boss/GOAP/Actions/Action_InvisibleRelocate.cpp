@@ -33,9 +33,21 @@ bool UAction_InvisibleRelocate::checkProceduralPrecondition(APawn* p)
 		return false;
 	}
 
+	// False if another ability is in progress
 	if (boss && boss->IsPerformingAbility())
 	{
 		return false;
+	}
+
+	if (setTarget)
+	{
+		AActor* player = getTarget();
+		AProjectBossCharacter* pbPlayer = Cast<AProjectBossCharacter>(player);
+		// Check pawn is 100 units away from player before performing
+		if (FVector::Distance(pbPlayer->GetActorLocation(), p->GetActorLocation()) < 100.0f)
+		{
+			return false;
+		}
 	}
 
 	return setTarget;

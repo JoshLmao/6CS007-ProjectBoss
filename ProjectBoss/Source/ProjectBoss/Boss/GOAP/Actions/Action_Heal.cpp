@@ -17,7 +17,7 @@ UAction_Heal::UAction_Heal()
 
 	// Effects
 	effects.Add(CreateAtom("heal", true));
-	effects.Add(CreateAtom("in-cover", false));
+	//effects.Add(CreateAtom("in-cover", false));
 
 	BossAbilityIndex = EAbilities::Heal;
 }
@@ -26,9 +26,10 @@ bool UAction_Heal::checkProceduralPrecondition(APawn* pawn)
 {
 	Super::checkProceduralPrecondition(pawn);
 
-	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
-	bool setTarget = TrySetTarget(pawn);
+	//Don't need get targetType as action is on self
 
+	// Cast to boss and check for cooldown and can heal
+	ABossCharacter* boss = Cast<ABossCharacter>(pawn);
 	if (boss)
 	{
 		if (boss->GetHealCooldown() > 0)
@@ -42,18 +43,8 @@ bool UAction_Heal::checkProceduralPrecondition(APawn* pawn)
 		}
 	}
 
-#ifdef GOAP_COSTS_TO_HEALTH_DIFF
-	if (setTarget)
-	{
-		AProjectBossCharacter* player = Cast<AProjectBossCharacter>(getTarget());
-		// Health Difference will be positive if boss has less health than Player, negative if boss has more health than Player
-		float healthDiff = UtilityHelper::GetHealthDifference(player->GetCurrentHealth(), player->GetTotalHealth(), boss->GetCurrentHealth(), boss->GetTotalHealth());
-		float smallIncrements = healthDiff / 100;
-		UpdateCost(BaseCost + smallIncrements);
-	}
-#endif
-
-	return setTarget;
+	// True. 
+	return true;
 }
 
 bool UAction_Heal::doAction(APawn* pawn)
