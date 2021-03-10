@@ -2,7 +2,7 @@
 
 In the project, I used linear regression on the training dataset to be able to create the best theta. Below is an overview of the architecture of the implemented machine learning model.
 
-![ml-architecture-overview]()
+![ml-architecture-overview](./ml-architecture.png)
 
 The system takes 4 inputs while creating one output, the final (additional) cost. The inputs are tied to one action which allows for the data to be taken from the action after executing.
 

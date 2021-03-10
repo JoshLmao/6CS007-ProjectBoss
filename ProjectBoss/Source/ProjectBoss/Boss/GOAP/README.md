@@ -6,7 +6,7 @@ The boss' actions are split up for use with GOAP.
 
 The GOAP world has 5 states that it uses to go through the setup actions. These states can be seen in the [```AGOAPAIController::GetDefaultWorldState()```](./GOAPAIController.cpp#L317) function. Below is a topdown view of all of the actions and their preconditions and effects.
 
-![GOAP actions precondition and effects]() 
+![GOAP actions precondition and effects](./goap-diagram.png) 
 
 The world mainly gets set to always use the ```damage-player``` state to perform the actions. However, as the boss can heal, if the Boss' heal ability requirements are satisfied, then the ```heal``` state will be set to allow the Boss to perform the Heal action. The world state is determined within the [```AGOAPAIController::DetermineNextWorldState()```](./GOAPAIController.cpp#L276) function
 
