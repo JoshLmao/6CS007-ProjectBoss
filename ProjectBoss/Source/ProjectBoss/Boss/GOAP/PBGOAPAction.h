@@ -82,8 +82,8 @@ public:
 	// Gets if the action succeed when it last executed
 	bool GetDidSucceed();
 
-	// Update action's cost. Adds the newCost value with the base cost
-	void UpdateCost(float newCost);
+	// Update action's cost. Adds the additionalCost value with the base cost
+	void UpdateCost(float additionalCost);
 
 protected:
 	// Override doAction called every frame to execute the action

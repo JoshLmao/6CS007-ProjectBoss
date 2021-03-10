@@ -79,10 +79,10 @@ bool UPBGOAPAction::TrySetTarget(APawn* pawn)
 	return false;
 }
 
-void UPBGOAPAction::UpdateCost(float newCost)
+void UPBGOAPAction::UpdateCost(float additionalCost)
 {
 	// Simple add newCost. Allow for negative
-	cost = BaseCost + newCost;
+	cost = BaseCost + additionalCost;
 }
 
 float UPBGOAPAction::GetAverageExecuteTime()
