@@ -30,6 +30,12 @@ Install the requirements needed by running the [install-py-requirements.bat](./P
 
 Check out the [package guide](./Packaging.md) for more information on deploy/packaging/shipping the game
 
+## Logging
+
+The project logs out useful gameplay information related to abilities, health, damage, machine learning, the GOAP system, etc. There are a handful of custom log categories that can be used to filter the logs. The full list can be [found here](./ProjectBoss/Source/ProjectBoss/ProjectBoss.cpp) under the region, ```Logs```.
+
+In the packaged build, the logs can be found at ```[PackagedBuild]/ProjectBoss/Saved/Logs/```
+
 ## Questionnaire
 
 Once users have played at least 5 games of Project Boss, they are asked to complete [this questionnaire form](https://form.questionscout.com/604213e1c441eb9aa5882081) for feedback. The questions are relevant to their experience and also gives the users a chance to provide feedback on the game.
