@@ -1,6 +1,22 @@
 # Project Boss (6CS007)
 
+
+[![releases](https://img.shields.io/badge/download-/releases/-green.svg?style=flat-square)](https://github.com/JoshLmao/6CS007-ProjectBoss/releases)
+[![contact-twitter](https://img.shields.io/badge/twitter-JoshLmao-blue.svg?style=flat-square&logo=twitter)](https://twitter.com/joshlmao)
+[![contact-website](https://img.shields.io/badge/website-joshlmao.com-lightgrey.svg?style=flat-square)](http://joshlmao.com)
+
 6CS007 year-long project artefact for implementing goal-oriented action planning (GOAP) inside UE4, where the agent is able to adapt to the enemy player's skill level. Created using Unreal Engine 4.25.4
+
+## Project Aim
+
+The aim of my project and this artefact is to see if I can use goal oriented action planning (GOAP) and machine learning to create an enemy that is able to adapt itself to the player, adjusting it's play style to match and create a challenging, but defeatable enemy. 
+
+## GOAP/ML Implementations
+
+For more information on the implementations of GOAP and ML, please read the specific ```README.md``` files for each.
+
+* [GOAP](./ProjectBoss/Source/ProjectBoss/Boss/GOAP/README.md)
+* [Machine Learning](./ProjectBoss/Source/ProjectBoss/ML/README.md)
 
 ## Plugins
 
