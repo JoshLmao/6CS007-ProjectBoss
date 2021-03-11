@@ -19,12 +19,13 @@ import random
 import decimal
 import pandas as pd
 import os 
+from datetime import datetime
 
 '''
 General parameters
 '''
 # Amount of actions to generate and write to CSV file
-ACTIONS_AMOUNT = 10
+ACTIONS_AMOUNT = 10000
 # Should an action be printed once it's generated?
 DEBUG_PRINT_ACTION_PROPERTIES = False
 # Single dimension array of strings that are names of all the GOAP actions available in Project Boss
@@ -33,7 +34,7 @@ ALL_ACTION_NAMES = [ "advanced-attack", "critical-melee", "follow", "heal", "inv
 CSV file params
 '''
 # Directory and Name of CSV file to create
-FILE_DIRECTORY = os.path.dirname(os.path.realpath(__file__)) + "/"
+FILE_DIRECTORY = os.path.dirname(os.path.realpath(__file__)) + "/"      # Set file directory to same location as python file
 FILE_NAME = "pb-rndrange-model.csv"
 # Full path of file
 FULL_FILE_PATH = FILE_DIRECTORY + FILE_NAME
@@ -51,20 +52,20 @@ EXECUTE_MIN = 0
 EXECUTE_MAX = 20
 # FINAL COST
 FINAL_COST_MIN = 1
-FINAL_COST_MAX = 20
+FINAL_COST_MAX = 10
 '''
 Final Cost Params
 '''
 # Amount of time in seconds to favour the finalCost to apply the bonus
 EXECUTE_TIME_FAVOURAILITY = 6.25
 # Bonus multipluer to give if execute time is below EXECUTE_TIME_FAVOURAILITY time 
-EXECUTE_TIME_BONUS = 1.35
+EXECUTE_TIME_BONUS = 0.65
 # Multiplier bonus to cost if wasSuccess is true
-SUCCESS_BONUS = 1.15
+SUCCESS_BONUS = 0.55
 # Multiplier penalty to an action if it isn't successful
-UNSUCCESSFUL_PENALTY = 0.45
+UNSUCCESSFUL_PENALTY = 1.65
 # Multiplier penalty to an action with no player damage
-NO_DMG_PENALTY = 0.65
+NO_DMG_PENALTY = 1.35
 
 
 '''
@@ -75,7 +76,10 @@ def rndRangeWholeNum(min, max):
     return int(val)
 
 '''
-Determine an appropriate final cost from other action factors
+Determine an appropriate final cost from other action factors.
+Note: the lower the final cost, the more likely the cost will execute.
+Bonus multiplier's should be multiplied by a 0. value to bring the value down
+Penalty multiplier's should be multiplier by a > 1. value to bring the value higher
 '''
 def determine_final_cost(baseCost, wasSuccess, dmg, execute_time):
     # Initially randomly assign final cost
@@ -150,17 +154,23 @@ def save_to_csv(csvFullFilePath, list):
     df = pd.DataFrame(list)
     # Transpose so data goes horizontally instead of vertically
     df = df.T
-    # Save to csv
+    # Save to csv. Don't print index or header, but append to existing file
     df.to_csv(csvFullFilePath, index=False, header=None, mode='a')
 
 '''
 Main
 '''
 def main():
+    start_time = datetime.now()
+
     # Get random actions for length
     rndActions = gen_rnd_actions(ACTIONS_AMOUNT, ALL_ACTION_NAMES)
     print("Genereated '", len(rndActions), "' actions")
     print("Saving to '", FULL_FILE_PATH, "'")
+
+    # Overwrite existing file message
+    if os.path.isfile(FULL_FILE_PATH):
+        print("File at path exists. Overwriting...")
 
     # Write ML header
     with open(FULL_FILE_PATH, 'w') as f:
@@ -170,6 +180,9 @@ def main():
     save_to_csv(FULL_FILE_PATH, rndActions)
     # Print output file location
     print("Saved CSV to '", FULL_FILE_PATH, "'")
+
+    end_time = datetime.now()
+    print("Wrote '", len(rndActions), "' action values in '", end_time - start_time, "'")
 
 # Run main
 main()
