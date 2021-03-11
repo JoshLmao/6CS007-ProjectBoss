@@ -357,6 +357,9 @@ void AGOAPAIController::SaveMLData(TArray<TArray<UGOAPAction*>> allPlanSequences
 				// Get the elapsed seconds on the action
 				actionData.AverageExecuteSeconds = pbAction->GetAverageExecuteTime();
 
+				// Get the last time in seconds to execute action
+				actionData.ExecuteSeconds = pbAction->GetLastExecuteTime();
+
 				// Get ability damage
 				actionData.Damage = pbAction->GetDamage();
 

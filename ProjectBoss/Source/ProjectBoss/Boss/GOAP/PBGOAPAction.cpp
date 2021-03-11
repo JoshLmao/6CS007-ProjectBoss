@@ -103,6 +103,18 @@ float UPBGOAPAction::GetAverageExecuteTime()
 	return total / m_performanceHistory.Num();
 }
 
+float UPBGOAPAction::GetLastExecuteTime()
+{
+	// If history has a result, return last return
+	if (m_performanceHistory.Num() > 0)
+	{
+		return m_performanceHistory[m_performanceHistory.Num() - 1].TimeToExecute;
+	}
+
+	// Else return default value
+	return 0.0f;
+}
+
 float UPBGOAPAction::GetSuccessRateAsPercentage()
 {
 	// If no history, just return 0

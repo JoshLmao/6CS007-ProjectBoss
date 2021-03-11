@@ -28,6 +28,8 @@ struct FMLData
 	float Damage;
 	// Average time in seconds it took to execute the action
 	float AverageExecuteSeconds;
+	// Time in seconds it took to execute the action
+	float ExecuteSeconds;
 	/*
 	*	OUTPUT
 	*/

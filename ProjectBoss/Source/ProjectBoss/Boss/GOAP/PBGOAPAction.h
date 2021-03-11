@@ -70,6 +70,8 @@ private:
 public:
 	// Returns the average time to execute this action
 	float GetAverageExecuteTime();
+	// Gets the last execution time for this action
+	float GetLastExecuteTime();
 	// Gets the success rate of this action as a percentage (0-100)
 	float GetSuccessRateAsPercentage();
 
