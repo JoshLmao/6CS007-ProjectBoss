@@ -5,11 +5,17 @@
 [![contact-twitter](https://img.shields.io/badge/twitter-JoshLmao-blue.svg?style=flat-square&logo=twitter)](https://twitter.com/joshlmao)
 [![contact-website](https://img.shields.io/badge/website-joshlmao.com-lightgrey.svg?style=flat-square)](http://joshlmao.com)
 
-6CS007 year-long project artefact for implementing goal-oriented action planning (GOAP) inside UE4, where the agent is able to adapt to the enemy player's skill level. Created using Unreal Engine 4.25.4
+6CS007 year-long project artefact for implementing goal-oriented action planning (GOAP) inside UE4, where the agent is able to adapt to the enemy player's skill level by using machine learning to adjust costs and perform actions. Created using Unreal Engine 4.25.4
 
 ## Project Aim
 
 The aim of my project and this artefact is to see if I can use goal oriented action planning (GOAP) and machine learning to create an enemy that is able to adapt itself to the player, adjusting it's play style to match and create a challenging, but defeatable enemy. 
+
+<p align="center">
+	<a href="https://youtu.be/kER2ndhfFOw">
+		<img src="https://user-images.githubusercontent.com/22716832/111204124-b95b1780-85bd-11eb-956b-1dcb62519e58.jpg" width="80%">
+	</a>
+</p>
 
 ## GOAP/ML Implementations
 
