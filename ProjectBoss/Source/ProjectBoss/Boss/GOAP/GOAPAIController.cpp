@@ -151,6 +151,7 @@ void AGOAPAIController::Tick(float deltaTime)
 					// Save last plan sequence
 					//UE_LOG(LogTemp, Log, TEXT("lastPlan and currentPlan are different! Last Action '%s' isnt equal to current '%s' action "), *lastPlan[i]->getName(), *currentPlan[i]->getName());
 					m_planSequences.Add(lastPlan);
+					PrintSequence(lastPlan);
 				}
 			}
 		}
@@ -160,6 +161,7 @@ void AGOAPAIController::Tick(float deltaTime)
 			// Save last plan sequence
 			//UE_LOG(LogTemp, Log, TEXT("lastPlan and currentPlan are different! Different lengths"))
 			m_planSequences.Add(lastPlan);
+			PrintSequence(lastPlan);
 		}
 	}
 
@@ -176,6 +178,7 @@ void AGOAPAIController::Tick(float deltaTime)
 		if (lastPlan.Num() > 0)
 		{
 			m_planSequences.Add(lastPlan);
+			PrintSequence(lastPlan);
 		}
 
 		// Update all GOAP actions with new costs from Machine Learning
@@ -412,4 +415,26 @@ void AGOAPAIController::UpdateActionCostsFromML()
 	}
 
 	UE_LOG(LogML, Log, TEXT("Completed updating GOAP actions\n---"));
+}
+
+void AGOAPAIController::PrintSequence(TArray<UGOAPAction*> sequence)
+{
+	if (sequence.Num() > 0)
+	{
+		FString message = "GOAP Sequence: ";
+		// Iterate through all actions
+		for (int i = 0; i < sequence.Num(); i++)
+		{
+			// Append name
+			message += "'" + sequence[i]->getName() + "'";
+			// Only append -> arrow if count is less than
+			if (i < sequence.Num() - 1)
+			{
+				message += "->";
+			}
+		}
+
+		// Print message
+		UE_LOG(LogGOAP, Log, TEXT("%s"), *message);
+	}
 }

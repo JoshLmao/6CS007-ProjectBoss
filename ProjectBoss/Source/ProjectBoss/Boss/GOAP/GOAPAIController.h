@@ -71,4 +71,7 @@ private:
 	void SaveMLData(TArray<TArray<class UGOAPAction*>> allPlanSequences, FString fileDirectory, FString fileName);
 	// Updates all GOAP actions with a new cost
 	void UpdateActionCostsFromML();
+
+	// Prints a sequence of GOAP actions out to log
+	void PrintSequence(TArray<class UGOAPAction*> sequence);
 };
