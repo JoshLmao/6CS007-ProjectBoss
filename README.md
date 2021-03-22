@@ -32,6 +32,7 @@ This project was made using the follow plugins:
 	* (This project contains edits to this plugin. Check [```/ProjectBoss/Plugins/GOAP/```](./ProjectBoss/Plugins/GOAP/) for source)
 * [UnrealEnginePython](https://github.com/20tab/UnrealEnginePython)
 	* (Using [davidjo](https://github.com/davidjo)'s '[Building4.25](https://github.com/20tab/UnrealEnginePython/pull/850)' branch)
+	* ([davidjo's Building4.25](https://github.com/JoshLmao/UnrealEnginePython-PB-4.25) branch cloned for backup)
 
 ## Project Install Instructions
 
