@@ -36,18 +36,18 @@ This project was made using the follow plugins:
 
 ## Project Install Instructions
 
-### Asset Prerequisites
-Make sure you install the ["Prerequisite Content"](./Prerequisites.md) for the project that includes certain models, animations and content that are too big for the repository.
+### Setup Instructions
 
-### Machine Learning & Python
+1. Clone the repository to your system
+2. Install Unreal Engine 4.25.4 & Python [v3.6.8](https://www.python.org/downloads/release/python-368/)
+3. Install the required prerequisites assets in [```Prerequisites.md```](./Prerequisites.md)
+4. Run the [install-py-requirements.bat](./ProjectBoss/install-py-requirements.bat) file to install the required Python packages
+	* Or install the Python requirements in [```py-requirements.txt```](./ProjectBoss/py-requirements.txt) if you can't run ```.bat``` files
+5. Right click ```ProjectBoss.uproject``` and select ```Generate Visual Studio project files...```
+6. Launch the project
 
-To use machine learning, python is used with [UnrealEnginePython](https://github.com/20tab/UnrealEnginePython). 
-
-#### Python Directory
+#### Set your Python Directory for UnrealEnginePython
 You can specify which Python is used by changing the ```pythonHome``` variable inside ```/ProjectBoss/Plugins/UnrealEnginePython/Source/UnrealEnginePython/UnrealEnginePython.Build.cs```
-
-#### Requirements
-Install the requirements needed by running the [install-py-requirements.bat](./ProjectBoss/install-py-requirements.bat) file. To view what requirements are needed, click to view [py-requirements.txt](./ProjectBoss/py-requirements.txt)
 
 ## Packaging
 
