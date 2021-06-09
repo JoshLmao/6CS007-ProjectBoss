@@ -17,6 +17,12 @@ The aim of my project and this artefact is to see if I can use goal oriented act
 	</a>
 </p>
 
+## Dissertation Report
+
+The final dissertation report can be found [here](./Project-Boss-Dissertation-Report-v1.0.pdf), which was completed for my final year of university at University of Wolverhampton in 2021. The report contains a literature review of the main elements of the artefact, as well as design, implementation and experimentation sections.
+
+**Dissertation Report:** [Project Boss Report v1.0](./Project-Boss-Dissertation-Report-v1.0.pdf)
+
 ## GOAP/ML Implementations
 
 For more information on the implementations of GOAP and ML, please read the specific ```README.md``` files for each.
